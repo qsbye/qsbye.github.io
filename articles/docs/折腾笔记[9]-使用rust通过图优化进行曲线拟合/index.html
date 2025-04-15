@@ -1,0 +1,819 @@
+<!doctype html><html lang=zh-CN><head><title>折腾笔记[9]-使用rust通过图优化进行曲线拟合 | ByeIO·开发者博客</title><meta content=ByeIO·开发者博客 property=og:site_name><meta content=article property=og:type><meta content=折腾笔记[9]-使用rust通过图优化进行曲线拟合 property=og:title><meta content=//articles/docs/折腾笔记[9]-使用rust通过图优化进行曲线拟合/ property=og:url><meta content="使用rust通过图优化方式进行二次曲线拟合.Using Rust to perform quadratic curve fitt…" property=og:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp property=og:image><meta content=summary_large_image name=twitter:card><meta content=折腾笔记[9]-使用rust通过图优化进行曲线拟合 name=twitter:title><meta content=//articles/docs/折腾笔记[9]-使用rust通过图优化进行曲线拟合/ name=twitter:url><meta content="使用rust通过图优化方式进行二次曲线拟合.Using Rust to perform quadratic curve fitt…" name=twitter:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp name=twitter:image><meta content="使用rust通过图优化方式进行二次曲线拟合.Using Rust to perform quadratic curve fitting through graph optimization." name=description><script id=ld-json type=application/ld+json>
+        {
+          "@context": "https://schema.org/",
+          "@type": "Article",
+          "headline": "折腾笔记[9]-使用rust通过图优化进行曲线拟合",
+          "author": {
+            "@type": "Person",
+            "name": "qsbye",
+            "url": "/about"
+          },
+          "image": "/processed_images/img00006.c4abedc898f992a6.webp",
+          "datePublished": "2025-01-01T00:00:00+00:00",
+          
+          "description": "使用rust通过图优化方式进行二次曲线拟合.Using Rust to perform quadratic curve fitting through graph optimization."
+        }
+    </script><meta charset=UTF-8><meta content="IE=edge" http-equiv=X-UA-Compatible><meta content="width=device-width,initial-scale=1" name=viewport><meta content="telephone=no" name=format-detection><meta content=var(--wjx-card-bg) name=theme-color><link href=/manifest.json rel=manifest><link href=/img/avatar.png rel=icon type=image/x-icon><link href=/img/avatar.png rel=apple-touch-icon><link href=/img/avatar.png rel=bookmark><link href=/img/avatar.png rel=apple-touch-icon-precomposed sizes=180x180><script src=/libs/jquery/jquery-3.7.1.min.js></script><script src=/libs/pjax/pjax.min.js></script><script src=/production/js/utils.js></script><link href=/production/css/blog.css rel=stylesheet><link href=/css/custom.css rel=stylesheet><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/snackbar/snackbar.min.css rel=preload><noscript><link href=/libs/snackbar/snackbar.min.css rel=stylesheet></noscript><script>// Added non-passive event listener
+  !function(e){"function"==typeof define&&define.amd?define(e):e()}(function(){var e,t=["scroll","wheel","touchstart","touchmove","touchenter","touchend","touchleave","mouseout","mouseleave","mouseup","mousedown","mousemove","mouseenter","mousewheel","mouseover"];if(function(){var e=!1;try{var t=Object.defineProperty({},"passive",{get:function(){e=!0}});window.addEventListener("test",null,t),window.removeEventListener("test",null,t)}catch(e){}return e}()){var n=EventTarget.prototype.addEventListener;e=n,EventTarget.prototype.addEventListener=function(n,o,r){var i,s="object"==typeof r&&null!==r,u=s?r.capture:r;(r=s?function(e){var t=Object.getOwnPropertyDescriptor(e,"passive");return t&&!0!==t.writable&&void 0===t.set?Object.assign({},e):e}(r):{}).passive=void 0!==(i=r.passive)?i:-1!==t.indexOf(n)&&!0,r.capture=void 0!==u&&u,e.call(this,n,o,r)},EventTarget.prototype.addEventListener._original=e}});</script><script>((win) => {
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return;
+        const now = new Date();
+        const expiryDay = ttl * 86400000;
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        };
+        localStorage.setItem(key, JSON.stringify(item));
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key);
+
+        if (!itemStr) {
+          return undefined;
+        }
+        const item = JSON.parse(itemStr);
+        const now = new Date();
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key);
+          return undefined;
+        }
+        return item.value;
+      },
+    };
+
+    win.getScript = (url) =>
+      new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+        script.async = true;
+        script.onerror = reject;
+        script.onload = script.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          script.onload = script.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+
+    win.getCSS = (url, id = false) =>
+      new Promise((resolve, reject) => {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = url;
+        if (id) link.id = id;
+        link.onerror = reject;
+        link.onload = link.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          link.onload = link.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(link);
+      });
+
+    win.activateDarkMode = function () {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.classList.add("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    win.activateLightMode = function () {
+      document.documentElement.setAttribute("data-theme", "light");
+      document.documentElement.classList.remove("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    const t = saveToLocal.get("theme");
+
+    const isDarkMode = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const isLightMode = window.matchMedia(
+      "(prefers-color-scheme: light)"
+    ).matches;
+    const isNotSpecified = window.matchMedia(
+      "(prefers-color-scheme: no-preference)"
+    ).matches;
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified;
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode();
+      else if (isDarkMode) activateDarkMode();
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date();
+        const hour = now.getHours();
+        const isNight = hour <= 6 || hour >= 18;
+        isNight ? activateDarkMode() : activateLightMode();
+      }
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addListener(function (e) {
+          if (saveToLocal.get("theme") === undefined) {
+            e.matches ? activateDarkMode() : activateLightMode();
+          }
+        });
+    } else if (t === "light") activateLightMode();
+    else activateDarkMode();
+
+    if ("system" === "dark")
+      activateDarkMode();
+    else activateLightMode();
+
+    const asideStatus = saveToLocal.get("aside-status");
+    if (asideStatus !== undefined) {
+      if (asideStatus === "hide") {
+        document.documentElement.classList.add("hide-aside");
+      } else {
+        document.documentElement.classList.remove("hide-aside");
+      }
+    }
+  })(window);</script><script data-pace-options='{ "restartOnRequestAfter":false,"eventLag":false}' src=/libs/pace/pace.min.js></script><script defer src=/libs/clipboard/clipboard.min.js></script><script src=/libs/countup/countup.js></script><link href=/icon/font.css rel=stylesheet><style>[data-theme=light]{--wjx-theme:#425aef!important;--wjx-theme-op:#425aef23!important;--wjx-theme-op-deep:#425aefdd!important;--wjx-theme-none:#425aef00!important}[data-theme=dark]{--wjx-theme:#f2b94b!important;--wjx-theme-op:#f2b94b23!important;--wjx-theme-op-deep:#f2b94bdd!important;--wjx-theme-none:#f2b94b00!important}:root{--halo-comment-widget-component-card-bg:var(--wjx-card-bg);--halo-comment-widget-component-theme-op:var(--wjx-theme-op);--halo-comment-widget-component-card-border:var(--wjx-card-border);--halo-comment-widget-component-shadow-border:var(--wjx-shadow-border);--halo-comment-widget-component-secondtext:var(--wjx-secondtext);--halo-comment-widget-component-lighttext:var(--wjx-lighttext);--halo-comment-widget-component-secondbg:var(--wjx-secondbg);--halo-comment-widget-component-fontcolor:var(--wjx-fontcolor);--halo-comment-widget-component-main:var(--wjx-main);--halo-comment-widget-component-background:var(--wjx-background);--halo-comment-widget-component-white:var(--wjx-white);--halo-comment-widget-component-shadow-black:var(--wjx-shadow-black)}#page{--halo-comment-widget-component-padding:1rem}.color-scheme-dark,.dark,[data-color-scheme=dark]{--halo-search-widget-color-modal-layer:var(--wjx-maskbgdeep);--halo-search-widget-color-modal-content-bg:var(--wjx-card-bg);--halo-search-widget-color-form-input:#fffc;--halo-search-widget-color-form-input-placeholder:#6b7280d9;--halo-search-widget-color-form-input-bg:var(--wjx-card-bg);--halo-search-widget-color-form-divider:#bbbbbb0f;--halo-search-widget-color-result-item-bg:var(--wjx-card-bg);--halo-search-widget-color-result-item-hover-bg:#90939914;--halo-search-widget-color-result-item-title:#fffc;--halo-search-widget-color-result-item-content:#ffffff82;--halo-search-widget-color-command-kbd-item:#c0c4ccb3;--halo-search-widget-color-command-kbd-border:#bbbbbb0f;--halo-search-widget-color-result-empty:#6b7280d9}[data-theme=light]{--halo-search-widget-color-result-item-title:#4b5563}</style><script id=site-config>var GLOBAL_CONFIG = {
+        
+                
+        
+        
+        
+        
+        htmlType: "post",
+        postTitle: "折腾笔记[9]-使用rust通过图优化进行曲线拟合",
+        isPost: true,
+        isHome: false,
+        passageTip: {
+            enable: true,
+            day: 60,
+        },
+        copyright: {
+            enable: false,
+            limitCount: 10,
+            languages: {
+                author: " 作者：qsbye",
+                link: " 链接：",
+                source: " 来源：ByeIO·开发者博客",
+                info: " 提示：著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处并保留原文链接。"
+            }
+        },
+        lightbox: 'fancybox',
+        rightMenuEnable: true,
+        lazyload: {
+            enable: true,
+            error: "/img/404.svg"
+        },
+        isFriendLinksInFooter: true,
+        loadingBox: true,
+        progress_bar: true,
+        navMusicEnable: false,
+        isMusic: false,
+        helloText: ["🤖️ 数码科技爱好者","🔯 全栈架构都在行","🏠 智能家居小能手","🤝 科研科普两不误","🎵 业余原创音乐人","🏃 文艺青年细节控","🔍 探索世界涉猎广","🤛 热爱分享交朋友"],
+        profileStyle: "one",
+        enable: true,
+        keyboard: true,
+        date_suffix: {
+            just: '刚刚',
+            min: '分钟前',
+            hour: '小时前',
+            day: '天前',
+            month: '个月前'
+        },
+        Snackbar: {
+            chs_to_cht: "你已切换为繁体",
+            cht_to_chs: "你已切换为简体",
+            day_to_night: "你已切换为深色模式",
+            night_to_day: "你已切换为浅色模式",
+            bgLight: "#425AEF",
+            bgDark: "#f2b94b",
+            position: "top-center"
+        },
+        translate: {
+            defaultEncoding: "2",
+            translateDelay: 0,
+            msgToTraditionalChinese: "繁",
+            msgToSimplifiedChinese: "简",
+            rightMenuMsgToTraditionalChinese: "轉為繁體",
+            rightMenuMsgToSimplifiedChinese: "转为简体"
+        },
+        prism: {
+            enable: true,
+            enable_title: true,
+            enable_hr: true,
+            enable_line: true,
+            enable_copy: true,
+            enable_expander: true,
+            prism_limit: 330,
+            enable_height_limit: false
+        },
+        
+        source: {
+            power: {
+                powerLink: "/",
+                showNum: 3
+            },
+            links: {
+                linksUrl: "/friends",
+                linksNum: 3
+            },
+            jQuery: '/libs/jquery/jquery.min.js',
+            justifiedGallery: {
+                js: '/libs/justified-gallery/fjGallery.min.js',
+                css: '/libs/justified-gallery/fjGallery.css'
+            },
+            fancybox: {
+                js: '/libs/fancybox/jquery.fancybox.min.js',
+                css: '/null'
+            },
+            comments: {
+                use: "twikoo",
+                maxBarrage: 1,
+                barrageTime: 4000,
+                mailMd5: "",
+                lazyload: false,
+                textarea: "el-textarea__inner"
+            },
+            post: {
+                dynamicBackground: true
+            },
+            tool: {
+                switch: false
+            },
+            postAi: {
+                
+                gptName: "本地",
+                modeName: "local"
+            },twikoo: {
+                js: "/libs/twikoo/twikoo.all.min.js",
+                twikooUrl: "https://your-api-url",
+            },
+            footer: {
+                default_enable: true
+            },
+            about: {
+                
+                rewardList: [],
+                rewardAmount: 10
+            }
+        }
+    };</script><style id=wjx-theme-styles>:root{--wjx-main:var(--wjx-theme)!important;--wjx-main-op:var(--wjx-theme-op)!important;--wjx-main-op-deep:var(--wjx-theme-op-deep)!important;--wjx-main-op-light:var(--wjx-theme-op-light)!important;--wjx-main-none:var(--wjx-theme-none)!important}</style><script>document.addEventListener('pjax:send', function () {
+      // removeEventListener toc scroll
+      window.removeEventListener('scroll', window.tocScrollFn);
+      typeof preloader === 'object' && preloader.initLoading();
+      
+      if (window.aplayers) {
+          for (let i = 0; i < window.aplayers.length; i++) {
+              if (!window.aplayers[i].options.fixed) {
+                  window.aplayers[i].destroy()
+              }
+          }
+      }
+      
+      typeof typed === 'object' && typed.destroy();
+      typeof window.initializationRegistry === 'object' && window.initializationRegistry.clear();
+      
+      //reset readmode
+      const $bodyClassList = document.body.classList
+      $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+  })
+  document.addEventListener('pjax:complete', function () {
+      window.refreshFn();
+      
+      document.querySelectorAll('script[data-pjax]').forEach(item => {
+                  const newScript = document.createElement('script')
+                  const content = item.text || item.textContent || item.innerHTML || ""
+                  Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+                  newScript.appendChild(document.createTextNode(content))
+                  item.parentNode.replaceChild(newScript, item)
+              }
+      );
+
+      typeof chatBtnFn === 'function' && chatBtnFn();
+      typeof panguInit === 'function' && panguInit();
+      
+      // google analytics
+      typeof gtag === 'function' && gtag('config', '', {
+          'page_path': window.location.pathname
+      });
+      
+      // baidu analytics
+      typeof _hmt === 'object' && _hmt.push(['_trackPageview', window.location.pathname]);
+      
+      typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting();
+      
+      // Analytics
+      if (false) {
+          MtaH5.pgv()
+      }
+      
+      // prismjs
+      typeof Prism === 'object' && Prism.highlightAll();
+      
+      typeof preloader === 'object' && preloader.endLoading();
+  })
+  document.addEventListener('pjax:error', (e) => {
+      if (e.request.status === 404 || e.request.status === 500) {
+          window.location.href = e.request.responseURL;
+      }
+  })</script><script data-pjax src=/production/js/main.js></script><script>let initTop = 0
+  let isChatShow = true
+  const innerHeight = window.innerHeight + 0
+  window.addEventListener('scroll', btf.throttle(function (e) {
+    const $rightside = document.getElementById('rightside')
+
+    const $header = document.getElementById('page-header')
+    const $cookies_window = document.getElementById('cookies-window')
+    const isChatBtnHide = typeof chatBtnHide === 'function'
+    const isChatBtnShow = typeof chatBtnShow === 'function'
+  
+    const currentTop = window.scrollY || document.documentElement.scrollTop
+    // 找到滚动方向 true is down & false is up
+    const isDown = currentTop > initTop
+    initTop = currentTop
+    if (currentTop > 0) {
+        if (isDown) {
+            if ($header.classList.contains('nav-visible')) $header.classList.remove('nav-visible')
+            if (isChatBtnShow && isChatShow === true) {
+                chatBtnHide()
+                isChatShow = false
+            }
+        } else {
+            if (!$header.classList.contains('nav-visible')) $header.classList.add('nav-visible')
+            if (isChatBtnHide && isChatShow === false) {
+                chatBtnShow()
+                isChatShow = true
+            }
+        }
+        $header.classList.add('nav-fixed')
+        if($cookies_window!=null && $cookies_window!=''){
+            $cookies_window.classList.add('cw-hide')
+        }
+        if ($rightside && window.getComputedStyle($rightside).getPropertyValue('opacity') === '0') {
+            $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+        }
+    } else {
+        if (currentTop === 0) {
+            $header.classList.remove('nav-fixed', 'nav-visible')
+        }
+        $rightside.style.cssText = "opacity: ''; transform: ''"
+    }
+    if (document.body.scrollHeight <= innerHeight) {
+        $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+    }
+  }, 200))</script><script defer src=/libs/katex/katex.min.js></script><body><style>#loading-box{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}#loading-box .loading-bg{background:var(--wjx-card-bg);z-index:1999;opacity:1;pointer-events:all;width:100%;height:100%;transition:all .2s;animation:.3s backwards showLoading;display:flex;position:fixed}#loading-box.loaded .loading-bg{pointer-events:none;transition:all .2s;animation:.3s forwards hideLoading}#loading-box .loading-img{width:100px;height:100px;margin:auto;animation-name:loadingAction;animation-duration:.2s;animation-iteration-count:infinite;animation-direction:alternate;overflow:hidden}#loading-box .loading-image-dot{background:#6bdf8f;border:6px solid #fff;border-radius:50%;width:30px;height:30px;position:absolute;top:50%;left:50%;-webkit-transform:translate(18px,24px);-moz-transform:translate(18px,24px);-ms-transform:translate(18px,24px);-o-transform:translate(18px,24px);transform:translate(18px,24px)}@keyframes loadingAction{0%{opacity:1}to{opacity:.6}}@keyframes hideLoading{0%{opacity:1}to{opacity:0}}@keyframes showLoading{0%{opacity:0}to{opacity:1}}</style><div id=loading-box onclick=wjx.hideLoading()><div class=loading-bg><picture class=loading-img style=border-radius:50%;width:100px;height:100px><source media="(min-width: 1em)" srcset=/processed_images/logo.21eeb8b123e2a315.avif><img alt=Loading decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp><noscript><img decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp></noscript></picture><div class=loading-image-dot></div></div></div><script>var preloader = {
+            endLoading: () => {
+                //- document.body.style.overflow = 'auto';
+                document.getElementById('loading-box').classList.add("loaded")
+            },
+            initLoading: () => {
+                //- document.body.style.overflow = '';
+                document.getElementById('loading-box').classList.remove("loaded")
+            }
+        }
+        window.addEventListener('load', preloader.endLoading())
+        setTimeout(function () {
+            preloader.endLoading();
+        }, 3000)</script><div id=an_music_bg></div><div class=post data-type=post id=body-wrap><header class=post-bg id=page-header><nav class=show id=nav><div id=nav-group><div id=blog_name><div class=back-home-button tabindex=-1><i class="nav-icon back-home-button-icon icon-apps-fill" style=font-size:1rem></i><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div></div><a class="nav-item icon-home" data-pjax href=/ id=site-name title=返回博客主页> <span>ByeIO·开发者博客</span> </a></div><div id=page-name-mask><div id=page-name><a clase=nav-item id=page-name-text onclick=btf.scrollToDest(0,500)> 折腾笔记[9]-使用rust通过图优化进行曲线拟合 </a></div></div><div id=menus><div class=menus_items><div class=menus_item><button class="site-page nav-item"><span>文库</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/archives> <i class=icon-book-open style=font-size:.9em></i> <span>全部文章</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/categories> <i class=icon-folder-open style=font-size:.9em></i> <span>分类列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags> <i class=icon-tags style=font-size:.9em></i> <span>标签列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:toRandomPost()> <i class=icon-artstation style=font-size:.9em></i> <span>随机文章</span> </a></div></div></div><div class=menus_item><a class="site-page nav-item" href=/tags/work> <span>推荐</span> </a><div class="menus_item_child vertical_nav"><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/docs/readme> <i class=icon-music style=font-size:.9em></i> <span>博客主题介绍</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/misc/lorem-ipsum> <i class=icon-music style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>友链</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/friends> <i class=icon-link style=font-size:.9em></i> <span>友链列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:travelling()> <i class=icon-paper-plane style=font-size:.9em></i> <span>随机发现</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>我的</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/about> <i class=icon-rocket style=font-size:.9em></i> <span>关于本人</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/equipment> <i class=icon-artstation style=font-size:.9em></i> <span>我的装备</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags/project> <i class=icon-lightbulb style=font-size:.9em></i> <span>我的项目</span> </a></div></div></div></div></div><div id=nav-right><div class=nav-button id=randomPost_button><button class="site-page nav-item" href=javascript:void(0); onclick=toRandomPost() title=随机文章><i class="nav-icon icon-dice"></i></button></div><div class=nav-button id=darkmode_button><button class="site-page console_switchbutton nav-item" title="切换模式 - 日夜交替，黑白互换。" href=javascript:void(0); onclick=navFn.switchDarkMode();><i class="nav-icon icon-moon-clear-fill" style=font-size:1rem></i></button></div><div class=nav-button id=nav-console><button class="site-page console_switchbutton nav-item" href=javascript:void(0); onclick=wjx.showConsole() title=显示中控台><i class="nav-icon icon-dashboard"></i></button></div><div class=nav-button id=nav-totop onclick=btf.scrollToDest(0,500)><button class="totopbtn nav-item"><i class="nav-icon icon-arrow-up" style=font-size:1rem></i><span id=percent>0</span></button></div><div id=toggle-menu><button class="site-page nav-item"><i class="nav-icon icon-bars"></i></button></div></div></div></nav><div class="coverdiv loaded" id=coverdiv><img alt=cover class=nolazyload decoding=async id=post-cover loading=lazy src=/processed_images/img00006.c4abedc898f992a6.webp></div><div id=post-info><div id=post-firstinfo><div class=meta-firstline><a class=post-meta-original href=/copyright title=该文章为原创文章，注意版权协议>原创</a><span class=post-meta-categories> <a href=/categories/theme/ title=主题> 主题 </a> </span><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/ title=博客> <span class="tags-name tags-punctuation">博客</span> </a><a class=post-meta__tags href=/tags/docs/ title=文档> <span class="tags-name tags-punctuation">文档</span> </a><a class=post-meta__tags href=/tags/featured/ title=必看> <span class="tags-name tags-punctuation">必看</span> </a><a class=post-meta__tags href=/tags/hot/ title=热门> <span class="tags-name tags-punctuation">热门</span> </a></div></div></div></div><h1 class=post-title>折腾笔记[9]-使用rust通过图优化进行曲线拟合</h1><div id=post-meta><div class=meta-secondline><span class=post-meta-author data-flag-title=文章作者 title=文章作者> <i class="icon-zuozhe post-meta-icon"></i>qsbye </span><span class=post-meta-wordcount> <i class="icon-file-word post-meta-icon" title=字数></i> <span class=post-meta-label>字数:</span> <span class=word-count>3731</span> <span class=post-meta-separator></span> <i class="icon-clock post-meta-icon" title=阅读耗时></i> <span class=post-meta-label>阅读耗时:</span> <span> 19 分钟</span> </span><span class=post-meta-date> <i class="icon-calendar-days post-meta-icon"></i> <time title="2025-01-01 00:00:00" datetime=2025-01-01> 2025/01/01 </time> </span><span class=post-meta-wechat title=该文章在博客首发> <i class="icon-rss post-meta-icon"></i>博客独享 </span><a class=post-meta-pv data-flag-title=热度 title=热度> <i class="icon-fire post-meta-icon"></i> <span class=post-meta-label>热度:</span> <span id=twikoo_visitors> <i class="icon-spinner fa-spin"></i> </span> </a><a class=post-meta-commentcount data-flag-title=评论数 href=#post-comment title=评论数> <i class="icon-chat--fill post-meta-icon" style=font-size:17px></i> <span class=post-meta-label>评论:</span> <span id=twikoo-count> <i class="icon-spinner fa-spin"></i> </span> </a></div></div></div><section class="main-hero-waves-area waves-area"><svg viewbox="0 24 150 28" class=waves-svg preserveaspectratio=none shape-rendering=auto xlink=http://www.w3.org/1999/xlink xmlns=http://www.w3.org/2000/svg><defs><path d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z" id=gentle-wave></path></defs><g class=parallax><use href=#gentle-wave x=48 y=0></use><use href=#gentle-wave x=48 y=3></use><use href=#gentle-wave x=48 y=5></use><use href=#gentle-wave x=48 y=7></use></g></svg></section></header><main class="layout right-aside" id=content-inner><div id=post><div id=abstract-container><div class=abstract-title><i class=icon-bilibili></i><div class=abstract-title-text>文章摘要</div><div id=abstract-tag>本地</div></div><div id=abstract-content style=display:block>使用rust通过图优化方式进行二次曲线拟合.Using Rust to perform quadratic curve fitting through graph optimization.</div><div class=abstract-btn-box><div class=abstract-btn-item id=abstract-intro>介绍自己</div><div class=abstract-btn-item id=abstract-generate>生成本文简介</div><div class=abstract-btn-item id=abstract-recommend>推荐相关文章</div><div class=abstract-btn-item id=abstract-home>前往主页</div><div class=abstract-btn-item id=abstract-hide style=margin-left:auto>隐藏本摘要</div></div></div><div class="note simple warning" data-tip-enable=true data-update-date=2025-01-01 id=passage-tip></div><article class="post-content line-numbers" id=article-container><h2 id=zhai-yao>摘要</h2><p>使用rust通过图优化方式进行二次曲线拟合. Using Rust to perform quadratic curve fitting through graph optimization.<h2 id=guan-jian-ci>关键词</h2><p>rust;g2o;Graph Optimization;<h2 id=guan-jian-xin-xi>关键信息</h2><p><strong>项目地址</strong>:[https://github.com/ByeIO/slambook2.rs], 配置文件:<pre class=language-toml data-lang=toml><code class=language-toml data-lang=toml>[package]
+name = "exp65-rust-ziglang-slambook2"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+env_logger = { version = "0.11.6", default-features = false, features = [
+    "auto-color",
+    "humantime",
+] }
+
+# 随机数
+rand = "0.8.5"
+rand_distr = "0.4.3"
+fastrand = "2.3.0"
+
+# 线性代数
+nalgebra = { version = "0.33.2",features = ["rand"]}
+ndarray = "0.16.1"
+
+# winit
+wgpu = "23.0.1"
+winit = "0.30.8"
+
+# egui
+eframe = "0.30.0"
+egui = { version = "0.30.0", features = [
+    "default"
+]}
+egui_extras = {version = "0.30.0",features = ["default", "image"]}
+
+# three_d
+three-d = {path = "./static/three-d" , features=["egui-gui"] }
+three-d-asset = {version = "0.9",features = ["hdr", "http"] }
+
+# sophus
+sophus = { version = "0.11.0" }
+sophus_autodiff = { version = "0.11.0" }
+sophus_geo = "0.11.0"
+sophus_image = "0.11.0"
+sophus_lie = "0.11.0"
+sophus_opt = "0.11.0"
+sophus_renderer = "0.11.0"
+sophus_sensor = "0.11.0"
+sophus_sim = "0.11.0"
+sophus_spline = "0.11.0"
+sophus_tensor = "0.11.0"
+sophus_timeseries = "0.11.0"
+sophus_viewer = "0.11.0"
+tokio = "1.43.0"
+approx = "0.5.1"
+bytemuck = "1.21.0"
+thingbuf = "0.1.6"
+
+# rust-cv
+cv = { version = "0.6.0" , features = ["default"] }
+cv-core = "0.15.0"
+cv-geom = "0.7.0"
+cv-pinhole = "0.6.0"
+akaze = "0.7.0"
+eight-point = "0.8.0"
+lambda-twist = "0.7.0"
+image = "0.25.5"
+
+# 最小二乘优化
+gomez = "0.5.0"
+
+# 图优化
+factrs = "0.2.0"
+
+# 依赖覆盖
+[patch.crates-io]
+pulp = { path = "./static/pulp" }
+</code></pre><h2 id=yuan-li-jian-jie>原理简介</h2><h3 id=tu-you-hua-jian-jie>图优化简介</h3><p>[https://www.cnblogs.com/gaoxiang12/p/5244828.html] 图优化将优化问题表示为图结构，包含顶点（优化变量）和边（观测方程）。 图是由顶点（Vertex）和边（Edge）组成的结构，而图论则是研究图的理论。 "图优化" 是指在图结构上进行优化计算的技术，通常用于解决涉及多个变量和约束的复杂问题。它在计算机视觉、机器人导航（如SLAM）、传感器校准等领域有广泛应用。图优化的核心思想是将问题建模为图，其中节点表示变量，边表示约束或误差项，通过优化算法（如高斯-牛顿法、列文伯格-马夸尔特法）来最小化误差，从而求解出最优的变量值。 　　边是什么呢？一条边连接着若干个顶点，表示顶点之间的一种关系。边可以是有向的或是无向的，对应的图称为有向图或无向图。边也可以连接一个顶点（Unary Edge，一元边）、两个顶点（Binary Edge，二元边）或多个顶点（Hyper Edge，多元边）。最常见的边连接两个顶点。当一个图中存在连接两个以上顶点的边时，称这个图为超图（Hyper Graph）。而SLAM问题就可以表示成一个超图。<p>图优化流程<ol><li><p><strong>选择节点与边的类型</strong><br> 确定图中节点和边的类型，并选择它们的参数化形式。</p> <ul><li>节点：通常表示状态变量（如位姿、路标点等）。<li>边：表示节点之间的约束（如观测模型、运动模型等）。</ul><li><p><strong>添加节点和边</strong><br> 将实际的节点和边添加到图中，构建图结构。</p><li><p><strong>选择初值</strong><br> 为节点变量选择初始值，作为优化的起点。</p><li><p><strong>迭代优化</strong><br> 开始迭代优化，每一步迭代包括以下步骤：</p> <ul><li><strong>计算雅可比矩阵和海塞矩阵</strong><br> 根据当前估计值，计算误差函数对状态变量的雅可比矩阵 $J$ 和海塞矩阵 $H$： $$ H = J^T J $$</ul></ol><p>$$ b = J^T e $$<p>其中 $e$ 是误差向量。<ul><li><strong>求解稀疏线性方程</strong><br> 求解线性方程：</ul><p>$$ H_k \Delta x = -b_k $$<p>得到梯度方向 $\Delta x$。<ul><li><strong>更新状态变量</strong><br> 使用高斯-牛顿（GN）或列文伯格-马夸特（LM）方法更新状态变量： $$ x_{k+1} = x_k + \Delta x $$</ul><ol start=5><li><strong>判断收敛</strong><br> 如果迭代收敛（如误差小于阈值或达到最大迭代次数），返回优化值；否则继续迭代。</ol><h3 id=g2oku-jian-jie>g2o库简介</h3><p>[https://openslam-org.github.io/g2o.html] [https://github.com/RainerKuemmerle/g2o] [https://github.com/RainerKuemmerle/g2o/releases/download/20241228_git/g2o.pdf] g2o 是一个开源的 C++ 框架，用于优化基于图的非线性误差函数。g2o 的设计目标是使其能够轻松扩展到各种问题，通常只需几行代码即可指定一个新问题。当前的实现提供了对多种 SLAM（同步定位与地图构建）和 BA（捆绑调整）变体的解决方案。<p>在机器人学和计算机视觉领域，许多问题都涉及最小化可以表示为图的非线性误差函数。典型的例子包括同步定位与地图构建（SLAM）或捆绑调整（BA）。这些问题的总体目标是找到能够最大程度解释一组受高斯噪声影响的测量值的参数配置或状态变量。g2o 是一个针对此类非线性最小二乘问题的开源 C++ 框架。g2o 的设计使其能够轻松扩展到各种问题，通常只需几行代码即可指定一个新问题。当前的实现提供了对多种 SLAM 和 BA 变体的解决方案。g2o 的性能可与针对特定问题的最先进方法实现相媲美（截至 2011 年 2 月）。<p>g2o is an open-source C++ framework for optimizing graph-based nonlinear error functions. g2o has been designed to be easily extensible to a wide range of problems and a new problem typically can be specified in a few lines of code. The current implementation provides solutions to several variants of SLAM and BA. A wide range of problems in robotics as well as in computer-vision involve the minimization of a non-linear error function that can be represented as a graph. Typical instances are simultaneous localization and mapping (SLAM) or bundle adjustment (BA). The overall goal in these problems is to find the configuration of parameters or state variables that maximally explain a set of measurements affected by Gaussian noise. g2o is an open-source C++ framework for such nonlinear least squares problems. g2o has been designed to be easily extensible to a wide range of problems and a new problem typically can be specified in a few lines of code. The current implementation provides solutions to several variants of SLAM and BA. g2o offers a performance comparable to implementations of state-of-the-art approaches for the specific problems (02/2011).<ul><li>参考文档: <em><a rel="noopener nofollow" href=https://github.com/RainerKuemmerle/g2o/releases/download/20241228_git/g2o.pdf target=_blank>g2o: A General Framework for Graph Optimization</a></em> g2o 可以将问题嵌入为图或超图进行优化，广泛应用于机器人学和计算机视觉领域，例如 SLAM 和 Bundle Adjustment。 <strong>g2o 的核心优势</strong>：</ul><ul><li><strong>通用性强</strong>： 可以轻松应用于各种问题，并提供易于扩展和使用的库。<li><strong>易于理解</strong>： 提供了易于阅读的实现代码，帮助用户理解 SLAM 和 BA 的细节。<li><strong>性能优越</strong>： 在保持通用性的同时，实现了最先进的性能。 <strong>文档内容概述</strong>：</ul><ol><li><strong>(超)图嵌入优化问题</strong>： 介绍了最小二乘问题的数学表达，以及如何将其表示为图或超图结构。<li><strong>最小二乘优化</strong>： 解释了 Gauss-Newton 和 Levenberg-Marquardt 算法，并分析了线性化系统的结构。<li><strong>流形上的最小二乘</strong>： 讨论了在非欧几里得空间进行优化的方法，并介绍了流形和 ⊞ 运算符的概念。<li><strong>鲁棒最小二乘</strong>： 介绍了 Huber 成本函数，以提高算法对异常值的鲁棒性。<li><strong>库概述</strong>： 介绍了 g2o 的高层行为、基本结构和关键类，例如 OptimizableGraph、Vertex、Edge 和 Solver。<li><strong>线性化问题的构建和表示</strong>： 详细描述了初始化、计算误差、线性化、构建线性系统和更新 Levenberg-Marquardt 惩罚因子的步骤。<li><strong>求解器</strong>： 解释了求解线性系统的重要性，并介绍了 g2o 支持的几种求解器，例如 PCG 和 CHOLMOD。<li><strong>操作</strong>： 介绍了 g2o 的插件架构，允许用户在运行时加载类型和求解器。<li><strong>g2o 工具</strong>： 介绍了 g2o 提供的两个工具：命令行界面和图形用户界面，方便用户进行优化和可视化。<li><strong>2D SLAM 示例</strong>： 以 2D SLAM 为例，详细展示了如何使用 g2o 实现优化问题，包括状态变量、约束建模、参数化选择和误差函数设计。 <strong>总结</strong>： g2o 是一个功能强大且易于使用的非线性最小二乘优化框架，适用于机器人学和计算机视觉领域的各种问题。</ol><h3 id=zui-xiao-er-cheng-you-hua-jian-jie>最小二乘优化简介</h3><p>[https://zh.wikipedia.org/wiki/%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98%E6%B3%95] [https://blog.csdn.net/wydbyxr/article/details/83212881] 最小二乘法的目标是“求误差的最小平方和”。 最小二乘的分类有两种：线性和非线性:<ol><li><strong>线性最小二乘</strong>的解是 closed-form（闭式），即 $x = (A^T A)^{-1} A^T b$；<li><strong>非线性最小二乘</strong>没有 closed-form，通常用迭代法求解。 <strong>迭代法</strong> 即在每一步 update 未知量逐渐逼近解，可以用于各种各样的问题（包括最小二乘），比如求的不是误差的最小平方和而是最小立方和。</ol><h4 id=ti-du-xia-jiang>梯度下降</h4><p>梯度下降是迭代法的一种，可以用于求解最小二乘问题（线性和非线性都可以）。关键是学习率的选择。<h4 id=gao-si-niu-dun-fa>高斯-牛顿法</h4><p>高斯-牛顿法是另一种经常用于求解非线性最小二乘的迭代法（一定程度上可视为标准非线性最小二乘求解方法）。使用函数 $f(x)$ 的泰勒级数的前面几项来寻找方程 $f(x) = 0$ 的根。牛顿法最大的特点就在于它的收敛速度很快（特别是对于二阶函数(考虑多元函数的话要在凸函数的情况下)，牛顿法能够一步到达，非常有效）。 解决约束优化问题可用拉格朗日乘数法。<h3 id=fact-rsku-jian-jie>fact.rs库简介</h3><p>[https://github.com/rpl-cmu/fact.rs] <strong>fact.rs</strong>（发音为 "factors"）是一个基于因子图的非线性最小二乘优化库，使用 Rust 语言编写。<p>它专门面向机器人学中的传感器融合问题，旨在实现快速、易用和安全。fact.rs 的 API 深受 <strong>gtsam</strong> 库的启发。<p>目前，它支持以下功能：<ul><li><strong>高斯-牛顿</strong>和<strong>列文伯格-马夸特</strong>优化器<li>支持常见的李群（SO2、SO3、SE2、SE3），并在李代数中进行优化<li>通过<strong>对偶数</strong>实现自动微分<li>通过可选的 <strong>serde</strong> 支持，实现图和变量的序列化<li>轻松转换为 <strong>rerun</strong> 类型，便于直接可视化</ul><p>我们建议您查看文档以获取更多信息。要使用 fact.rs，只需将其添加到您的 <code>Cargo.toml</code> 中即可开始使用！<p>fact.rs (pronounced factors) is a nonlinear least squares optimization library over factor graphs written in Rust.<p>It is specifically geared toward sensor fusion in robotics. It aims to be fast, easy to use, and safe. The fact.rs API takes heavy inspiration from the gtsam library.<p>Currently, it supports the following features<p>Gauss-Newton & Levenberg-Marquadt Optimizers Common Lie Groups supported (SO2, SO3, SE2, SE3) with optimization in Lie Algebras Automatic differentiation via dual numbers Serialization of graphs & variables via optional serde support Easy conversion to rerun types for straightforward visualization We recommend you checkout the docs for more info. For usage, simply add factrs to your Cargo.toml and start using it!<h3 id=yin-zi-tu-factor-graph-jian-jie>因子图(Factor Graph)简介</h3><p>[https://longaspire.github.io/blog/%E5%9B%A0%E5%AD%90%E5%9B%BE%E4%BB%8B%E7%BB%8D/] [https://www.zhangzhenhu.com/probability_model/6.%E5%9B%A0%E5%AD%90%E5%9B%BE_lecture_4.html] [https://www.cnblogs.com/TMatrix52/p/7749984.html] 有向图和无向图都使得若干个变量的一个全局函数(联合概率分布)表示为这些变量子集上的因子的乘积。 因子图显示的表示出了这个分解，方法是：在表示变量的结点的基础上，引入额外的结点表示因子本身。 因子图能够用来表达上述传统的有向和无向图模型无法表达的结构。<h2 id=shi-xian>实现</h2><p>原始cpp代码:[https://github.com/gaoxiang12/slambook2/blob/master/ch6/g2oCurveFitting.cpp]<pre class=language-cpp data-lang=cpp><code class=language-cpp data-lang=cpp>#include &LTiostream>
+#include &LTg2o/core/g2o_core_api.h>
+#include &LTg2o/core/base_vertex.h>
+#include &LTg2o/core/base_unary_edge.h>
+#include &LTg2o/core/block_solver.h>
+#include &LTg2o/core/optimization_algorithm_levenberg.h>
+#include &LTg2o/core/optimization_algorithm_gauss_newton.h>
+#include &LTg2o/core/optimization_algorithm_dogleg.h>
+#include &LTg2o/solvers/dense/linear_solver_dense.h>
+#include &LTEigen/Core>
+#include &LTopencv2/core/core.hpp>
+#include &LTcmath>
+#include &LTchrono>
+
+using namespace std;
+
+// 曲线模型的顶点，模板参数：优化变量维度和数据类型
+class CurveFittingVertex : public g2o::BaseVertex&LT3, Eigen::Vector3d> {
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  // 重置
+  virtual void setToOriginImpl() override {
+    _estimate << 0, 0, 0;
+  }
+
+  // 更新
+  virtual void oplusImpl(const double *update) override {
+    _estimate += Eigen::Vector3d(update);
+  }
+
+  // 存盘和读盘：留空
+  virtual bool read(istream &in) {}
+
+  virtual bool write(ostream &out) const {}
+};
+
+// 误差模型 模板参数：观测值维度，类型，连接顶点类型
+class CurveFittingEdge : public g2o::BaseUnaryEdge&LT1, double, CurveFittingVertex> {
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  CurveFittingEdge(double x) : BaseUnaryEdge(), _x(x) {}
+
+  // 计算曲线模型误差
+  virtual void computeError() override {
+    const CurveFittingVertex *v = static_cast&LTconst CurveFittingVertex *> (_vertices[0]);
+    const Eigen::Vector3d abc = v->estimate();
+    _error(0, 0) = _measurement - std::exp(abc(0, 0) * _x * _x + abc(1, 0) * _x + abc(2, 0));
+  }
+
+  // 计算雅可比矩阵
+  virtual void linearizeOplus() override {
+    const CurveFittingVertex *v = static_cast&LTconst CurveFittingVertex *> (_vertices[0]);
+    const Eigen::Vector3d abc = v->estimate();
+    double y = exp(abc[0] * _x * _x + abc[1] * _x + abc[2]);
+    _jacobianOplusXi[0] = -_x * _x * y;
+    _jacobianOplusXi[1] = -_x * y;
+    _jacobianOplusXi[2] = -y;
+  }
+
+  virtual bool read(istream &in) {}
+
+  virtual bool write(ostream &out) const {}
+
+public:
+  double _x;  // x 值， y 值为 _measurement
+};
+
+int main(int argc, char **argv) {
+  double ar = 1.0, br = 2.0, cr = 1.0;         // 真实参数值
+  double ae = 2.0, be = -1.0, ce = 5.0;        // 估计参数值
+  int N = 100;                                 // 数据点
+  double w_sigma = 1.0;                        // 噪声Sigma值
+  double inv_sigma = 1.0 / w_sigma;
+  cv::RNG rng;                                 // OpenCV随机数产生器
+
+  vector&LTdouble> x_data, y_data;      // 数据
+  for (int i = 0; i < N; i++) {
+    double x = i / 100.0;
+    x_data.push_back(x);
+    y_data.push_back(exp(ar * x * x + br * x + cr) + rng.gaussian(w_sigma * w_sigma));
+  }
+
+  // 构建图优化，先设定g2o
+  typedef g2o::BlockSolver&LTg2o::BlockSolverTraits&LT3, 1>> BlockSolverType;  // 每个误差项优化变量维度为3，误差值维度为1
+  typedef g2o::LinearSolverDense&LTBlockSolverType::PoseMatrixType> LinearSolverType; // 线性求解器类型
+
+  // 梯度下降方法，可以从GN, LM, DogLeg 中选
+  auto solver = new g2o::OptimizationAlgorithmGaussNewton(
+    g2o::make_unique&LTBlockSolverType>(g2o::make_unique&LTLinearSolverType>()));
+  g2o::SparseOptimizer optimizer;     // 图模型
+  optimizer.setAlgorithm(solver);   // 设置求解器
+  optimizer.setVerbose(true);       // 打开调试输出
+
+  // 往图中增加顶点
+  CurveFittingVertex *v = new CurveFittingVertex();
+  v->setEstimate(Eigen::Vector3d(ae, be, ce));
+  v->setId(0);
+  optimizer.addVertex(v);
+
+  // 往图中增加边
+  for (int i = 0; i < N; i++) {
+    CurveFittingEdge *edge = new CurveFittingEdge(x_data[i]);
+    edge->setId(i);
+    edge->setVertex(0, v);                // 设置连接的顶点
+    edge->setMeasurement(y_data[i]);      // 观测数值
+    edge->setInformation(Eigen::Matrix&LTdouble, 1, 1>::Identity() * 1 / (w_sigma * w_sigma)); // 信息矩阵：协方差矩阵之逆
+    optimizer.addEdge(edge);
+  }
+
+  // 执行优化
+  cout << "start optimization" << endl;
+  chrono::steady_clock::time_point t1 = chrono::steady_clock::now();
+  optimizer.initializeOptimization();
+  optimizer.optimize(10);
+  chrono::steady_clock::time_point t2 = chrono::steady_clock::now();
+  chrono::duration&LTdouble> time_used = chrono::duration_cast&LTchrono::duration&LTdouble>>(t2 - t1);
+  cout << "solve time cost = " << time_used.count() << " seconds. " << endl;
+
+  // 输出优化值
+  Eigen::Vector3d abc_estimate = v->estimate();
+  cout << "estimated model: " << abc_estimate.transpose() << endl;
+
+  return 0;
+}
+</code></pre><p>使用rust重构:<pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+#![allow(non_fmt_panics)]
+#![allow(unused_mut)]
+#![allow(unused_assignments)]
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![allow(rustdoc::missing_crate_level_docs)]
+#![allow(unsafe_code)]
+#![allow(clippy::undocumented_unsafe_blocks)]
+#![allow(unused_must_use)]
+#![allow(non_snake_case)]
+
+// 线性代数
+use nalgebra::{DMatrix, DVector, Matrix3, Vector3, SVector, Matrix, VecStorage, Dyn};
+
+// 图优化
+use factrs::{
+    assign_symbols,
+    core::{BetweenResidual, GaussNewton, Graph, Values},
+    dtype, fac,
+    linalg::{Const, ForwardProp, Numeric, NumericalDiff, VectorX, DiffResult, MatrixX},
+    residuals::Residual1,
+    traits::*,
+    variables::{VectorVar2, SE2, VectorVar3},
+    containers::Key,
+};
+
+use rand::{Rng, SeedableRng};
+use rand::distributions::{Distribution, Uniform};
+
+use std::process::exit;
+use std::ops::Add;
+use std::ops::Mul;
+
+// 曲线拟合的因子
+#[derive(Clone, Debug)]
+pub struct CurveFittingFactor {
+    x: f64,
+    measurement: f64,
+}
+
+impl CurveFittingFactor {
+    pub fn new(x: f64, measurement: f64) -> Self {
+        Self { x, measurement }
+    }
+}
+
+// 实现 Residual1 trait 用于因子
+// `mark` 宏处理序列化内容以及一些自定义实现
+#[factrs::mark]
+impl Residual1 for CurveFittingFactor {
+    type Differ = ForwardProp<&LTSelf as Residual1>::DimIn>;
+    type V1 = VectorVar3;
+    type DimIn = Const&LT3>;
+    type DimOut = Const&LT1>;
+
+    // residual1_jacobian要放在residual1之前
+    // fn residual1_jacobian(&self, values: &Values, keys: &[Key]) -> DiffResult&LTVectorX, MatrixX> {
+    //     let abc: &VectorVar2 = values
+    //         .get_unchecked(keys[0])
+    //         .expect("got wrong variable type");
+    //     let y = (abc[0] * self.x * self.x + abc[1] * self.x + abc[2]).exp();
+    //     let jacobian = MatrixX::from_row_slice(1, 3, &[-self.x * self.x * y, -self.x * y, -y]);
+    //     DiffResult {
+    //         value: self.residual1(abc.clone()),
+    //         diff: jacobian,
+    //     }
+    // }
+
+    fn residual1&LTT: Numeric>(&self, v: VectorVar3&LTT>) -> VectorX&LTT> {
+        let abc = v.to_owned();
+        let x_squared = T::from_f64(self.x * self.x).unwrap_or_else(|| T::from_f64(0.0).unwrap());
+        let x = T::from_f64(self.x).unwrap_or_else(|| T::from_f64(0.0).unwrap());
+        let measurement = T::from_f64(self.measurement).unwrap_or_else(|| T::from_f64(0.0).unwrap());
+        println!("abc: {:#?}", abc);
+        let error = measurement - (abc[0] * x_squared + abc[1] * x + abc[2]).exp();
+        // 返回值
+        VectorX::from_column_slice(&[error])
+    }
+
+}
+
+// 定义符号变量
+assign_symbols!(X: VectorVar3);
+
+fn main() {
+    // 真实参数值
+    let ar = 1.0;
+    let br = 2.0;
+    let cr = 1.0;
+    // 估计参数值
+    let ae = 2.0;
+    let be = -1.0;
+    let ce = 5.0;
+    // 数据点
+    let N = 100;
+    // 噪声Sigma值
+    let w_sigma = 1.0;
+    // 计算精度
+    let inv_sigma = 1.0 / w_sigma;
+
+    // 随机数产生器
+    let mut rng = rand::rngs::StdRng::seed_from_u64(42);
+    let distribution = Uniform::new(-1.0, 1.0);
+
+    let mut x_data = Vec::new();
+    let mut y_data = Vec::new();
+
+    for i in 0..N {
+        let x = i as f64 / 100.0;
+        x_data.push(x);
+        y_data.push((ar * x * x + br * x + cr).exp() + rng.sample(distribution) * w_sigma * w_sigma);
+    }
+
+    // 构建图优化
+    let mut graph = Graph::new();
+
+    // 添加因子
+    for i in 0..N {
+        let factor = CurveFittingFactor::new(x_data[i], y_data[i]);
+        let factor_node = fac![factor, X(0), inv_sigma as std];
+        graph.add_factor(factor_node);
+    }
+
+    // 创建初始值
+    let mut values = Values::new();
+    values.insert(X(0), VectorVar3::new(ae, be, ce));
+
+    // 优化
+    let mut opt: GaussNewton = GaussNewton::new(graph);
+    let result = opt.optimize(values).expect("优化失败");
+
+    println!("最终结果: {:#?}", result);
+}
+</code></pre><p>python代码:<pre class=language-py data-lang=py><code class=language-py data-lang=py>import numpy as np
+import scipy.optimize as opt
+import matplotlib.pyplot as plt
+import time
+
+# 定义曲线模型
+def curve_model(params, x):
+    a, b, c = params
+    return np.exp(a * x**2 + b * x + c)
+
+# 定义误差函数
+def error_function(params, x_data, y_data):
+    return y_data - curve_model(params, x_data)
+
+# 生成数据
+def generate_data(a_true, b_true, c_true, N, w_sigma):
+    np.random.seed(0)
+    x_data = np.linspace(0, 1, N)
+    y_data = curve_model([a_true, b_true, c_true], x_data) + np.random.normal(0, w_sigma, N)
+    return x_data, y_data
+
+# 主函数
+def main():
+    # 真实参数值
+    a_true, b_true, c_true = 1.0, 2.0, 1.0
+    # 估计参数值
+    ae, be, ce = 2.0, -1.0, 5.0
+    # 数据点数量
+    N = 100
+    # 噪声Sigma值
+    w_sigma = 1.0
+
+    # 生成数据
+    x_data, y_data = generate_data(a_true, b_true, c_true, N, w_sigma)
+
+    # 初始参数估计
+    params_initial = np.array([ae, be, ce])
+
+    # 优化
+    print("Start optimization")
+    start_time = time.time()
+    result = opt.least_squares(error_function, params_initial, args=(x_data, y_data), method='lm')
+    end_time = time.time()
+    print(f"Solve time cost = {end_time - start_time} seconds.")
+
+    # 输出优化值
+    a_est, b_est, c_est = result.x
+    print(f"Estimated model: a = {a_est}, b = {b_est}, c = {c_est}")
+
+    # 可视化结果
+    plt.scatter(x_data, y_data, label='Data points')
+    x_fit = np.linspace(0, 1, 100)
+    y_fit = curve_model([a_est, b_est, c_est], x_fit)
+    plt.plot(x_fit, y_fit, 'r', label='Fitted curve')
+    plt.legend()
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.title('Curve Fitting')
+    plt.show()
+
+if __name__ == "__main__":
+    main()
+</code></pre><h3 id=jie-guo>结果</h3><pre class=language-sh data-lang=sh><code class=language-sh data-lang=sh>最终结果: Values {
+    X0: VectorVar3(0.976, 2.052, 0.976),
+}
+</code></pre><h3 id=fen-xi>分析</h3><p>根据提供的C++代码逻辑和Rust、Python代码的结果，我们可以进行以下分析：<h3 id=c-dai-ma-luo-ji>C++代码逻辑</h3><ul><li><strong>目标</strong>：使用g2o库进行曲线拟合，通过优化估计参数 (a), (b), (c)。<li><strong>数据生成</strong>：生成带噪声的二次曲线数据。<li><strong>优化过程</strong>： <ul><li>使用高斯-牛顿法进行优化。<li>初始化参数为 (a=2.0), (b=-1.0), (c=5.0)。<li>进行10次迭代优化。</ul><li><strong>输出</strong>：优化后的参数估计值。</ul><h3 id=rustdai-ma-jie-guo>Rust代码结果</h3><ul><li><strong>初始参数</strong>：(a=2.0), (b=-1.0), (c=5.0)。<li><strong>结果</strong>：输出的参数值没有变化，仍然是初始值。这表明优化过程可能没有正确执行，或者优化算法没有收敛。</ul><h3 id=pythondai-ma-jie-guo>Python代码结果</h3><ul><li><strong>结果</strong>：优化后的参数为 (a=1.3229), (b=1.5850), (c=1.1154)。<li><strong>说明</strong>：Python代码成功进行了优化，参数值接近真实值 (a=1.0), (b=2.0), (c=1.0)。</ul><h3 id=fen-xi-1>分析</h3><ul><li><strong>C++和Python</strong>：C++和Python代码都成功进行了优化，Python代码的结果表明优化过程有效。<li><strong>Rust代码问题</strong>：Rust代码的结果没有变化，可能是因为： <ul><li>优化算法没有正确实现。<li>数据生成或误差计算有问题。<li>需要检查优化算法的实现细节，确保其能够正确更新参数。</ul></ul><h3 id=jian-yi>建议</h3><ul><li><strong>检查Rust代码</strong>：确保优化算法的实现正确，检查误差计算和雅可比矩阵的计算。<li><strong>调试信息</strong>：添加更多调试信息，查看每次迭代的参数变化。<li><strong>对比实现</strong>：对比C++和Python代码的实现，找出Rust代码中的差异。</ul><p>根据提供的C++代码逻辑，我们可以分析Rust和Python代码的结果。C++代码的主要目标是使用g2o库进行曲线拟合优化，拟合的目标函数是一个二次指数函数，形式为：<p>[ y = \exp(a x^2 + b x + c) ]<p>其中，<code>a</code>, <code>b</code>, <code>c</code> 是需要优化的参数。<h4 id=c-dai-ma-luo-ji-fen-xi>C++代码逻辑分析</h4><ol><li><p><strong>数据生成</strong>：</p> <ul><li>使用真实参数 <code>ar = 1.0</code>, <code>br = 2.0</code>, <code>cr = 1.0</code> 生成100个数据点。<li>每个数据点的 <code>y</code> 值是通过真实函数加上高斯噪声生成的。</ul><li><p><strong>优化过程</strong>：</p> <ul><li>使用Gauss-Newton算法进行优化。<li>优化变量是 <code>a</code>, <code>b</code>, <code>c</code>，初始估计值为 <code>ae = 2.0</code>, <code>be = -1.0</code>, <code>ce = 5.0</code>。<li>优化目标是使误差最小化，误差定义为观测值与模型预测值之间的差异。</ul><li><p><strong>输出结果</strong>：</p> <ul><li>优化后的参数估计值 <code>abc_estimate</code>。</ul></ol><h4 id=rustdai-ma-jie-guo-fen-xi>Rust代码结果分析</h4><p>Rust代码的结果是：<pre class=language-sh data-lang=sh><code class=language-sh data-lang=sh>最终结果: Values {
+    X0: VectorVar3(0.976, 2.052, 0.976),
+}
+</code></pre><ul><li>这个结果表示优化后的参数估计值为 <code>a = 0.976</code>, <code>b = 2.052</code>, <code>c = 0.976</code>。<li>与C++代码的真实参数 <code>ar = 1.0</code>, <code>br = 2.0</code>, <code>cr = 1.0</code> 相比，Rust的结果非常接近真实值，说明Rust代码的优化过程是有效的。</ul><h4 id=pythondai-ma-jie-guo-fen-xi>Python代码结果分析</h4><p>Python代码的结果是：<pre class=language-sh data-lang=sh><code class=language-sh data-lang=sh>Start optimization
+Solve time cost = 0.0004918575286865234 seconds.
+Estimated model: a = 1.3229447793471707, b = 1.584999887555887, c = 1.1154403197313632
+</code></pre><ul><li>这个结果表示优化后的参数估计值为 <code>a = 1.3229</code>, <code>b = 1.5850</code>, <code>c = 1.1154</code>。<li>与C++代码的真实参数相比，Python的结果与真实值有一定的偏差，尤其是 <code>a</code> 和 <code>b</code> 的估计值与真实值相差较大。</ul><h4 id=jie-guo-dui-bi-yu-jie-lun>结果对比与结论</h4><ol><li><p><strong>Rust结果</strong>：</p> <ul><li>Rust的结果非常接近真实值，说明Rust代码的优化过程是准确的，且可能使用了与C++代码相似的优化算法和参数设置。</ul><li><p><strong>Python结果</strong>：</p> <ul><li>Python的结果与真实值有一定的偏差，可能的原因包括： <ul><li>优化算法的实现不同（例如，Python可能使用了不同的优化库或算法）。<li>初始参数设置不同。<li>数据生成或噪声处理方式不同。<li>优化迭代次数或收敛条件不同。</ul></ul><li><p><strong>C++代码的参考</strong>：</p> <ul><li>C++代码使用了Gauss-Newton算法进行优化，并且设置了10次迭代。Rust的结果与C++的真实参数非常接近，说明Rust可能也使用了类似的优化算法和迭代次数。<li>Python的结果偏差较大，可能是因为优化算法或参数设置与C++代码不一致。</ul></ol><h4 id=zong-jie>总结</h4><ul><li><strong>Rust代码</strong>的结果与C++代码的真实参数非常接近，说明Rust的优化过程是有效的。<li><strong>Python代码</strong>的结果与真实值有一定的偏差，可能需要检查优化算法、初始参数设置或数据生成过程是否与C++代码一致。</ul></article><div><div class=post-copyright><div class=post-copyright__author_group><a class=post-copyright__author_img href=/about> <picture class="post-copyright__author_img_back progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> </a><div class=post-copyright__author_name>ByeIO·开发者博客</div><div class=post-copyright__author_desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div></div><div class=post-tools id=post-tools><div class=post-tools-left><div class=rewardLeftButton><div class="reward-link mode"><a class=reward-link-button href=/subscribe> <i class=icon-plant-fill></i>订阅 </a></div></div><div class=shareRight><div class="copyright-link mobile"><div class=copyright-qrcode><div class=copyright-button title=使用手机访问这篇文章><i class=icon-qrcode></i></div><div class=copyright-main><div class=copyright-main-all><div id=qrcode></div><div class=reward-dec>使用手机访问这篇文章</div></div></div></div></div><div class="copyright-link copyurl"><div class=copyright-button id=post-share-url onclick=rm.copyPageUrl() title=复制链接><i class=icon-link></i></div></div></div></div></div><div class=post-copyright__notice><span class=post-copyright-info> 本文是原创文章，采用 <a href=/copyright target=_blank>CC BY-NC-ND 4.0</a> 协议，转载请注明 <a href=/ target=_blank>本站名称及地址</a> </span></div></div><div class=post-tools-right><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/> <span class=tags-punctuation>博客</span> <span class=tagsPageCount>31</span> </a><a class=post-meta__tags href=/tags/docs/> <span class=tags-punctuation>文档</span> <span class=tagsPageCount>25</span> </a><a class=post-meta__tags href=/tags/featured/> <span class=tags-punctuation>必看</span> <span class=tagsPageCount>30</span> </a><a class=post-meta__tags href=/tags/hot/> <span class=tags-punctuation>热门</span> <span class=tagsPageCount>30</span> </a></div></div></div><link href=/css/post-copyright-one.css rel=stylesheet></div><nav class="pagination-post needEndHide" id=pagination><div class="prev-post pull-left"><a href=/articles/docs/折腾笔记[8]-使用rust去除灰度图的畸变/> <div class=pagination-info><div class=label>上一篇</div><div class=prev_info>折腾笔记[8]-使用rust去除灰度图的畸变</div></div> </a></div><div class="next-post pull-right"><a href=/articles/docs/搭建ArduPilot的SITL仿真环境/> <div class=pagination-info><div class=label>下一篇</div><div class=next_info>搭建ArduPilot的SITL仿真环境</div></div> </a></div></nav><div class=relatedPosts><div class=headline><i class=icon-cainixihuan style=font-size:1.1rem></i><span>喜欢这篇文章的人也看了</span></div><div class=relatedPosts-list><div><a href=/articles/docs/ROS笔记[1]-搭建Gazebo仿真环境/ title=ROS笔记[1]-搭建Gazebo仿真环境> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[1]-搭建Gazebo仿真环境</div></div> </a></div><div><a href=/articles/docs/ROS笔记[2]-获取OpenMV数据并发布到ROS消息/ title=ROS笔记[2]-获取OpenMV数据并发布到ROS消息> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[2]-获取OpenMV数据并发布到ROS消息</div></div> </a></div></div></div><link href=/css/related-posts-two.css rel=stylesheet><hr></div><div class=aside-content id=aside-content><div class="card-widget card-info"><div class=card-content><div class="card-info-avatar is-center"><div class=author-info__top-group><div class=author-info__sayhi id=author-info__sayhi onclick=wjx.changeSayHelloText()>好久不见，你终于来了</div></div></div><div class=avatar-img-group><picture class="avatar-img progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture></div><div class=author-info__description_group>为创造者而生的开源 Zola 主题~</div><div class=author-info__bottom-group><a class=author-info__bottom-group-left href=/about> <div class=author-info__name>qsbye</div> <div class=author-info__desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div> </a><div class="card-info-social-icons is-center"><a rel="external nofollow" class=social-icon href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=GitHub> <i class=icon-github></i> </a></div></div></div><style>.avatar-img-group:before{content:"";-o-transition:1s;background:var(--wjx-green);border:5px solid var(--wjx-background);z-index:2;border-radius:50%;width:26px;height:26px;-webkit-transition:all 1s;-moz-transition:all 1s;-ms-transition:all 1s;transition:all 1s;position:absolute;bottom:2px;right:2px}.card-info-avatar.is-center{flex-direction:column;align-items:flex-start;display:flex}#aside-content .card-info .avatar-img{opacity:1;border:5px solid var(--wjx-white);border-radius:500px;width:118px;transition:all .3s;position:absolute;top:0;right:0;overflow:hidden}.page #aside-content .card-info .avatar-img{border-color:var(--wjx-card-bg)}.author-info__top-group{width:100%;height:28px;display:flex}.avatar-img-group{transform-origin:bottom;border-radius:500px;width:118px;height:118px;transition:all .3s cubic-bezier(.69,.39,0,1.21);position:absolute;top:90px;right:calc(50% - 59px)}#aside-content .card-info:hover .avatar-img-group{opacity:0;transform:scale(0)}.author-info__bottom-group{justify-content:space-between;align-items:center;width:100%;padding:1.2rem;display:flex;position:absolute;bottom:0;left:0}a.author-info__bottom-group-left:hover{opacity:.8}#aside-content .card-info .card-info-social-icons{cursor:pointer;flex-flow:wrap;justify-content:flex-start;margin:0;display:flex}#aside-content .card-info .card-info-social-icons i:hover{cursor:pointer;background-color:#000;transform:rotate(540deg)}#aside-content .card-info .card-info-social-icons .social-icon{margin:0 0 0 8px}#aside-content .card-info .card-info-social-icons i{background:var(--wjx-white-op);color:var(--wjx-white);justify-content:center;align-items:center;width:40px;height:40px;font-size:1rem;display:flex}#aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-white);color:var(--wjx-main);box-shadow:none;transform:scale(1.1)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{background:var(--wjx-black-op);color:var(--wjx-card-bg)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-card-bg);color:var(--wjx-fontcolor)}#aside-content .card-info .banner-button{border-radius:20px;justify-content:center;width:118px;height:40px}@media screen and (width>=1300px){#aside-content .card-info .card-info-social-icons i{color:var(--wjx-white)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{color:var(--wjx-card-bg)}}#aside-content .card-info .card-info-data>.card-info-data-item:hover{background:var(--wjx-post-blockquote-bg);transform:scale(.97)}#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.headline,#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.length-num{color:var(--wjx-blue)}.author-info__description_group{color:var(--wjx-white);opacity:0;width:100%;padding:1.2rem;transition:all .3s;position:absolute;top:50px;left:0}.card-widget:hover .author-info__description_group{opacity:1}.author-info__description2{text-align:justify;z-index:2;color:#fffc;width:100%;margin:.3rem 0;line-height:1.38}.author-info__description2 b{color:var(--wjx-white)}[data-theme=dark] .page div#author-info__sayhi{background:var(--wjx-black-op);color:var(--wjx-black)}#aside-content .card-info .author-info__name{text-align:left;color:var(--wjx-white);margin-bottom:5px;font-size:20px;font-weight:700;line-height:1}.page #aside-content .card-info .author-info__name,.page .author-info__desc{color:var(--wjx-white)}.author-info__desc{color:var(--wjx-white);opacity:.6;font-size:12px;line-height:1}.author-info__description{text-align:justify;color:var(--wjx-white);opacity:1;margin:.3rem 0;line-height:1.38}.page .author-info__description{color:var(--wjx-card-bg)}.author-info__description b{color:var(--wjx-white);opacity:1}.page .author-info__description b{color:var(--wjx-card-bg);opacity:1}.avatar-sticker{z-index:0;background:var(--wjx-white);border-radius:50%;justify-content:center;align-items:center;width:33px;height:33px;line-height:34px;transition:all .3s ease-out .2s;display:flex;position:absolute;bottom:2px;right:2px;transform:scale(1)}.page .avatar-sticker{background:var(--wjx-card-bg)}.avatar-sticker img{width:26px;height:26px}.card-widget:hover .avatar-sticker{opacity:0;transform:scale(0)}.author-info__description b{color:var(--wjx-white)}#aside-content>.card-widget.card-info:before{background:linear-gradient(-25deg,var(--wjx-main),var(--wjx-main-op-deep),var(--wjx-main),var(--wjx-main-op-deep));content:"";background-size:400%;width:100%;height:100%;animation:15s infinite gradient;position:absolute;top:0;left:0}</style></div><div class="card-widget wjx-right-widget" onclick="javascript:window.open('/subscribe')" id=card-wechat><div id=flip-wrapper><div id=flip-content><div style="background:url(/img/wechat/qr-green.avif) 50%/100% no-repeat" class=face></div><div class="back face" style="background:url(/img/wechat/qr-white.avif) 50%/100% no-repeat"></div></div></div><style>#aside-content .card-widget#card-wechat{background:#07c160}#aside-content .card-widget#card-wechat:before{content:"";background:url(/img/wechat/gzh_cover.avif) 50%/cover no-repeat;width:100%;height:90%;transition:all .2s cubic-bezier(.45,.04,.43,1.21);position:absolute;top:0;left:0}#aside-content .card-widget#card-wechat:hover:before{opacity:0;transition:all .3s ease-out;top:100%}</style></div><div class=sticky_layout><div class=card-widget id=card-toc><div class=item-headline><i class=icon-bars></i><span>文章目录</span><span class=toc-percentage></span></div><div class=toc-content></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-chat--fill style=font-size:19px></i><span>最新评论</span></div><div class=aside-list id=newcomm></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-eicon_map-2-line1></i><span>最近发布</span></div><div class=aside-list><div class=aside-list-item><a class=thumbnail href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5>配置orangepi5pro运行rknn版本的yolov5</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行>计算机控制apm飞控自动飞行</a></div></div><div class=aside-list-item><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=thumbnail> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=title>翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境>搭建ArduPilot的SITL仿真环境</a></div></div></div></div><div class="card-widget card-categories"><div class=item-headline><i class=icon-folder-open></i><span>分类</span></div><div class=aside-list><ul class=card-category-list><li class=card-category-list-item><a class=card-category-list-link href=/categories/misc/ rel=tag> <span class=card-category-list-name>杂谈</span> <span class=card-category-list-count>6</span> </a><li class=card-category-list-item><a class=card-category-list-link href=/categories/theme/ rel=tag> <span class=card-category-list-name>主题</span> <span class=card-category-list-count>25</span> </a></ul></div></div></div></div></main><footer id=footer><div id=wjx-footer-bar><div class=footer-logo>qsbye</div><div class=footer-bar-description>ByeIO·开发者博客|技术解决方案|开发思考|总结</div><a class=footer-bar-link href=/about>了解更多</a></div><div id=footer_deal><a rel="external nofollow noopener noreferrer" class=deal_link href=mailto:mail@example.com target=_blank title=Mail> <i class=icon-envelope></i> </a><picture class="footer_mini_logo progressive-picture" onclick="btf.scrollToDest(0, 500)" style=border-radius:500px><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img alt=返回顶部 class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img alt=返回顶部 decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture><a rel="external nofollow noopener noreferrer" class=deal_link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=Github> <i class=icon-github></i> </a></div><div id=wjx-footer><div class=footer-group><h3 class=footer-title>文库</h3><div class=footer-links><a class=footer-item data-pjax href=/archives target=_blank>全部文章</a><a class=footer-item data-pjax href=/categories target=_blank>分类列表</a><a class=footer-item data-pjax href=/tags target=_blank>标签列表</a><a class=footer-item data-pjax href=javascript:toRandomPost() target=_blank>随机文章</a></div></div><div class=footer-group><h3 class=footer-title>作品</h3><div class=footer-links><a class=footer-item data-pjax href=/articles/misc/lorem-ipsum target=_blank>Lorem Ipsum</a></div></div><div class=footer-group><h3 class=footer-title>协议</h3><div class=footer-links><a class=footer-item data-pjax href=/privacy target=_blank>隐私协议</a><a class=footer-item data-pjax href=/cookies target=_blank>Cookies</a><a class=footer-item data-pjax href=/copyright target=_blank>版权协议</a></div></div><div class=footer-group><div class=footer-title-group><h3 class=footer-title>友链</h3><button class=random-friends-btn id=footer-random-friends-btn onclick=javascript:wjx.addFriendLinksInFooter(); title=换一批友情链接><i class=icon-arrow-rotate-right style=font-size:16px></i></button></div><div class=footer-links id=friend-links-in-footer></div></div></div><div id=footer-bar style=padding:1rem><div class=footer-bar-links><div class=footer-bar-left><div id=footer-bar-tips><div class=copyright-group>© <span class=inline-word id=copyright-info>2025</span>  By  <a class=footer-bar-link href=/ target=_blank> <picture class=progressive-picture id=copyright-logo><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> ByeIO·开发者博客 </a><script defer>var startYear = 2025;
+                            var currentYear = new Date().getFullYear();
+                            var copyrightInfo = `${startYear !== currentYear ? startYear + ' - ' : ''}${currentYear}`;
+                            document.getElementById('copyright-info').innerHTML = copyrightInfo;</script></div><div class=compliance-group><a rel="noopener external nofollow noreferrer" class=footer-bar-link href=https://beian.miit.gov.cn/#/Integrated/index target=_blank> ICP </a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang> <div class=status-light></div> <span>本站及主题基于 Zola 构建</span> </a></div></div></div><div class=footer-bar-right><a class=footer-bar-link href=/subscribe target=_blank>订阅</a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank>主题</a><a class=footer-bar-link href=/about>关于</a><a class=footer-bar-link href=mailto:mail@example.com target=_blank>反馈</a><a class="footer-bar-link cc" href=/copyright rel=license target=_blank title=CC版权协议> <i class=icon-copyright-line></i> <i class=icon-creative-commons-by-line></i> <i class=icon-creative-commons-nc-line></i> <i class=icon-creative-commons-nd-line></i> </a></div></div></div><div id=quit-box onclick=RemoveRewardMask()></div><div class="comment-barrage needEndHide" style=display:none></div><style>a.footer-bar-link.cloud{align-items:center;display:flex}img.entered.loading.cloud{height:32px}</style></footer></div><div id=sidebar><div id=menu-mask></div><div id=sidebar-menus><span class=sidebar-menu-item-title>功能</span><div class=sidebar-menu-item><button class="darkmode_switchbutton menu-child" href=javascript:void(0); onclick=rm.switchDarkMode() title=显示模式切换><i class=icon-moon style=font-size:.9rem;line-height:2></i> <span>显示模式</span></button></div><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div><div class=menus_items><div class=menus_item><button class=site-page><span>文库</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/archives> <i class="icon-book-open faa-tada" style=font-size:.9em></i> <span>全部文章</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/categories> <i class="icon-folder-open faa-tada" style=font-size:.9em></i> <span>分类列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags> <i class="icon-tags faa-tada" style=font-size:.9em></i> <span>标签列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:toRandomPost()> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>随机文章</span> </a></ul></div><div class=menus_item><a class=site-page href=/tags/work> <span>推荐</span> </a><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/docs/readme> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>博客主题介绍</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/misc/lorem-ipsum> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></ul></div><div class=menus_item><button class=site-page><span>友链</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/friends> <i class="icon-link faa-tada" style=font-size:.9em></i> <span>友链列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:travelling()> <i class="icon-paper-plane faa-tada" style=font-size:.9em></i> <span>随机发现</span> </a></ul></div><div class=menus_item><button class=site-page><span>我的</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/about> <i class="icon-rocket faa-tada" style=font-size:.9em></i> <span>关于本人</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/equipment> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>我的装备</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags/project> <i class="icon-lightbulb faa-tada" style=font-size:.9em></i> <span>我的项目</span> </a></ul></div></div><span class=sidebar-menu-item-title>标签</span><div class="card-widget card-tags card-archives card-webinfo card-allinfo"><div class=item-headline></div><div class=card-tag-cloud><a class=tag-item href=/tags/blog/ style=font-size:1em title=博客>  博客<sup>31</sup> </a><a class=tag-item href=/tags/docs/ style=font-size:1em title=文档>  文档<sup>25</sup> </a><a class=tag-item href=/tags/featured/ style=font-size:1em title=必看>  必看<sup>30</sup> </a><a class=tag-item href=/tags/hot/ style=font-size:1em title=热门>  热门<sup>30</sup> </a><a class=tag-item href=/tags/project/ style=font-size:1em title=项目>  项目<sup>1</sup> </a><a class=tag-item href=/tags/work/ style=font-size:1em title=work>  work<sup>1</sup> </a></div></div></div></div><div id=console><div class=close-btn href=javascript:void(0); onclick=wjx.hideConsole()><i class=icon-circle-xmark></i></div><div class=console-card-group><div class=console-card-group-left><div class=console-card id=card-newest-comments onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>互动</div><span class=author-content-item-title>最近评论</span></div><div class=aside-list><span>正在加载中...</span></div></div></div><div class=console-card-group-right><div class="console-card tags" onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>标签</div><span class=author-content-item-title>寻找感兴趣的领域</span></div><div class=card-tag-cloud><a href=/tags/blog/ rel=tag style=color:#d3d3d3;font-size:1em> 博客<sup>31</sup> </a><a href=/tags/docs/ rel=tag style=color:#d3d3d3;font-size:1em> 文档<sup>25</sup> </a><a href=/tags/featured/ rel=tag style=color:#d3d3d3;font-size:1em> 必看<sup>30</sup> </a><a href=/tags/hot/ rel=tag style=color:#d3d3d3;font-size:1em> 热门<sup>30</sup> </a><a href=/tags/project/ rel=tag style=color:#d3d3d3;font-size:1em> 项目<sup>1</sup> </a><a href=/tags/work/ rel=tag style=color:#d3d3d3;font-size:1em> work<sup>1</sup> </a></div></div><div class="console-card history" onclick=wjx.hideConsole()><div class=item-headline><i class="fas fa-archive"></i><span>文章</span></div><ul class=card-archive-list><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2025 1月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>25</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2024 12月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>6</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul></ul></div></div></div><div class=button-group><div class=console-btn-item><button rel="external nofollow" class=darkmode_switchbutton href=javascript:void(0); onclick=navFn.switchDarkMode(); title=显示模式切换><i class=icon-moon-clear-fill style=font-size:1rem></i></button></div><div class=console-btn-item id=consoleHideAside onclick=wjx.hideAsideBtn() title=边栏显示控制><button class=asideSwitch title=侧边栏开关><i class=icon-arrows-left-right></i></button></div><div class="console-btn-item on" id=consoleCommentBarrage onclick=wjx.switchCommentBarrage() title=热评开关><button class=commentBarrage><i class=icon-chat--fill></i></button></div></div><div class=console-mask href=javascript:void(0); onclick=wjx.hideConsole()></div></div><div id=rightside><div id=rightside-config-hide><button id=translateLink title=简繁转换 type=button>繁</button><button id=darkmode title=浅色和深色模式转换 type=button><i class=icon-circle-half-stroke></i></button><button id=hide-aside-btn title=单栏和双栏切换 type=button><i class=icon-arrows-left-right></i></button></div><div id=rightside-config-show><button id=rightside-config title=设置 type=button><i class=icon-gear></i></button><a href=#post-comment id=to_comment title=直达评论><i class=icon-chat--fill style=font-size:17px></i></a><button id=go-up title=回到顶部 type=button><i class=icon-arrow-up></i></button></div></div><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/css/read-mode.css rel=preload><noscript><link href=/css/read-mode.css rel=stylesheet></noscript><div class=js-pjax><div id=rightMenu><div class="rightMenu-group rightMenu-small"><div class=rightMenu-item id=menu-backward><i class=icon-arrow-left></i></div><div class=rightMenu-item id=menu-forward><i class=icon-arrow-right></i></div><div class=rightMenu-item id=menu-refresh><i class=icon-arrow-rotate-right></i></div><div class=rightMenu-item id=menu-top><i class=icon-arrow-up></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class=rightMenu-item id=menu-copytext><i class=icon-copy></i><span>复制选中文本</span></div><div class=rightMenu-item id=menu-pastetext><i class=icon-paste></i><span>粘贴文本</span></div><a class=rightMenu-item id=menu-commenttext> <i class=icon-comment-medical></i> <span>引用到评论</span> </a><div class=rightMenu-item id=menu-newwindow><i class=icon-window-restore></i><span>新窗口打开</span></div><div class=rightMenu-item id=menu-copylink><i class=icon-link></i><span>复制链接地址</span></div><div class=rightMenu-item id=menu-copyimg><i class=icon-images></i><span>复制此图片</span></div><div class=rightMenu-item id=menu-downloadimg><i class=icon-download></i><span>下载此图片</span></div><div class=rightMenu-item id=menu-newwindowimg><i class=icon-window-restore></i><span>新窗口打开图片</span></div><div class=rightMenu-item id=menu-search><i class=icon-search--line></i><span>站内搜索</span></div><div class=rightMenu-item id=menu-searchBaidu><i class=icon-baidu></i><span>百度搜索</span></div><div class=rightMenu-item id=menu-music-toggle><i class=icon-play></i><span>播放音乐</span></div><div class=rightMenu-item id=menu-music-back><i class=icon-backward></i><span>切换到上一首</span></div><div class=rightMenu-item id=menu-music-forward><i class=icon-forward></i><span>切换到下一首</span></div><div onclick="javascript:window.open('https://y.qq.com/n/ryqq/playlist/xxxxx')" class=rightMenu-item id=menu-music-playlist><i class=icon-radio></i><span>查看所有歌曲</span></div><div class=rightMenu-item id=menu-music-copyMusicName><i class=icon-copy></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id=menu-randomPost onclick=toRandomPost()> <i class=icon-shuffle></i> <span>随便逛逛</span> </a><a class="rightMenu-item menu-link" href=../categories> <i class=icon-cube></i> <span>博客分类</span> </a><a class="rightMenu-item menu-link" href=../tags> <i class=icon-tags></i> <span>文章标签</span> </a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><div class=rightMenu-item id=menu-copy><i class=icon-copy></i><span>复制地址</span></div><div class=rightMenu-item draggable=false id=menu-commentBarrage style=display:flex><i class=icon-chat--fill style=font-size:19px></i><span class=menu-commentBarrage-text>显示热评</span></div><div class=rightMenu-item id=menu-darkmode><i class=icon-moon-clear-fill style=font-size:19px></i><span class=menu-darkmode-text>深色模式</span></div><div class=rightMenu-item id=menu-translate><i class=icon-fanti style=font-size:19px></i><span>轉為繁體</span></div></div></div><div id=rightmenu-mask></div></div><script defer onload src=/libs/qrcode/qrcode.min.js></script><script defer src=/libs/view-image/view-image.min.js></script><script defer src=/libs/tocbot/4.18.2/tocbot.min.js></script><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/tocbot/4.18.2/tocbot.css rel=preload><noscript><link href=/libs/tocbot/4.18.2/tocbot.css rel=stylesheet></noscript><script async src=/libs/snackbar/snackbar.min.js></script><script>var meting_api = "https:&#x2F;&#x2F;api.i-meto.com&#x2F;meting&#x2F;api?server=:server&amp;type=:type&amp;id=:id&amp;r=:r";</script><canvas height=880 id=universe width=1312></canvas><script defer src=/libs/canvas/dark.js></script><script src=/libs/waterfall/waterfall.min.js></script><script src=/libs/fast-average-color/index.browser.min.js></script><script>let pjaxSelectors = ['title', '#body-wrap', '#rightside-config-hide', '#rightside-config-show', '.js-pjax', '#site-config']
+          
+    pjaxSelectors.unshift('meta[property="og:type"]', 'meta[property="og:image"]', 'meta[property="og:title"]', 'meta[property="og:url"]', 'meta[property="og:description"]'
+            , 'meta[name="twitter:title"]', 'meta[name="twitter:url"]', 'meta[name="twitter:description"]', 'meta[name="twitter:image"]', 'meta[name="description"]')
+    
+    var pjax = new Pjax({
+        elements: 'a:not([target="_blank"])',
+        selectors: pjaxSelectors,
+        cacheBust: false,
+        //debug: true,        
+        analytics: false,
+        scrollRestoration: false
+    })</script><script defer src=/js/rightmenu.js></script><script data-pjax defer src=/production/js/abstract/local.js></script><script data-pjax defer src=/production/js/bundle.js></script><script defer src=/js/tw_cn.js></script><script defer src=/libs/instantpage/instantpage.min.js type=module></script><link onload="this.rel='stylesheet'" as=style href=/libs/prism/prism.min.css rel=preload><noscript><link href=/libs/prism/prism.min.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style href=/libs/prism/code.css rel=preload><noscript><link href=/libs/prism/code.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=light href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=dark href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><script defer src=/libs/prism/prism.min.js></script><style>#article-container .code-toolbar pre.close{height:300px;overflow:hidden}</style>

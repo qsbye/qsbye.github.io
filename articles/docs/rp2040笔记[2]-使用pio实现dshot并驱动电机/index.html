@@ -1,0 +1,1426 @@
+<!doctype html><html lang=zh-CN><head><title>rp2040笔记[2]-使用pio实现dshot并驱动电机 | ByeIO·开发者博客</title><meta content=ByeIO·开发者博客 property=og:site_name><meta content=article property=og:type><meta content=rp2040笔记[2]-使用pio实现dshot并驱动电机 property=og:title><meta content=//articles/docs/rp2040笔记[2]-使用pio实现dshot并驱动电机/ property=og:url><meta content=基于rust和embassy框架使用pio实现dshot并驱动电机;使用全局伪静态变量记录电机速度并异步更新值. property=og:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp property=og:image><meta content=summary_large_image name=twitter:card><meta content=rp2040笔记[2]-使用pio实现dshot并驱动电机 name=twitter:title><meta content=//articles/docs/rp2040笔记[2]-使用pio实现dshot并驱动电机/ name=twitter:url><meta content=基于rust和embassy框架使用pio实现dshot并驱动电机;使用全局伪静态变量记录电机速度并异步更新值. name=twitter:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp name=twitter:image><meta content=基于rust和embassy框架使用pio实现dshot并驱动电机;使用全局伪静态变量记录电机速度并异步更新值. name=description><script id=ld-json type=application/ld+json>
+        {
+          "@context": "https://schema.org/",
+          "@type": "Article",
+          "headline": "rp2040笔记[2]-使用pio实现dshot并驱动电机",
+          "author": {
+            "@type": "Person",
+            "name": "qsbye",
+            "url": "/about"
+          },
+          "image": "/processed_images/img00006.c4abedc898f992a6.webp",
+          "datePublished": "2025-01-01T00:00:00+00:00",
+          
+          "description": "基于rust和embassy框架使用pio实现dshot并驱动电机;使用全局伪静态变量记录电机速度并异步更新值."
+        }
+    </script><meta charset=UTF-8><meta content="IE=edge" http-equiv=X-UA-Compatible><meta content="width=device-width,initial-scale=1" name=viewport><meta content="telephone=no" name=format-detection><meta content=var(--wjx-card-bg) name=theme-color><link href=/manifest.json rel=manifest><link href=/img/avatar.png rel=icon type=image/x-icon><link href=/img/avatar.png rel=apple-touch-icon><link href=/img/avatar.png rel=bookmark><link href=/img/avatar.png rel=apple-touch-icon-precomposed sizes=180x180><script src=/libs/jquery/jquery-3.7.1.min.js></script><script src=/libs/pjax/pjax.min.js></script><script src=/production/js/utils.js></script><link href=/production/css/blog.css rel=stylesheet><link href=/css/custom.css rel=stylesheet><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/snackbar/snackbar.min.css rel=preload><noscript><link href=/libs/snackbar/snackbar.min.css rel=stylesheet></noscript><script>// Added non-passive event listener
+  !function(e){"function"==typeof define&&define.amd?define(e):e()}(function(){var e,t=["scroll","wheel","touchstart","touchmove","touchenter","touchend","touchleave","mouseout","mouseleave","mouseup","mousedown","mousemove","mouseenter","mousewheel","mouseover"];if(function(){var e=!1;try{var t=Object.defineProperty({},"passive",{get:function(){e=!0}});window.addEventListener("test",null,t),window.removeEventListener("test",null,t)}catch(e){}return e}()){var n=EventTarget.prototype.addEventListener;e=n,EventTarget.prototype.addEventListener=function(n,o,r){var i,s="object"==typeof r&&null!==r,u=s?r.capture:r;(r=s?function(e){var t=Object.getOwnPropertyDescriptor(e,"passive");return t&&!0!==t.writable&&void 0===t.set?Object.assign({},e):e}(r):{}).passive=void 0!==(i=r.passive)?i:-1!==t.indexOf(n)&&!0,r.capture=void 0!==u&&u,e.call(this,n,o,r)},EventTarget.prototype.addEventListener._original=e}});</script><script>((win) => {
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return;
+        const now = new Date();
+        const expiryDay = ttl * 86400000;
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        };
+        localStorage.setItem(key, JSON.stringify(item));
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key);
+
+        if (!itemStr) {
+          return undefined;
+        }
+        const item = JSON.parse(itemStr);
+        const now = new Date();
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key);
+          return undefined;
+        }
+        return item.value;
+      },
+    };
+
+    win.getScript = (url) =>
+      new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+        script.async = true;
+        script.onerror = reject;
+        script.onload = script.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          script.onload = script.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+
+    win.getCSS = (url, id = false) =>
+      new Promise((resolve, reject) => {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = url;
+        if (id) link.id = id;
+        link.onerror = reject;
+        link.onload = link.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          link.onload = link.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(link);
+      });
+
+    win.activateDarkMode = function () {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.classList.add("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    win.activateLightMode = function () {
+      document.documentElement.setAttribute("data-theme", "light");
+      document.documentElement.classList.remove("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    const t = saveToLocal.get("theme");
+
+    const isDarkMode = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const isLightMode = window.matchMedia(
+      "(prefers-color-scheme: light)"
+    ).matches;
+    const isNotSpecified = window.matchMedia(
+      "(prefers-color-scheme: no-preference)"
+    ).matches;
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified;
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode();
+      else if (isDarkMode) activateDarkMode();
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date();
+        const hour = now.getHours();
+        const isNight = hour <= 6 || hour >= 18;
+        isNight ? activateDarkMode() : activateLightMode();
+      }
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addListener(function (e) {
+          if (saveToLocal.get("theme") === undefined) {
+            e.matches ? activateDarkMode() : activateLightMode();
+          }
+        });
+    } else if (t === "light") activateLightMode();
+    else activateDarkMode();
+
+    if ("system" === "dark")
+      activateDarkMode();
+    else activateLightMode();
+
+    const asideStatus = saveToLocal.get("aside-status");
+    if (asideStatus !== undefined) {
+      if (asideStatus === "hide") {
+        document.documentElement.classList.add("hide-aside");
+      } else {
+        document.documentElement.classList.remove("hide-aside");
+      }
+    }
+  })(window);</script><script data-pace-options='{ "restartOnRequestAfter":false,"eventLag":false}' src=/libs/pace/pace.min.js></script><script defer src=/libs/clipboard/clipboard.min.js></script><script src=/libs/countup/countup.js></script><link href=/icon/font.css rel=stylesheet><style>[data-theme=light]{--wjx-theme:#425aef!important;--wjx-theme-op:#425aef23!important;--wjx-theme-op-deep:#425aefdd!important;--wjx-theme-none:#425aef00!important}[data-theme=dark]{--wjx-theme:#f2b94b!important;--wjx-theme-op:#f2b94b23!important;--wjx-theme-op-deep:#f2b94bdd!important;--wjx-theme-none:#f2b94b00!important}:root{--halo-comment-widget-component-card-bg:var(--wjx-card-bg);--halo-comment-widget-component-theme-op:var(--wjx-theme-op);--halo-comment-widget-component-card-border:var(--wjx-card-border);--halo-comment-widget-component-shadow-border:var(--wjx-shadow-border);--halo-comment-widget-component-secondtext:var(--wjx-secondtext);--halo-comment-widget-component-lighttext:var(--wjx-lighttext);--halo-comment-widget-component-secondbg:var(--wjx-secondbg);--halo-comment-widget-component-fontcolor:var(--wjx-fontcolor);--halo-comment-widget-component-main:var(--wjx-main);--halo-comment-widget-component-background:var(--wjx-background);--halo-comment-widget-component-white:var(--wjx-white);--halo-comment-widget-component-shadow-black:var(--wjx-shadow-black)}#page{--halo-comment-widget-component-padding:1rem}.color-scheme-dark,.dark,[data-color-scheme=dark]{--halo-search-widget-color-modal-layer:var(--wjx-maskbgdeep);--halo-search-widget-color-modal-content-bg:var(--wjx-card-bg);--halo-search-widget-color-form-input:#fffc;--halo-search-widget-color-form-input-placeholder:#6b7280d9;--halo-search-widget-color-form-input-bg:var(--wjx-card-bg);--halo-search-widget-color-form-divider:#bbbbbb0f;--halo-search-widget-color-result-item-bg:var(--wjx-card-bg);--halo-search-widget-color-result-item-hover-bg:#90939914;--halo-search-widget-color-result-item-title:#fffc;--halo-search-widget-color-result-item-content:#ffffff82;--halo-search-widget-color-command-kbd-item:#c0c4ccb3;--halo-search-widget-color-command-kbd-border:#bbbbbb0f;--halo-search-widget-color-result-empty:#6b7280d9}[data-theme=light]{--halo-search-widget-color-result-item-title:#4b5563}</style><script id=site-config>var GLOBAL_CONFIG = {
+        
+                
+        
+        
+        
+        
+        htmlType: "post",
+        postTitle: "rp2040笔记[2]-使用pio实现dshot并驱动电机",
+        isPost: true,
+        isHome: false,
+        passageTip: {
+            enable: true,
+            day: 60,
+        },
+        copyright: {
+            enable: false,
+            limitCount: 10,
+            languages: {
+                author: " 作者：qsbye",
+                link: " 链接：",
+                source: " 来源：ByeIO·开发者博客",
+                info: " 提示：著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处并保留原文链接。"
+            }
+        },
+        lightbox: 'fancybox',
+        rightMenuEnable: true,
+        lazyload: {
+            enable: true,
+            error: "/img/404.svg"
+        },
+        isFriendLinksInFooter: true,
+        loadingBox: true,
+        progress_bar: true,
+        navMusicEnable: false,
+        isMusic: false,
+        helloText: ["🤖️ 数码科技爱好者","🔯 全栈架构都在行","🏠 智能家居小能手","🤝 科研科普两不误","🎵 业余原创音乐人","🏃 文艺青年细节控","🔍 探索世界涉猎广","🤛 热爱分享交朋友"],
+        profileStyle: "one",
+        enable: true,
+        keyboard: true,
+        date_suffix: {
+            just: '刚刚',
+            min: '分钟前',
+            hour: '小时前',
+            day: '天前',
+            month: '个月前'
+        },
+        Snackbar: {
+            chs_to_cht: "你已切换为繁体",
+            cht_to_chs: "你已切换为简体",
+            day_to_night: "你已切换为深色模式",
+            night_to_day: "你已切换为浅色模式",
+            bgLight: "#425AEF",
+            bgDark: "#f2b94b",
+            position: "top-center"
+        },
+        translate: {
+            defaultEncoding: "2",
+            translateDelay: 0,
+            msgToTraditionalChinese: "繁",
+            msgToSimplifiedChinese: "简",
+            rightMenuMsgToTraditionalChinese: "轉為繁體",
+            rightMenuMsgToSimplifiedChinese: "转为简体"
+        },
+        prism: {
+            enable: true,
+            enable_title: true,
+            enable_hr: true,
+            enable_line: true,
+            enable_copy: true,
+            enable_expander: true,
+            prism_limit: 330,
+            enable_height_limit: false
+        },
+        
+        source: {
+            power: {
+                powerLink: "/",
+                showNum: 3
+            },
+            links: {
+                linksUrl: "/friends",
+                linksNum: 3
+            },
+            jQuery: '/libs/jquery/jquery.min.js',
+            justifiedGallery: {
+                js: '/libs/justified-gallery/fjGallery.min.js',
+                css: '/libs/justified-gallery/fjGallery.css'
+            },
+            fancybox: {
+                js: '/libs/fancybox/jquery.fancybox.min.js',
+                css: '/null'
+            },
+            comments: {
+                use: "twikoo",
+                maxBarrage: 1,
+                barrageTime: 4000,
+                mailMd5: "",
+                lazyload: false,
+                textarea: "el-textarea__inner"
+            },
+            post: {
+                dynamicBackground: true
+            },
+            tool: {
+                switch: false
+            },
+            postAi: {
+                
+                gptName: "本地",
+                modeName: "local"
+            },twikoo: {
+                js: "/libs/twikoo/twikoo.all.min.js",
+                twikooUrl: "https://your-api-url",
+            },
+            footer: {
+                default_enable: true
+            },
+            about: {
+                
+                rewardList: [],
+                rewardAmount: 10
+            }
+        }
+    };</script><style id=wjx-theme-styles>:root{--wjx-main:var(--wjx-theme)!important;--wjx-main-op:var(--wjx-theme-op)!important;--wjx-main-op-deep:var(--wjx-theme-op-deep)!important;--wjx-main-op-light:var(--wjx-theme-op-light)!important;--wjx-main-none:var(--wjx-theme-none)!important}</style><script>document.addEventListener('pjax:send', function () {
+      // removeEventListener toc scroll
+      window.removeEventListener('scroll', window.tocScrollFn);
+      typeof preloader === 'object' && preloader.initLoading();
+      
+      if (window.aplayers) {
+          for (let i = 0; i < window.aplayers.length; i++) {
+              if (!window.aplayers[i].options.fixed) {
+                  window.aplayers[i].destroy()
+              }
+          }
+      }
+      
+      typeof typed === 'object' && typed.destroy();
+      typeof window.initializationRegistry === 'object' && window.initializationRegistry.clear();
+      
+      //reset readmode
+      const $bodyClassList = document.body.classList
+      $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+  })
+  document.addEventListener('pjax:complete', function () {
+      window.refreshFn();
+      
+      document.querySelectorAll('script[data-pjax]').forEach(item => {
+                  const newScript = document.createElement('script')
+                  const content = item.text || item.textContent || item.innerHTML || ""
+                  Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+                  newScript.appendChild(document.createTextNode(content))
+                  item.parentNode.replaceChild(newScript, item)
+              }
+      );
+
+      typeof chatBtnFn === 'function' && chatBtnFn();
+      typeof panguInit === 'function' && panguInit();
+      
+      // google analytics
+      typeof gtag === 'function' && gtag('config', '', {
+          'page_path': window.location.pathname
+      });
+      
+      // baidu analytics
+      typeof _hmt === 'object' && _hmt.push(['_trackPageview', window.location.pathname]);
+      
+      typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting();
+      
+      // Analytics
+      if (false) {
+          MtaH5.pgv()
+      }
+      
+      // prismjs
+      typeof Prism === 'object' && Prism.highlightAll();
+      
+      typeof preloader === 'object' && preloader.endLoading();
+  })
+  document.addEventListener('pjax:error', (e) => {
+      if (e.request.status === 404 || e.request.status === 500) {
+          window.location.href = e.request.responseURL;
+      }
+  })</script><script data-pjax src=/production/js/main.js></script><script>let initTop = 0
+  let isChatShow = true
+  const innerHeight = window.innerHeight + 0
+  window.addEventListener('scroll', btf.throttle(function (e) {
+    const $rightside = document.getElementById('rightside')
+
+    const $header = document.getElementById('page-header')
+    const $cookies_window = document.getElementById('cookies-window')
+    const isChatBtnHide = typeof chatBtnHide === 'function'
+    const isChatBtnShow = typeof chatBtnShow === 'function'
+  
+    const currentTop = window.scrollY || document.documentElement.scrollTop
+    // 找到滚动方向 true is down & false is up
+    const isDown = currentTop > initTop
+    initTop = currentTop
+    if (currentTop > 0) {
+        if (isDown) {
+            if ($header.classList.contains('nav-visible')) $header.classList.remove('nav-visible')
+            if (isChatBtnShow && isChatShow === true) {
+                chatBtnHide()
+                isChatShow = false
+            }
+        } else {
+            if (!$header.classList.contains('nav-visible')) $header.classList.add('nav-visible')
+            if (isChatBtnHide && isChatShow === false) {
+                chatBtnShow()
+                isChatShow = true
+            }
+        }
+        $header.classList.add('nav-fixed')
+        if($cookies_window!=null && $cookies_window!=''){
+            $cookies_window.classList.add('cw-hide')
+        }
+        if ($rightside && window.getComputedStyle($rightside).getPropertyValue('opacity') === '0') {
+            $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+        }
+    } else {
+        if (currentTop === 0) {
+            $header.classList.remove('nav-fixed', 'nav-visible')
+        }
+        $rightside.style.cssText = "opacity: ''; transform: ''"
+    }
+    if (document.body.scrollHeight <= innerHeight) {
+        $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+    }
+  }, 200))</script><script defer src=/libs/katex/katex.min.js></script><body><style>#loading-box{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}#loading-box .loading-bg{background:var(--wjx-card-bg);z-index:1999;opacity:1;pointer-events:all;width:100%;height:100%;transition:all .2s;animation:.3s backwards showLoading;display:flex;position:fixed}#loading-box.loaded .loading-bg{pointer-events:none;transition:all .2s;animation:.3s forwards hideLoading}#loading-box .loading-img{width:100px;height:100px;margin:auto;animation-name:loadingAction;animation-duration:.2s;animation-iteration-count:infinite;animation-direction:alternate;overflow:hidden}#loading-box .loading-image-dot{background:#6bdf8f;border:6px solid #fff;border-radius:50%;width:30px;height:30px;position:absolute;top:50%;left:50%;-webkit-transform:translate(18px,24px);-moz-transform:translate(18px,24px);-ms-transform:translate(18px,24px);-o-transform:translate(18px,24px);transform:translate(18px,24px)}@keyframes loadingAction{0%{opacity:1}to{opacity:.6}}@keyframes hideLoading{0%{opacity:1}to{opacity:0}}@keyframes showLoading{0%{opacity:0}to{opacity:1}}</style><div id=loading-box onclick=wjx.hideLoading()><div class=loading-bg><picture class=loading-img style=border-radius:50%;width:100px;height:100px><source media="(min-width: 1em)" srcset=/processed_images/logo.21eeb8b123e2a315.avif><img alt=Loading decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp><noscript><img decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp></noscript></picture><div class=loading-image-dot></div></div></div><script>var preloader = {
+            endLoading: () => {
+                //- document.body.style.overflow = 'auto';
+                document.getElementById('loading-box').classList.add("loaded")
+            },
+            initLoading: () => {
+                //- document.body.style.overflow = '';
+                document.getElementById('loading-box').classList.remove("loaded")
+            }
+        }
+        window.addEventListener('load', preloader.endLoading())
+        setTimeout(function () {
+            preloader.endLoading();
+        }, 3000)</script><div id=an_music_bg></div><div class=post data-type=post id=body-wrap><header class=post-bg id=page-header><nav class=show id=nav><div id=nav-group><div id=blog_name><div class=back-home-button tabindex=-1><i class="nav-icon back-home-button-icon icon-apps-fill" style=font-size:1rem></i><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div></div><a class="nav-item icon-home" data-pjax href=/ id=site-name title=返回博客主页> <span>ByeIO·开发者博客</span> </a></div><div id=page-name-mask><div id=page-name><a clase=nav-item id=page-name-text onclick=btf.scrollToDest(0,500)> rp2040笔记[2]-使用pio实现dshot并驱动电机 </a></div></div><div id=menus><div class=menus_items><div class=menus_item><button class="site-page nav-item"><span>文库</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/archives> <i class=icon-book-open style=font-size:.9em></i> <span>全部文章</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/categories> <i class=icon-folder-open style=font-size:.9em></i> <span>分类列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags> <i class=icon-tags style=font-size:.9em></i> <span>标签列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:toRandomPost()> <i class=icon-artstation style=font-size:.9em></i> <span>随机文章</span> </a></div></div></div><div class=menus_item><a class="site-page nav-item" href=/tags/work> <span>推荐</span> </a><div class="menus_item_child vertical_nav"><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/docs/readme> <i class=icon-music style=font-size:.9em></i> <span>博客主题介绍</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/misc/lorem-ipsum> <i class=icon-music style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>友链</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/friends> <i class=icon-link style=font-size:.9em></i> <span>友链列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:travelling()> <i class=icon-paper-plane style=font-size:.9em></i> <span>随机发现</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>我的</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/about> <i class=icon-rocket style=font-size:.9em></i> <span>关于本人</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/equipment> <i class=icon-artstation style=font-size:.9em></i> <span>我的装备</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags/project> <i class=icon-lightbulb style=font-size:.9em></i> <span>我的项目</span> </a></div></div></div></div></div><div id=nav-right><div class=nav-button id=randomPost_button><button class="site-page nav-item" href=javascript:void(0); onclick=toRandomPost() title=随机文章><i class="nav-icon icon-dice"></i></button></div><div class=nav-button id=darkmode_button><button class="site-page console_switchbutton nav-item" title="切换模式 - 日夜交替，黑白互换。" href=javascript:void(0); onclick=navFn.switchDarkMode();><i class="nav-icon icon-moon-clear-fill" style=font-size:1rem></i></button></div><div class=nav-button id=nav-console><button class="site-page console_switchbutton nav-item" href=javascript:void(0); onclick=wjx.showConsole() title=显示中控台><i class="nav-icon icon-dashboard"></i></button></div><div class=nav-button id=nav-totop onclick=btf.scrollToDest(0,500)><button class="totopbtn nav-item"><i class="nav-icon icon-arrow-up" style=font-size:1rem></i><span id=percent>0</span></button></div><div id=toggle-menu><button class="site-page nav-item"><i class="nav-icon icon-bars"></i></button></div></div></div></nav><div class="coverdiv loaded" id=coverdiv><img alt=cover class=nolazyload decoding=async id=post-cover loading=lazy src=/processed_images/img00006.c4abedc898f992a6.webp></div><div id=post-info><div id=post-firstinfo><div class=meta-firstline><a class=post-meta-original href=/copyright title=该文章为原创文章，注意版权协议>原创</a><span class=post-meta-categories> <a href=/categories/theme/ title=主题> 主题 </a> </span><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/ title=博客> <span class="tags-name tags-punctuation">博客</span> </a><a class=post-meta__tags href=/tags/docs/ title=文档> <span class="tags-name tags-punctuation">文档</span> </a><a class=post-meta__tags href=/tags/featured/ title=必看> <span class="tags-name tags-punctuation">必看</span> </a><a class=post-meta__tags href=/tags/hot/ title=热门> <span class="tags-name tags-punctuation">热门</span> </a></div></div></div></div><h1 class=post-title>rp2040笔记[2]-使用pio实现dshot并驱动电机</h1><div id=post-meta><div class=meta-secondline><span class=post-meta-author data-flag-title=文章作者 title=文章作者> <i class="icon-zuozhe post-meta-icon"></i>qsbye </span><span class=post-meta-wordcount> <i class="icon-file-word post-meta-icon" title=字数></i> <span class=post-meta-label>字数:</span> <span class=word-count>1083</span> <span class=post-meta-separator></span> <i class="icon-clock post-meta-icon" title=阅读耗时></i> <span class=post-meta-label>阅读耗时:</span> <span> 6 分钟</span> </span><span class=post-meta-date> <i class="icon-calendar-days post-meta-icon"></i> <time title="2025-01-01 00:00:00" datetime=2025-01-01> 2025/01/01 </time> </span><span class=post-meta-wechat title=该文章在博客首发> <i class="icon-rss post-meta-icon"></i>博客独享 </span><a class=post-meta-pv data-flag-title=热度 title=热度> <i class="icon-fire post-meta-icon"></i> <span class=post-meta-label>热度:</span> <span id=twikoo_visitors> <i class="icon-spinner fa-spin"></i> </span> </a><a class=post-meta-commentcount data-flag-title=评论数 href=#post-comment title=评论数> <i class="icon-chat--fill post-meta-icon" style=font-size:17px></i> <span class=post-meta-label>评论:</span> <span id=twikoo-count> <i class="icon-spinner fa-spin"></i> </span> </a></div></div></div><section class="main-hero-waves-area waves-area"><svg viewbox="0 24 150 28" class=waves-svg preserveaspectratio=none shape-rendering=auto xlink=http://www.w3.org/1999/xlink xmlns=http://www.w3.org/2000/svg><defs><path d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z" id=gentle-wave></path></defs><g class=parallax><use href=#gentle-wave x=48 y=0></use><use href=#gentle-wave x=48 y=3></use><use href=#gentle-wave x=48 y=5></use><use href=#gentle-wave x=48 y=7></use></g></svg></section></header><main class="layout right-aside" id=content-inner><div id=post><div id=abstract-container><div class=abstract-title><i class=icon-bilibili></i><div class=abstract-title-text>文章摘要</div><div id=abstract-tag>本地</div></div><div id=abstract-content style=display:block>基于rust和embassy框架使用pio实现dshot并驱动电机;使用全局伪静态变量记录电机速度并异步更新值.</div><div class=abstract-btn-box><div class=abstract-btn-item id=abstract-intro>介绍自己</div><div class=abstract-btn-item id=abstract-generate>生成本文简介</div><div class=abstract-btn-item id=abstract-recommend>推荐相关文章</div><div class=abstract-btn-item id=abstract-home>前往主页</div><div class=abstract-btn-item id=abstract-hide style=margin-left:auto>隐藏本摘要</div></div></div><div class="note simple warning" data-tip-enable=true data-update-date=2025-01-01 id=passage-tip></div><article class="post-content line-numbers" id=article-container><h2 id=zhai-yao>摘要</h2><p>基于rust和embassy框架使用pio实现dshot并驱动电机;使用全局伪静态变量记录电机速度并异步更新值. Implementing DShot and driving the motor using PIO based on Rust and embassy frameworks; Use global pseudo static variables to record motor speed and asynchronously update values.<h2 id=guan-jian-ci>关键词</h2><p>rust;embassy;pio;dshot;mutex;<h2 id=guan-jian-xin-xi>关键信息</h2><ul><li>项目地址:[https://github.com/ByeIO/byeefree.rp2040_quad.embassy]</ul><pre class=language-toml data-lang=toml><code class=language-toml data-lang=toml>[package]
+edition = "2021"
+name = "byeefree_rp2040_quad_embassy"
+version = "0.1.0"
+license = "MIT OR Apache-2.0"
+resolver = "2"
+
+[dependencies]
+# arm cortex-m相关
+cortex-m = { version = "0.7", features = ["inline-asm"] }
+cortex-m-rt = "0.7"
+
+# rp-pico抽象层相关
+# rp-pico = "0.9.0"
+
+# 调试信息相关
+defmt = "0.3"
+defmt-rtt = "0.4"
+panic-probe = { version = "0.3", features = ["print-defmt"] }
+
+# embassy嵌入式异步框架相关
+embassy-embedded-hal = { version = "0.3", features = ["defmt"] }
+
+embassy-executor = { version = "0.7", features = ["arch-cortex-m", "executor-thread", "executor-interrupt", "defmt", "task-arena-size-32768"] }
+embassy-futures = { version = "0.1" }
+embassy-sync = { version = "0.6", features = ["defmt"] }
+embassy-time = { version = "0.4", features = ["defmt", "defmt-timestamp-uptime"] }
+
+embassy-rp = { version = "0.3", features = ["defmt", "unstable-pac", "time-driver", "critical-section-impl", "rp2040"] }
+
+# pio相关, 暂时使用0.2版本
+pio-proc = "0.2"
+pio = "0.2"
+
+## 通过usb获取日志信息 (注意: embassy-usb-logger 需要 portable-atomic 开启 critical-section特性)
+embassy-usb-driver = { version = "0.1", features = ["defmt"] }
+embassy-usb-logger = { version = "0.4" }
+portable-atomic = { version = "1.10", features = ["critical-section"] }
+log = "0.4"
+embassy-usb = { version = "0.4.0", features = ["defmt"] }
+
+## 网络支持
+embassy-net = { version = "0.6", features = ["defmt", "tcp", "udp", "dhcpv4", "medium-ethernet", "dns", "proto-ipv4", "proto-ipv6", "multicast"] }
+# wiznet ethernet driver support
+embassy-net-wiznet = { version = "0.2", features = ["defmt"] }
+## pico-w 支持
+cyw43 = { version = "0.3", features = ["defmt", "firmware-logs"] }
+cyw43-pio = { version = "0.3", features = ["defmt"] }
+
+# 生命周期
+static_cell = "2.1.0"
+
+# Dshot协议
+dshot-pio = { path = "./static/dshot-pio", features = ["embassy-rp"] }
+
+# 线性代数
+nalgebra = { version = "0.33.2", default-features = false, features = ["libm"] }
+
+# 浮点数计算支持
+libm = "0.2.11"
+num-traits = { version = "0.2", default-features = false, features = ["libm"] }
+
+# 命令行解析
+embedded-cli = "0.2.1"
+embedded-io = "0.6.1"
+embedded-io-async = "0.6.1"
+ufmt = "0.2.0"
+
+# 内存分配
+embedded-alloc = { version = "0.6.0", features = ["llff"] }
+heapless = { version = "0.8.0", features = ["portable-atomic"] }
+
+# 临界区访问
+critical-section = { version = "1.2.0", features = [] }
+
+# cargo build/run
+[profile.dev]
+codegen-units = 1
+debug = 2
+debug-assertions = true
+incremental = false
+opt-level = 1
+overflow-checks = true
+lto = "off"
+
+# cargo build/run --release
+[profile.release]
+codegen-units = 1
+debug = 2
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+overflow-checks = false
+
+# do not optimize proc-macro crates = faster builds from scratch
+[profile.dev.build-override]
+codegen-units = 8
+debug = false
+debug-assertions = false
+opt-level = 0
+overflow-checks = false
+
+[profile.release.build-override]
+codegen-units = 8
+debug = false
+debug-assertions = false
+opt-level = 0
+overflow-checks = false
+
+# cargo test
+[profile.test]
+codegen-units = 1
+debug = 2
+debug-assertions = true
+incremental = false
+opt-level = 's'
+overflow-checks = true
+
+# cargo test --release
+[profile.bench]
+codegen-units = 1
+debug = 2
+debug-assertions = false
+incremental = false
+lto = 'fat'
+opt-level = 's'
+</code></pre><h2 id=yuan-li-jian-jie>原理简介</h2><h3 id=dshot-oneshot-multishotxie-yi-jian-jie>dshot/oneshot/multishot协议简介</h3><p>[https://github.com/betaflight/betaflight/wiki/Dshot] [https://www.bilibili.com/video/BV1jK411p7Yr/] [https://team-blacksheep.freshdesk.com/support/solutions/articles/4000100133-what-are-oneshoot-multishot-and-dshot-] [https://www.mathaelectronics.com/what-are-oneshot-and-multishot-in-esc-oneshot-vs-multishot-esc-esc-calibration-protocol%EF%BF%BC/] <strong>ESC校准协议：Oneshot与Multishot的核心解析</strong><ol><li><p><strong>ESC的定义与作用</strong><br> 电子调速器（ESC）是控制无刷直流电机（BLDC）转速、方向及制动的核心电路，其性能依赖于固件支持的通信协议。</p><li><p><strong>ESC固件类型</strong></p> <ul><li>常见固件包括：BLHeli、BLHeli_S、SimonK、Kiss、BLHeli_32等。<li>不同硬件支持的固件有限，例如BLHeli_S仅适用于特定ESC芯片。</ul><li><p><strong>协议分类与特性</strong></p> <ul><li><strong>模拟PWM</strong>：通过占空比控制电机（0%为停止，100%为全速），但延迟较高。<li><strong>标准PWM</strong>：以脉冲宽度（1ms为停止，2ms为全速）传输指令，最大频率500Hz，延迟约2ms。<li><strong>Oneshot125</strong>： <ul><li>脉冲范围缩短为125μs-250μs，频率提升至4000Hz，延迟降低至约250μs。<li>兼容性广，适用于多数支持BLHeli固件的ESC。</ul><li><strong>Oneshot42</strong>： <ul><li>脉冲范围进一步压缩至42μs-84μs，频率更高，延迟更低，但对硬件要求更苛刻。</ul><li><strong>Multishot</strong>： <ul><li>目前最快的模拟协议，脉冲范围5μs-25μs，频率达32kHz，延迟仅约25μs，适用于高性能竞速无人机。</ul><li><strong>Dshot（数字协议）</strong>： <ul><li>通过数字信号传输（如Dshot150/300/600/1200），抗干扰能力强，无需校准，支持错误校验。</ul></ul><li><p><strong>Oneshot与Multishot的对比</strong></p> <table><thead><tr><th>参数<th>Oneshot125<th>Multishot<tbody><tr><td>脉冲范围<td>125-250μs<td>5-25μs<tr><td>延迟<td>~250μs<td>~25μs<tr><td>适用场景<td>通用飞行<td>高响应竞速<tr><td>兼容性<td>广泛<td>需新硬件支持</table><li><p><strong>协议选择建议</strong></p> <ul><li><strong>优先数字协议</strong>：Dshot因其抗噪性和稳定性逐渐成为主流。<li><strong>模拟协议场景</strong>：若需极致低延迟（如竞速无人机），Multishot优于Oneshot；普通场景可选Oneshot125以兼容旧硬件。</ul></ol><h3 id=dshot-pioku-jian-jie>dshot-pio库简介</h3><p>[https://github.com/peterkrull/dshot-pio] DShot implementation for RP2040 using PIO This crate utilizes a single PIO block of the RP2040, enable it to send up to four DShot ESC commands (per PIO block, there are 2 of them) simultaneously, making it a great fit for quad-copters. The crate supports both the embassy-rp and rp2040-hal hardware abstraction layers (HAL).<h3 id=rust-no-stdhuan-jing-xia-quan-ju-bian-liang-xiao-ji-qiao>rust no_std环境下全局变量小技巧</h3><p>[https://blog.csdn.net/jxandrew/article/details/139348634] [https://techie-s.work/posts/2023/01/embassy-an-easy-to-use-async-framework-for-embedded-rust/] [https://blog.theembeddedrustacean.com/sharing-data-among-tasks-in-rust-embassy-synchronization-primitives#heading-the-async-mutex-type]<ul><li>用静态变量互斥访问/写入来对冲rust的生命周期、借用难</ul><ol><li>阻塞型 在实例化共享全局变量时，需要定义RawMutex类型。在这里，我选择了ThreadModeMutex。选择什么取决于您使用互斥体的上下文。在我们的背景下，我们选择什么并不重要。更多细节可以在这里找到。 在全局变量安装中，Mutex内的u32类型被RefCell封装。这是为了允许互斥体中包裹的值的内部可变性。 要访问SHARED，使用lock方法获取全局共享值的锁。lock提供对值发生突变的闭包中锁定变量的访问。</ol><pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>use core::cell::RefCell;
+use embassy_sync::blocking_mutex::Mutex;
+
+static SHARED: Mutex&LTThreadModeRawMutex, RefCell&LTu32>> = Mutex::new(RefCell::new(0));
+
+#[embassy_executor::task]
+async fn async_task() {
+    loop {
+        // Load value from global context, modify and store
+        SHARED.lock(|f| {
+            let val = f.borrow_mut().wrapping_add(1);
+            f.replace(val);
+        });
+        Timer::after(Duration::from_millis(1000)).await;
+    }
+}
+
+#[embassy_executor::main]
+async fn main(spawner: Spawner) {
+    // Initialize and create handle for device peripherals
+    let p = embassy_stm32::init(Default::default());
+    //Configure UART
+    let mut usart = UartTx::new(p.USART2, p.PA2, NoDma, Config::default());
+    // Create empty String for message
+    let mut msg: String&LT8> = String::new();
+    // Spawn async blinking task
+    spawner.spawn(async_task()).unwrap();
+
+    loop {
+        // Wait 1 second
+        Timer::after(Duration::from_millis(1000)).await;
+        // Obtain updated value from global context
+        let shared = SHARED.lock(|f| f.clone().into_inner());
+        core::writeln!(&mut msg, "{:02}", shared).unwrap();
+        // Transmit Message
+        usart.blocking_write(msg.as_bytes()).unwrap();
+        msg.clear();
+    }
+}
+</code></pre><ol start=2><li>异步型 那么，阻塞互斥体与异步互斥体有何不同？阻塞互斥锁不会在等待点/异步任务之间保持。或者，使用异步互斥体，可以在按住锁的同时等待，其他任务也会相应地等待。 下面的代码在稍作修改后实现了与早期代码相同的功能。首先，请注意不再需要RefCell，并且共享变量不能通过闭包访问。相反，锁方法会等待锁被获取，并且在作用域结束之前不会释放它。如果你注意到async_task中锁的作用域，则有一个<code>Timer::after(Duration::from_millis(1000)).await;</code>插入的行。尝试一下此行中的延迟值，看看代码的行为会很有趣。关键是要证明，当你增加值时，锁将由async_task保持，防止主任务中的SHARED被访问。</ol><pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>use embassy_sync::blocking_mutex::raw::ThreadModeRawMutex;
+use embassy_sync::mutex::Mutex;
+
+static SHARED: Mutex&LTThreadModeRawMutex, u32> = Mutex::new(0);
+
+#[embassy_executor::task]
+async fn async_task() {
+    loop {
+        {
+            let mut shared = SHARED.lock().await;
+            *shared = shared.wrapping_add(1);
+            Timer::after(Duration::from_millis(1000)).await;
+        }
+        Timer::after(Duration::from_millis(1000)).await;
+    }
+}
+
+#[embassy_executor::main]
+async fn main(spawner: Spawner) {
+    // Initialize and create handle for device peripherals
+    let p = embassy_stm32::init(Default::default());
+    //Configure UART
+    let mut usart = UartTx::new(p.USART2, p.PA2, NoDma, Config::default());
+    // Create empty String for message
+    let mut msg: String&LT8> = String::new();
+    // Spawn async blinking task
+    spawner.spawn(async_task()).unwrap();
+
+    loop {
+        // Wait 1 second
+        Timer::after(Duration::from_millis(1000)).await;
+        // Obtain updated value from global context
+        let shared = SHARED.lock().await;
+        core::writeln!(&mut msg, "{:02}", *shared).unwrap();
+        // Transmit Message
+        usart.blocking_write(msg.as_bytes()).unwrap();
+        msg.clear();
+    }
+}
+</code></pre><h2 id=guan-jian-dai-ma>关键代码</h2><p><strong>dshot_embassy_rp.rs</strong><pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>#![no_std]
+
+#[cfg(feature = "embassy-rp")]
+pub mod dshot_embassy_rp;
+
+#[cfg(feature = "rp2040-hal")]
+pub mod dshot_rp2040_hal;
+
+pub trait DshotPioTrait&LTconst N: usize> {
+    fn command(&mut self, command: [u16;N]);
+    fn reverse(&mut self, reverse: [bool;N]);
+    fn throttle_clamp(&mut self, throttle: [u16;N]);
+    fn throttle_minimum(&mut self);
+}
+
+// 各种Shot类型
+pub enum ShotType{
+    DSHOT150, 
+    DSHOT300,
+    DSHOT600,
+    DSHOT1200,
+    OneSHOT42,
+    OneShot125,
+    MultiShot
+}
+
+// 计算分频数
+pub fn cal_clock_div(sys_clk_hz: u32, shot_type: ShotType) -> (u16, u8) {
+    let bit_rate = match shot_type {
+        ShotType::DSHOT150 => 150_000,
+        ShotType::DSHOT300 => 300_000,
+        ShotType::DSHOT600 => 600_000,
+        ShotType::DSHOT1200 => 1_200_000,
+        // 默认DShot600，或根据需要panic
+        _ => 600_000, 
+    };
+
+    let denominator = 8u64 * bit_rate as u64;
+    let sys_clk = sys_clk_hz as u64;
+    
+    let divider = (sys_clk / denominator) as u16;
+    let remainder = sys_clk % denominator;
+    // (remainder * 256)/denominator
+    let fraction = ((remainder << 8) / denominator) as u8; 
+
+    (divider, fraction)
+}
+use dshot_encoder as dshot;
+pub use super::DshotPioTrait;
+
+pub use embassy_rp::{
+    pio::{ Instance, Pio, Config, PioPin, ShiftConfig, ShiftDirection::Left, InterruptHandler},
+    Peripheral, interrupt::typelevel::Binding
+};
+#[allow(dead_code)]
+pub struct DshotPio<'a, const N : usize, PIO : Instance> {
+    pio_instance: Pio<'a,PIO>,
+}
+
+
+fn configure_pio_instance<'a,PIO: Instance>  (
+    pio: impl Peripheral&LTP = PIO> + 'a,
+    irq: impl Binding&LTPIO::Interrupt, InterruptHandler&LTPIO>>,
+    clk_div: (u16, u8),
+) -> (Config<'a, PIO>, Pio<'a, PIO>) {
+    
+    // Define program
+    let dshot_pio_program = pio_proc::pio_asm!(
+        "set pindirs, 1",
+        "entry:"
+        "   pull"
+        "   out null 16"
+        "   set x 15"
+        "loop:"
+        "   set pins 1"
+        "   out y 1"
+        "   jmp !y zero"
+        "   nop [2]"
+        "one:" // 6 and 2
+        "   set pins 0"
+        "   jmp x-- loop"
+        "   jmp reset"
+        "zero:" // 3 and 5
+        "   set pins 0 [3]"
+        "   jmp x-- loop"
+        "   jmp reset"
+        "reset:" // Blank frame
+        "   nop [31]"
+        "   nop [31]"
+        "   nop [31]"
+        "   jmp entry [31]"
+    );
+
+    // Configure program
+    let mut cfg = Config::default();
+    let mut pio = Pio::new(pio,irq);
+    cfg.use_program(&pio.common.load_program(&dshot_pio_program.program), &[]);
+    cfg.clock_divider = clk_div.0.into();
+
+    cfg.shift_in = ShiftConfig {
+        auto_fill: true,
+        direction: Default::default(),
+        threshold: 32,
+    };
+
+    cfg.shift_out = ShiftConfig {
+        auto_fill: Default::default(),
+        direction: Left,
+        threshold: Default::default(),
+    };
+
+    (cfg,pio)
+
+}
+
+///
+/// Defining constructor functions
+/// 
+
+impl <'a,PIO: Instance> DshotPio<'a,1,PIO> {
+    pub fn new(
+        pio: impl Peripheral&LTP = PIO> + 'a,
+        irq: impl Binding&LTPIO::Interrupt, InterruptHandler&LTPIO>>,
+        pin0: impl PioPin,
+        clk_div: (u16, u8),
+    ) -> DshotPio<'a,1,PIO> {
+
+        let (mut cfg, mut pio) = configure_pio_instance(pio, irq, clk_div);
+
+        // Set pins and enable all state machines
+        let pin0 = pio.common.make_pio_pin(pin0);
+        cfg.set_set_pins(&[&pin0]);
+        pio.sm0.set_config(&cfg);
+        pio.sm0.set_enable(true);
+
+        // Return struct of 1 configured DShot state machine
+        DshotPio { pio_instance : pio }
+    }
+}
+
+impl <'a,PIO: Instance> DshotPio<'a,2,PIO> {
+    pub fn new(
+        pio: impl Peripheral&LTP = PIO> + 'a,
+        irq: impl Binding&LTPIO::Interrupt, InterruptHandler&LTPIO>>,
+        pin0: impl PioPin,
+        pin1: impl PioPin,
+        clk_div: (u16, u8),
+    ) -> DshotPio<'a,2,PIO> {
+
+        let (mut cfg, mut pio) = configure_pio_instance(pio, irq, clk_div);
+
+        // Set pins and enable all state machines
+        let pin0 = pio.common.make_pio_pin(pin0);
+        cfg.set_set_pins(&[&pin0]);
+        pio.sm0.set_config(&cfg);
+        pio.sm0.set_enable(true);
+
+        let pin1 = pio.common.make_pio_pin(pin1);
+        cfg.set_set_pins(&[&pin1]);
+        pio.sm1.set_config(&cfg);
+        pio.sm1.set_enable(true);
+
+        // Return struct of 2 configured DShot state machines
+        DshotPio { pio_instance : pio }
+    }
+}
+
+impl <'a,PIO: Instance> DshotPio<'a,3,PIO> {
+    pub fn new(
+        pio: impl Peripheral&LTP = PIO> + 'a,
+        irq: impl Binding&LTPIO::Interrupt, InterruptHandler&LTPIO>>,
+        pin0: impl PioPin,
+        pin1: impl PioPin,
+        pin2: impl PioPin,
+        clk_div: (u16, u8),
+    ) -> DshotPio<'a,3,PIO> {
+
+        let (mut cfg, mut pio) = configure_pio_instance(pio, irq, clk_div);
+
+        // Set pins and enable all state machines
+        let pin0 = pio.common.make_pio_pin(pin0);
+        cfg.set_set_pins(&[&pin0]);
+        pio.sm0.set_config(&cfg);
+        pio.sm0.set_enable(true);
+
+        let pin1 = pio.common.make_pio_pin(pin1);
+        cfg.set_set_pins(&[&pin1]);
+        pio.sm1.set_config(&cfg);
+        pio.sm1.set_enable(true);
+
+        let pin2 = pio.common.make_pio_pin(pin2);
+        cfg.set_set_pins(&[&pin2]);
+        pio.sm2.set_config(&cfg);
+        pio.sm2.set_enable(true);
+        
+        // Return struct of 3 configured DShot state machines
+        DshotPio { pio_instance : pio }
+    }
+}
+
+impl <'a,PIO: Instance> DshotPio<'a,4,PIO> {
+    pub fn new(
+        pio: impl Peripheral&LTP = PIO> + 'a,
+        irq: impl Binding&LTPIO::Interrupt, InterruptHandler&LTPIO>>,
+        pin0: impl PioPin,
+        pin1: impl PioPin,
+        pin2: impl PioPin,
+        pin3: impl PioPin,
+        clk_div: (u16, u8),
+    ) -> DshotPio<'a,4,PIO> {
+
+        let (mut cfg, mut pio) = configure_pio_instance(pio, irq, clk_div);
+
+        // Set pins and enable all state machines
+        let pin0 = pio.common.make_pio_pin(pin0);
+        cfg.set_set_pins(&[&pin0]);
+        pio.sm0.set_config(&cfg);
+        pio.sm0.set_enable(true);
+
+        let pin1 = pio.common.make_pio_pin(pin1);
+        cfg.set_set_pins(&[&pin1]);
+        pio.sm1.set_config(&cfg);
+        pio.sm1.set_enable(true);
+
+        let pin2 = pio.common.make_pio_pin(pin2);
+        cfg.set_set_pins(&[&pin2]);
+        pio.sm2.set_config(&cfg);
+        pio.sm2.set_enable(true);
+
+        let pin3 = pio.common.make_pio_pin(pin3);
+        cfg.set_set_pins(&[&pin3]);
+        pio.sm3.set_config(&cfg);
+        pio.sm3.set_enable(true);
+
+        // Return struct of 4 configured DShot state machines
+        DshotPio { pio_instance : pio }
+    }
+}
+
+///
+/// Implementing DshotPioTrait
+/// 
+
+impl <'d,PIO : Instance> super::DshotPioTrait&LT1> for DshotPio<'d,1,PIO> {
+    
+    /// Send any valid DShot value to the ESC.
+    fn command(&mut self, command: [u16; 1]) {
+        self.pio_instance.sm0.tx().push(command[0].min(dshot::THROTTLE_MAX) as u32);
+    }
+    
+    /// Set the direction of rotation for each motor
+    fn reverse(&mut self, reverse: [bool;1]) {
+        self.pio_instance.sm0.tx().push(dshot::reverse(reverse[0]) as u32);
+    }
+
+    /// Set the throttle for each motor. All values are clamped between 48 and 2047
+    fn throttle_clamp(&mut self, throttle: [u16;1]) {
+        self.pio_instance.sm0.tx().push(dshot::throttle_clamp(throttle[0], false) as u32);
+    }
+
+    /// Set the throttle for each motor to zero (DShot command 48)
+    fn throttle_minimum(&mut self) {
+        self.pio_instance.sm0.tx().push(dshot::throttle_minimum(false) as u32);
+    }
+}
+
+impl <'d,PIO : Instance> super::DshotPioTrait&LT2> for DshotPio<'d,2,PIO> {
+    
+    /// Send any valid DShot value to the ESC.
+    fn command(&mut self, command: [u16; 2]) {
+        self.pio_instance.sm0.tx().push(command[0].min(dshot::THROTTLE_MAX) as u32);
+        self.pio_instance.sm0.tx().push(command[1].min(dshot::THROTTLE_MAX) as u32);
+    }
+    
+    /// Set the direction of rotation for each motor
+    fn reverse(&mut self, reverse: [bool;2]) {
+        self.pio_instance.sm0.tx().push(dshot::reverse(reverse[0]) as u32);
+        self.pio_instance.sm1.tx().push(dshot::reverse(reverse[1]) as u32);
+    }
+
+    /// Set the throttle for each motor. All values are clamped between 48 and 2047
+    fn throttle_clamp(&mut self, throttle: [u16;2]) {
+        self.pio_instance.sm0.tx().push(dshot::throttle_clamp(throttle[0], false) as u32);
+        self.pio_instance.sm1.tx().push(dshot::throttle_clamp(throttle[1], false) as u32);
+    }
+
+    /// Set the throttle for each motor to zero (DShot command 48)
+    fn throttle_minimum(&mut self) {
+        self.pio_instance.sm0.tx().push(dshot::throttle_minimum(false) as u32);
+        self.pio_instance.sm1.tx().push(dshot::throttle_minimum(false) as u32);
+    }
+}
+
+impl <'d,PIO : Instance> super::DshotPioTrait&LT3> for DshotPio<'d,3,PIO> {
+    
+    /// Send any valid DShot value to the ESC.
+    fn command(&mut self, command: [u16; 3]) {
+        self.pio_instance.sm0.tx().push(command[0].min(dshot::THROTTLE_MAX) as u32);
+        self.pio_instance.sm0.tx().push(command[1].min(dshot::THROTTLE_MAX) as u32);
+        self.pio_instance.sm0.tx().push(command[2].min(dshot::THROTTLE_MAX) as u32);
+    }
+    
+    /// Set the direction of rotation for each motor
+    fn reverse(&mut self, reverse: [bool;3]) {
+        self.pio_instance.sm0.tx().push(dshot::reverse(reverse[0]) as u32);
+        self.pio_instance.sm1.tx().push(dshot::reverse(reverse[1]) as u32);
+        self.pio_instance.sm2.tx().push(dshot::reverse(reverse[2]) as u32);
+    }
+
+    /// Set the throttle for each motor. All values are clamped between 48 and 2047
+    fn throttle_clamp(&mut self, throttle: [u16;3]) {
+        self.pio_instance.sm0.tx().push(dshot::throttle_clamp(throttle[0], false) as u32);
+        self.pio_instance.sm1.tx().push(dshot::throttle_clamp(throttle[1], false) as u32);
+        self.pio_instance.sm2.tx().push(dshot::throttle_clamp(throttle[2], false) as u32);
+    }
+
+    /// Set the throttle for each motor to zero (DShot command 48)
+    fn throttle_minimum(&mut self) {
+        self.pio_instance.sm0.tx().push(dshot::throttle_minimum(false) as u32);
+        self.pio_instance.sm1.tx().push(dshot::throttle_minimum(false) as u32);
+        self.pio_instance.sm2.tx().push(dshot::throttle_minimum(false) as u32);
+    }
+}
+
+impl <'d,PIO : Instance> super::DshotPioTrait&LT4 > for DshotPio<'d,4,PIO> {
+    
+    /// Send any valid DShot value to the ESC.
+    fn command(&mut self, command: [u16; 4]) {
+        self.pio_instance.sm0.tx().push(command[0].min(dshot::THROTTLE_MAX) as u32);
+        self.pio_instance.sm0.tx().push(command[1].min(dshot::THROTTLE_MAX) as u32);
+        self.pio_instance.sm0.tx().push(command[2].min(dshot::THROTTLE_MAX) as u32);
+        self.pio_instance.sm0.tx().push(command[3].min(dshot::THROTTLE_MAX) as u32);
+    }
+    
+    /// Set the direction of rotation for each motor
+    fn reverse(&mut self, reverse: [bool;4]) {
+        self.pio_instance.sm0.tx().push(dshot::reverse(reverse[0]) as u32);
+        self.pio_instance.sm1.tx().push(dshot::reverse(reverse[1]) as u32);
+        self.pio_instance.sm2.tx().push(dshot::reverse(reverse[2]) as u32);
+        self.pio_instance.sm3.tx().push(dshot::reverse(reverse[3]) as u32);
+    }
+
+    /// Set the throttle for each motor. All values are clamped between 48 and 2047
+    fn throttle_clamp(&mut self, throttle: [u16;4]) {
+        self.pio_instance.sm0.tx().push(dshot::throttle_clamp(throttle[0], false) as u32);
+        self.pio_instance.sm1.tx().push(dshot::throttle_clamp(throttle[1], false) as u32);
+        self.pio_instance.sm2.tx().push(dshot::throttle_clamp(throttle[2], false) as u32);
+        self.pio_instance.sm3.tx().push(dshot::throttle_clamp(throttle[3], false) as u32);
+    }
+
+    /// Set the throttle for each motor to zero (DShot command 48)
+    fn throttle_minimum(&mut self) {
+        self.pio_instance.sm0.tx().push(dshot::throttle_minimum(false) as u32);
+        self.pio_instance.sm1.tx().push(dshot::throttle_minimum(false) as u32);
+        self.pio_instance.sm2.tx().push(dshot::throttle_minimum(false) as u32);
+        self.pio_instance.sm3.tx().push(dshot::throttle_minimum(false) as u32);
+    }
+}
+</code></pre><p><strong>motors.rs</strong><pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>#![allow(unused)]
+
+//! 电机控制任务
+// rp2040-pico默认时钟频率: 120MHz
+// 小蜜蜂电调,BLHeli-S固件, DShot600控制
+
+// 多任务相关
+use embassy_time::{Duration, Timer};
+use embassy_executor::Spawner;
+use embassy_futures::join::join;
+use embassy_rp::bind_interrupts;
+
+// 电调驱动
+use crate::{drivers::esc::little_bee, utils::signals::MOTOR_STATE};
+
+// dshot相关
+use dshot_pio::{ cal_clock_div, dshot_embassy_rp::DshotPio, ShotType, DshotPioTrait };
+
+// 静态变量互斥访问相关
+use embassy_sync::blocking_mutex::{Mutex, CriticalSectionMutex, raw::CriticalSectionRawMutex};
+// use core::sync::atomic::{AtomicU16, Ordering};
+use static_cell::StaticCell;
+use core::{
+    //内部可变性类型RefCell
+    cell::RefCell, 
+    fmt::Write, 
+    //引用借用
+    borrow::BorrowMut,
+    borrow::Borrow,
+};
+
+// 内部库
+/// 信号
+use crate::utils::signals;
+/// 全局变量
+use crate::utils::variables;
+
+// 电机序号
+#[derive(Clone,Copy,PartialEq)]
+pub enum Motors {
+    One,
+    Two,
+    Three,
+    Four
+}
+
+// 电机状态
+#[derive(Clone,Copy,PartialEq)]
+pub enum MotorState {
+    READY,
+    DISARMED,
+    KEEP,
+    RUNNING,
+    MANUAL,
+}
+
+// 1. 解锁电调工具函数
+pub async fn arming_esc(
+    motor: Motors, 
+    out_pio_motors : &mut DshotPio<'static, 4, embassy_rp::peripherals::PIO0>
+    ){
+    defmt::println!("hello from arming_esc");
+    for _i in 0..50 {
+        out_pio_motors.throttle_minimum();
+        Timer::after(Duration::from_millis(50)).await;
+    }
+}
+
+// 2. 电机转速控制任务(async)
+// motor序号(e.g. Motors::One), 0~100转速(u16)
+#[embassy_executor::task]
+pub async fn motor_task(
+    mut in_motor_speed : signals::MotorSpeedSub,
+    mut in_motor_direction : signals::MotorDirSub,
+    mut out_pio_motors : DshotPio<'static, 4, embassy_rp::peripherals::PIO0>,
+    out_motor_state : signals::MotorStatePub,
+){
+    defmt::println!("hello from motor_task");
+    
+    // 初始化电机
+    init_motors(&mut out_pio_motors).await;
+    out_motor_state.publish_immediate(MotorState::READY);
+    
+    defmt::println!("done: motor init");
+    
+    loop{
+        // 1. 根据转速信号调整电机
+        /// 获取电机转速
+        if let Some(motor_speed) = in_motor_speed.try_next_message_pure(){
+            let (m1, m2, m3, m4) = motor_speed;
+            
+            /// 更新全局变量
+            crate::utils::variables::MotorSpeedEditor::write_speeds(
+                [m1.unwrap_or(0),m2.unwrap_or(0),m3.unwrap_or(0),m4.unwrap_or(0)]
+            ).await;
+            
+            /// 发送到电调
+            out_pio_motors.throttle_clamp([
+                m1.unwrap_or(0),
+                m2.unwrap_or(0),
+                m3.unwrap_or(0),
+                m4.unwrap_or(0)
+            ]);
+        }
+        
+        // 2. 根据方向给电机换向
+        /// 获取电机旋转方向设置
+        // let mut motor_dir = in_motor_direction.next_message_pure().await;
+        if let Some(motor_dir) = in_motor_direction.try_next_message_pure(){
+            let (m1_, m2_, m3_, m4_) = motor_dir;
+            /// 更新全局变量
+            crate::utils::variables::MotorDirectionEditor::write_directions(
+                [m1_.unwrap_or(true),m2_.unwrap_or(true),m3_.unwrap_or(true),m4_.unwrap_or(true)]
+            ).await;
+            
+            /// 发送到电调
+            out_pio_motors.reverse([
+                m1_.unwrap_or(true),
+                m2_.unwrap_or(true),
+                m3_.unwrap_or(true),
+                m4_.unwrap_or(true)
+            ]);
+        }else{
+            // 留出时间给其他任务执行, 不能一直占用cpu
+            Timer::after(Duration::from_millis(50)).await;
+        }
+
+    }
+}
+
+// 3. 电调初始化
+// p_pio, (p_motor1_gpio, p_motor2_gpio, p_motor3_gpio, p_motor4_gpio)
+pub async fn init_motors(out_pio_motors :&mut DshotPio<'static, 4, embassy_rp::peripherals::PIO0>)
+{
+    defmt::println!("hello from init_motors");
+    // 3.1 绑定gpio和dshot信号
+    let _ = little_bee::init().await;
+        
+    // 3.2 发送小油门信号解锁电调, 让电机可以旋转
+    arming_esc(Motors::One, out_pio_motors).await;
+    arming_esc(Motors::Two, out_pio_motors).await;
+    arming_esc(Motors::Three, out_pio_motors).await;
+    arming_esc(Motors::Four, out_pio_motors).await;
+}
+
+// 4. 测试分别旋转四个电机, 然后让电机保持缓慢旋转
+#[embassy_executor::task]
+pub async fn motor_test_task(
+    mut in_motor_state : signals::MotorStateSub,
+){
+    // 等待电机初始化完成
+    let state = in_motor_state.next_message_pure().await;
+    if state == MotorState::READY {
+        defmt::println!("hello from motor_test");
+        
+        // 1. 依次旋转四个电机
+        signals::MOTOR_SPEED.publisher().unwrap().publish_immediate((Some(30), Some(0), Some(0), Some(0)));
+        Timer::after(Duration::from_millis(2000)).await;
+        signals::MOTOR_SPEED.publisher().unwrap().publish_immediate((Some(0), Some(30), Some(0), Some(0)));
+        Timer::after(Duration::from_millis(2000)).await;
+        signals::MOTOR_SPEED.publisher().unwrap().publish_immediate((Some(0), Some(0), Some(30), Some(0)));
+        Timer::after(Duration::from_millis(2000)).await;
+        signals::MOTOR_SPEED.publisher().unwrap().publish_immediate((Some(0), Some(0), Some(0), Some(30)));
+        Timer::after(Duration::from_millis(2000)).await;
+        
+        defmt::println!("done: motor_test");
+        
+        // 2. 保持慢速旋转, 需要一直发布信号
+        loop{
+            if let Some(state2) = in_motor_state.try_next_message_pure(){
+                if state2 == MotorState::READY {
+                    signals::MOTOR_SPEED.publisher().unwrap().publish_immediate((Some(10), Some(10), Some(10), Some(10)));
+                    // 留出时间给其他任务执行, 不能一直占用cpu
+                    Timer::after(Duration::from_millis(500)).await;
+                }else{
+                    defmt::println!("done: motor_ready");
+                    // 退出loop循环
+                    break;
+                }// end else
+            }// end if let Some
+            else{
+                signals::MOTOR_SPEED.publisher().unwrap().publish_immediate((Some(10), Some(10), Some(10), Some(10)));
+                // 留出时间给其他任务执行, 不能一直占用cpu
+                Timer::after(Duration::from_millis(500)).await;
+            }// end else
+            
+        }// end loop
+        
+    }
+}
+</code></pre><p><strong>motor.rs</strong><pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>// 命令解析相关
+use embedded_cli::Command;
+use embedded_io::ErrorKind;
+use embedded_io_async::{Read, Write};
+use ufmt::uwrite;
+use heapless::String;
+use core::str::FromStr;
+use crate::shell::{UBuffer, INTERRUPT};
+
+// 异步相关
+use embassy_time::{Duration, Ticker};
+use embassy_futures::select::{select, Either};
+
+// 内部库
+/// 信号
+use crate::utils::signals;
+/// 全局变量
+use crate::utils::variables;
+
+#[derive(Command, Clone)]
+pub enum MotorCommand {
+    /// set speed and direction
+    Set {
+        #[command(subcommand)]
+        cmd: MotorSetEnum,
+    },
+    /// get speed and direction
+    Get,
+}
+
+// 实现CommandHandler特征
+impl super::CommandHandler for MotorCommand {
+    async fn handler(
+        &self,
+        mut serial: impl Read&LTError = ErrorKind> + Write&LTError = ErrorKind>,
+    ) -> Result<(), ErrorKind> {
+        match self {
+            // 具体解析命令
+            MotorCommand::Set { cmd } => {
+                cmd.handler(&mut serial).await?
+            },
+            MotorCommand::Get => {
+                let speeds = crate::utils::variables::MotorSpeedEditor::get_speeds().await;
+                let directions = crate::utils::variables::MotorDirectionEditor::get_directions().await;
+                // 使用UBuffer结构体
+                let mut buf = UBuffer::&LT32>::new();
+                
+                // 遍历数组元素逐个写入
+                for (i, speed) in speeds.as_ref().iter().enumerate() {
+                    if i > 0 {
+                        // 添加分隔符
+                        uwrite!(&mut buf, " ")?; 
+                    }
+                    uwrite!(&mut buf, "{}", speed)?;
+                }
+                
+                // 加一个空格
+                uwrite!(&mut buf, " ")?;
+                
+                // 调试信息打印
+                defmt::println!("motor speed: {}", core::str::from_utf8(&buf.inner).unwrap());
+                // 写入到输出接口
+                serial.write_all(&buf.inner).await?;
+                
+                // 使用UBuffer结构体
+                let mut buf2 = UBuffer::&LT32>::new();
+                
+                // 遍历数组元素逐个写入
+                for (i, direction) in directions.as_ref().iter().enumerate() {
+                    if i > 0 {
+                        // 添加分隔符
+                        uwrite!(&mut buf2, " ")?; 
+                    }
+                    uwrite!(&mut buf2, "{}", direction)?;
+                }
+                
+                // 调试信息打印
+                defmt::println!("motor directions: {}", core::str::from_utf8(&buf2.inner).unwrap());
+                // 写入到输出接口
+                serial.write_all(&buf2.inner).await?;
+            }
+        }
+        Ok(())
+    }
+}
+
+#[derive(Command, Clone)]
+pub enum MotorSetEnum{
+    // 设置速度, `motor set speed 1 100`
+    /// set speed
+    Speed{
+        motor: usize,
+        speed: u16,
+    },
+    // 设置方向, `motor set dir 1 false`
+    /// set direction
+    Dir{
+        motor: usize,
+        direction: bool,
+    }
+}
+
+// 实现CommandHandler特征
+impl super::CommandHandler for MotorSetEnum {
+    async fn handler(
+        &self,
+        mut serial: impl Read&LTError = ErrorKind> + Write&LTError = ErrorKind>,
+    ) -> Result<(), ErrorKind> {
+        match self {
+            MotorSetEnum::Speed{motor, speed}=>{
+                // 转换电机模式到MANUAL
+                signals::MOTOR_STATE.publisher().unwrap().publish_immediate(crate::tasks::motors::MotorState::MANUAL);
+                
+                // TODO 检查数值合法性
+                
+                // 获取全局变量的电机转速
+                let mut speeds = crate::utils::variables::MotorSpeedEditor::get_speeds().await;
+                speeds[motor-1] = *speed;
+                
+                // 发布电机转速设置
+                signals::MOTOR_SPEED.publisher().unwrap().publish_immediate(
+                    (Some(speeds[0]),Some(speeds[1]),Some(speeds[2]),Some(speeds[3]))
+                );
+                
+                defmt::println!("speeds will be set to :{}", speeds);
+                
+                serial.write_all(b"ok").await?;
+            },
+            MotorSetEnum::Dir{motor, direction}=>{
+                
+                // TODO 检查数值合法性
+                
+                // 获取全局变量的电机方向
+                let mut directions = crate::utils::variables::MotorDirectionEditor::get_directions().await;
+                directions[motor-1] = *direction;
+                
+                // 发布电机方向设置
+                signals::MOTOR_DIR.publisher().unwrap().publish_immediate(
+                    (Some(directions[0]),Some(directions[1]),Some(directions[2]),Some(directions[3]))
+                );
+                
+                defmt::println!("direction will be set to :{}", directions);
+                
+                serial.write_all(b"ok").await?;
+            }
+        }
+        Ok(())
+    }
+}
+</code></pre><p><strong>signals.rs</strong><pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>// 2. motors任务的信道
+/// 电机转速
+const MOTOR_SPEED_NUM: usize = 2;
+/// 可对电机进行单独设置而不影响其他电机
+pub type MotorSpeedType = (Option&LTu16>, Option&LTu16>, Option&LTu16>, Option&LTu16>);
+pub type MotorSpeedPub = Pub&LTMotorSpeedType,MOTOR_SPEED_NUM>;
+pub type MotorSpeedSub = Sub&LTMotorSpeedType,MOTOR_SPEED_NUM>;
+pub static MOTOR_SPEED : Ch&LTMotorSpeedType,MOTOR_SPEED_NUM> = PubSubChannel::new();
+
+/// 电机方向
+const MOTOR_DIR_NUM: usize = 2;
+/// 可对电机进行单独设置而不影响其他电机
+pub type MotorDirType = (Option&LTbool>, Option&LTbool>, Option&LTbool>, Option&LTbool>);
+pub type MotorDirPub = Pub&LTMotorDirType,MOTOR_DIR_NUM>;
+pub type MotorDirSub = Sub&LTMotorDirType,MOTOR_DIR_NUM>;
+pub static MOTOR_DIR : Ch&LTMotorDirType,MOTOR_DIR_NUM> = PubSubChannel::new();
+
+/// 电机状态
+const MOTOR_STATE_NUM: usize = 2;
+pub type MotorStateType = crate::tasks::motors::MotorState;
+pub type MotorStatePub = Pub&LTMotorStateType,MOTOR_STATE_NUM>;
+pub type MotorStateSub = Sub&LTMotorStateType,MOTOR_STATE_NUM>;
+pub static MOTOR_STATE : Ch&LTMotorStateType,MOTOR_STATE_NUM> = PubSubChannel::new();
+</code></pre><p><strong>variables.rs</strong><pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>#![allow(dead_code)]
+
+//! 全局变量
+
+// 用静态变量互斥访问来对冲rust的生命周期、借用难, 
+// 所有的操作接口都是：&'static self。
+
+// 静态变量互斥访问相关
+use embassy_sync::blocking_mutex::{
+    CriticalSectionMutex, 
+    raw::{
+        CriticalSectionRawMutex, ThreadModeRawMutex
+    },
+};
+use embassy_sync::mutex::Mutex;
+// use core::sync::atomic::{AtomicU16, Ordering};
+use static_cell::{StaticCell, ConstStaticCell};
+use core::{
+    //内部可变性类型RefCell
+    cell::RefCell, 
+    fmt::Write, 
+    //引用借用
+    borrow::BorrowMut,
+    borrow::Borrow,
+};
+
+/// 初始化全局变量
+pub fn init_variables(){
+    // unimplemented!()
+}
+
+/* start 电机速度 */
+/// 全局电机速度，使用异步Mutex保护
+static MOTOR_SPEEDS: Mutex&LTThreadModeRawMutex, [u16; 4]> = Mutex::new([0u16; 4]);
+
+/// 电机速度操作接口
+pub struct MotorSpeedEditor;
+
+impl MotorSpeedEditor {
+    /// 异步获取电机速度（拷贝值返回）
+    pub async fn get_speeds() -> [u16; 4] {
+        let guard = MOTOR_SPEEDS.lock().await;
+        *guard
+    }
+
+    /// 异步更新全部电机速度
+    pub async fn write_speeds(speeds: [u16; 4]) {
+        let mut guard = MOTOR_SPEEDS.lock().await;
+        *guard = speeds;
+    }
+
+    /// 异步设置单个电机速度
+    pub async fn set_speed(index: usize, value: u16) {
+        let mut guard = MOTOR_SPEEDS.lock().await;
+        guard[index] = value;
+    }
+}
+/* end 电机速度 */
+
+/* start 电机方向 */
+// 1: 右转, 0: 左转
+/// 全局电机方向，使用异步Mutex保护
+static MOTOR_DIRECTIONS: Mutex&LTThreadModeRawMutex, [bool; 4]> = Mutex::new([true; 4]);
+
+/// 电机方向操作接口
+pub struct MotorDirectionEditor;
+
+impl MotorDirectionEditor {
+    /// 异步获取电机方向（拷贝值返回）
+    pub async fn get_directions() -> [bool; 4] {
+        let guard = MOTOR_DIRECTIONS.lock().await;
+        *guard
+    }
+
+    /// 异步更新全部电机方向
+    pub async fn write_directions(directions: [bool; 4]) {
+        let mut guard = MOTOR_DIRECTIONS.lock().await;
+        *guard = directions;
+    }
+
+    /// 异步设置单个电机方向
+    pub async fn set_direction(index: usize, value: bool) {
+        let mut guard = MOTOR_DIRECTIONS.lock().await;
+        guard[index] = value;
+    }
+}
+/* end 电机方向 */
+</code></pre></article><div><div class=post-copyright><div class=post-copyright__author_group><a class=post-copyright__author_img href=/about> <picture class="post-copyright__author_img_back progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> </a><div class=post-copyright__author_name>ByeIO·开发者博客</div><div class=post-copyright__author_desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div></div><div class=post-tools id=post-tools><div class=post-tools-left><div class=rewardLeftButton><div class="reward-link mode"><a class=reward-link-button href=/subscribe> <i class=icon-plant-fill></i>订阅 </a></div></div><div class=shareRight><div class="copyright-link mobile"><div class=copyright-qrcode><div class=copyright-button title=使用手机访问这篇文章><i class=icon-qrcode></i></div><div class=copyright-main><div class=copyright-main-all><div id=qrcode></div><div class=reward-dec>使用手机访问这篇文章</div></div></div></div></div><div class="copyright-link copyurl"><div class=copyright-button id=post-share-url onclick=rm.copyPageUrl() title=复制链接><i class=icon-link></i></div></div></div></div></div><div class=post-copyright__notice><span class=post-copyright-info> 本文是原创文章，采用 <a href=/copyright target=_blank>CC BY-NC-ND 4.0</a> 协议，转载请注明 <a href=/ target=_blank>本站名称及地址</a> </span></div></div><div class=post-tools-right><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/> <span class=tags-punctuation>博客</span> <span class=tagsPageCount>31</span> </a><a class=post-meta__tags href=/tags/docs/> <span class=tags-punctuation>文档</span> <span class=tagsPageCount>25</span> </a><a class=post-meta__tags href=/tags/featured/> <span class=tags-punctuation>必看</span> <span class=tagsPageCount>30</span> </a><a class=post-meta__tags href=/tags/hot/> <span class=tags-punctuation>热门</span> <span class=tagsPageCount>30</span> </a></div></div></div><link href=/css/post-copyright-one.css rel=stylesheet></div><nav class="pagination-post needEndHide" id=pagination><div class="prev-post pull-left"><a href=/articles/docs/rp2040笔记[1]-使用embassy实现呼吸灯并通过命令行切换状态/> <div class=pagination-info><div class=label>上一篇</div><div class=prev_info>rp2040笔记[1]-使用embassy实现呼吸灯并通过命令行切换状态</div></div> </a></div><div class="next-post pull-right"><a href=/articles/docs/公众号[2]-github项目分享-slambook2.rs项目/> <div class=pagination-info><div class=label>下一篇</div><div class=next_info>公众号[2]-github项目分享-slambook2.rs项目</div></div> </a></div></nav><div class=relatedPosts><div class=headline><i class=icon-cainixihuan style=font-size:1.1rem></i><span>喜欢这篇文章的人也看了</span></div><div class=relatedPosts-list><div><a href=/articles/docs/ROS笔记[1]-搭建Gazebo仿真环境/ title=ROS笔记[1]-搭建Gazebo仿真环境> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[1]-搭建Gazebo仿真环境</div></div> </a></div><div><a href=/articles/docs/ROS笔记[2]-获取OpenMV数据并发布到ROS消息/ title=ROS笔记[2]-获取OpenMV数据并发布到ROS消息> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[2]-获取OpenMV数据并发布到ROS消息</div></div> </a></div></div></div><link href=/css/related-posts-two.css rel=stylesheet><hr></div><div class=aside-content id=aside-content><div class="card-widget card-info"><div class=card-content><div class="card-info-avatar is-center"><div class=author-info__top-group><div class=author-info__sayhi id=author-info__sayhi onclick=wjx.changeSayHelloText()>好久不见，你终于来了</div></div></div><div class=avatar-img-group><picture class="avatar-img progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture></div><div class=author-info__description_group>为创造者而生的开源 Zola 主题~</div><div class=author-info__bottom-group><a class=author-info__bottom-group-left href=/about> <div class=author-info__name>qsbye</div> <div class=author-info__desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div> </a><div class="card-info-social-icons is-center"><a rel="external nofollow" class=social-icon href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=GitHub> <i class=icon-github></i> </a></div></div></div><style>.avatar-img-group:before{content:"";-o-transition:1s;background:var(--wjx-green);border:5px solid var(--wjx-background);z-index:2;border-radius:50%;width:26px;height:26px;-webkit-transition:all 1s;-moz-transition:all 1s;-ms-transition:all 1s;transition:all 1s;position:absolute;bottom:2px;right:2px}.card-info-avatar.is-center{flex-direction:column;align-items:flex-start;display:flex}#aside-content .card-info .avatar-img{opacity:1;border:5px solid var(--wjx-white);border-radius:500px;width:118px;transition:all .3s;position:absolute;top:0;right:0;overflow:hidden}.page #aside-content .card-info .avatar-img{border-color:var(--wjx-card-bg)}.author-info__top-group{width:100%;height:28px;display:flex}.avatar-img-group{transform-origin:bottom;border-radius:500px;width:118px;height:118px;transition:all .3s cubic-bezier(.69,.39,0,1.21);position:absolute;top:90px;right:calc(50% - 59px)}#aside-content .card-info:hover .avatar-img-group{opacity:0;transform:scale(0)}.author-info__bottom-group{justify-content:space-between;align-items:center;width:100%;padding:1.2rem;display:flex;position:absolute;bottom:0;left:0}a.author-info__bottom-group-left:hover{opacity:.8}#aside-content .card-info .card-info-social-icons{cursor:pointer;flex-flow:wrap;justify-content:flex-start;margin:0;display:flex}#aside-content .card-info .card-info-social-icons i:hover{cursor:pointer;background-color:#000;transform:rotate(540deg)}#aside-content .card-info .card-info-social-icons .social-icon{margin:0 0 0 8px}#aside-content .card-info .card-info-social-icons i{background:var(--wjx-white-op);color:var(--wjx-white);justify-content:center;align-items:center;width:40px;height:40px;font-size:1rem;display:flex}#aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-white);color:var(--wjx-main);box-shadow:none;transform:scale(1.1)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{background:var(--wjx-black-op);color:var(--wjx-card-bg)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-card-bg);color:var(--wjx-fontcolor)}#aside-content .card-info .banner-button{border-radius:20px;justify-content:center;width:118px;height:40px}@media screen and (width>=1300px){#aside-content .card-info .card-info-social-icons i{color:var(--wjx-white)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{color:var(--wjx-card-bg)}}#aside-content .card-info .card-info-data>.card-info-data-item:hover{background:var(--wjx-post-blockquote-bg);transform:scale(.97)}#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.headline,#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.length-num{color:var(--wjx-blue)}.author-info__description_group{color:var(--wjx-white);opacity:0;width:100%;padding:1.2rem;transition:all .3s;position:absolute;top:50px;left:0}.card-widget:hover .author-info__description_group{opacity:1}.author-info__description2{text-align:justify;z-index:2;color:#fffc;width:100%;margin:.3rem 0;line-height:1.38}.author-info__description2 b{color:var(--wjx-white)}[data-theme=dark] .page div#author-info__sayhi{background:var(--wjx-black-op);color:var(--wjx-black)}#aside-content .card-info .author-info__name{text-align:left;color:var(--wjx-white);margin-bottom:5px;font-size:20px;font-weight:700;line-height:1}.page #aside-content .card-info .author-info__name,.page .author-info__desc{color:var(--wjx-white)}.author-info__desc{color:var(--wjx-white);opacity:.6;font-size:12px;line-height:1}.author-info__description{text-align:justify;color:var(--wjx-white);opacity:1;margin:.3rem 0;line-height:1.38}.page .author-info__description{color:var(--wjx-card-bg)}.author-info__description b{color:var(--wjx-white);opacity:1}.page .author-info__description b{color:var(--wjx-card-bg);opacity:1}.avatar-sticker{z-index:0;background:var(--wjx-white);border-radius:50%;justify-content:center;align-items:center;width:33px;height:33px;line-height:34px;transition:all .3s ease-out .2s;display:flex;position:absolute;bottom:2px;right:2px;transform:scale(1)}.page .avatar-sticker{background:var(--wjx-card-bg)}.avatar-sticker img{width:26px;height:26px}.card-widget:hover .avatar-sticker{opacity:0;transform:scale(0)}.author-info__description b{color:var(--wjx-white)}#aside-content>.card-widget.card-info:before{background:linear-gradient(-25deg,var(--wjx-main),var(--wjx-main-op-deep),var(--wjx-main),var(--wjx-main-op-deep));content:"";background-size:400%;width:100%;height:100%;animation:15s infinite gradient;position:absolute;top:0;left:0}</style></div><div class="card-widget wjx-right-widget" onclick="javascript:window.open('/subscribe')" id=card-wechat><div id=flip-wrapper><div id=flip-content><div style="background:url(/img/wechat/qr-green.avif) 50%/100% no-repeat" class=face></div><div class="back face" style="background:url(/img/wechat/qr-white.avif) 50%/100% no-repeat"></div></div></div><style>#aside-content .card-widget#card-wechat{background:#07c160}#aside-content .card-widget#card-wechat:before{content:"";background:url(/img/wechat/gzh_cover.avif) 50%/cover no-repeat;width:100%;height:90%;transition:all .2s cubic-bezier(.45,.04,.43,1.21);position:absolute;top:0;left:0}#aside-content .card-widget#card-wechat:hover:before{opacity:0;transition:all .3s ease-out;top:100%}</style></div><div class=sticky_layout><div class=card-widget id=card-toc><div class=item-headline><i class=icon-bars></i><span>文章目录</span><span class=toc-percentage></span></div><div class=toc-content></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-chat--fill style=font-size:19px></i><span>最新评论</span></div><div class=aside-list id=newcomm></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-eicon_map-2-line1></i><span>最近发布</span></div><div class=aside-list><div class=aside-list-item><a class=thumbnail href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5>配置orangepi5pro运行rknn版本的yolov5</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行>计算机控制apm飞控自动飞行</a></div></div><div class=aside-list-item><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=thumbnail> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=title>翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境>搭建ArduPilot的SITL仿真环境</a></div></div></div></div><div class="card-widget card-categories"><div class=item-headline><i class=icon-folder-open></i><span>分类</span></div><div class=aside-list><ul class=card-category-list><li class=card-category-list-item><a class=card-category-list-link href=/categories/misc/ rel=tag> <span class=card-category-list-name>杂谈</span> <span class=card-category-list-count>6</span> </a><li class=card-category-list-item><a class=card-category-list-link href=/categories/theme/ rel=tag> <span class=card-category-list-name>主题</span> <span class=card-category-list-count>25</span> </a></ul></div></div></div></div></main><footer id=footer><div id=wjx-footer-bar><div class=footer-logo>qsbye</div><div class=footer-bar-description>ByeIO·开发者博客|技术解决方案|开发思考|总结</div><a class=footer-bar-link href=/about>了解更多</a></div><div id=footer_deal><a rel="external nofollow noopener noreferrer" class=deal_link href=mailto:mail@example.com target=_blank title=Mail> <i class=icon-envelope></i> </a><picture class="footer_mini_logo progressive-picture" onclick="btf.scrollToDest(0, 500)" style=border-radius:500px><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img alt=返回顶部 class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img alt=返回顶部 decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture><a rel="external nofollow noopener noreferrer" class=deal_link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=Github> <i class=icon-github></i> </a></div><div id=wjx-footer><div class=footer-group><h3 class=footer-title>文库</h3><div class=footer-links><a class=footer-item data-pjax href=/archives target=_blank>全部文章</a><a class=footer-item data-pjax href=/categories target=_blank>分类列表</a><a class=footer-item data-pjax href=/tags target=_blank>标签列表</a><a class=footer-item data-pjax href=javascript:toRandomPost() target=_blank>随机文章</a></div></div><div class=footer-group><h3 class=footer-title>作品</h3><div class=footer-links><a class=footer-item data-pjax href=/articles/misc/lorem-ipsum target=_blank>Lorem Ipsum</a></div></div><div class=footer-group><h3 class=footer-title>协议</h3><div class=footer-links><a class=footer-item data-pjax href=/privacy target=_blank>隐私协议</a><a class=footer-item data-pjax href=/cookies target=_blank>Cookies</a><a class=footer-item data-pjax href=/copyright target=_blank>版权协议</a></div></div><div class=footer-group><div class=footer-title-group><h3 class=footer-title>友链</h3><button class=random-friends-btn id=footer-random-friends-btn onclick=javascript:wjx.addFriendLinksInFooter(); title=换一批友情链接><i class=icon-arrow-rotate-right style=font-size:16px></i></button></div><div class=footer-links id=friend-links-in-footer></div></div></div><div id=footer-bar style=padding:1rem><div class=footer-bar-links><div class=footer-bar-left><div id=footer-bar-tips><div class=copyright-group>© <span class=inline-word id=copyright-info>2025</span>  By  <a class=footer-bar-link href=/ target=_blank> <picture class=progressive-picture id=copyright-logo><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> ByeIO·开发者博客 </a><script defer>var startYear = 2025;
+                            var currentYear = new Date().getFullYear();
+                            var copyrightInfo = `${startYear !== currentYear ? startYear + ' - ' : ''}${currentYear}`;
+                            document.getElementById('copyright-info').innerHTML = copyrightInfo;</script></div><div class=compliance-group><a rel="noopener external nofollow noreferrer" class=footer-bar-link href=https://beian.miit.gov.cn/#/Integrated/index target=_blank> ICP </a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang> <div class=status-light></div> <span>本站及主题基于 Zola 构建</span> </a></div></div></div><div class=footer-bar-right><a class=footer-bar-link href=/subscribe target=_blank>订阅</a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank>主题</a><a class=footer-bar-link href=/about>关于</a><a class=footer-bar-link href=mailto:mail@example.com target=_blank>反馈</a><a class="footer-bar-link cc" href=/copyright rel=license target=_blank title=CC版权协议> <i class=icon-copyright-line></i> <i class=icon-creative-commons-by-line></i> <i class=icon-creative-commons-nc-line></i> <i class=icon-creative-commons-nd-line></i> </a></div></div></div><div id=quit-box onclick=RemoveRewardMask()></div><div class="comment-barrage needEndHide" style=display:none></div><style>a.footer-bar-link.cloud{align-items:center;display:flex}img.entered.loading.cloud{height:32px}</style></footer></div><div id=sidebar><div id=menu-mask></div><div id=sidebar-menus><span class=sidebar-menu-item-title>功能</span><div class=sidebar-menu-item><button class="darkmode_switchbutton menu-child" href=javascript:void(0); onclick=rm.switchDarkMode() title=显示模式切换><i class=icon-moon style=font-size:.9rem;line-height:2></i> <span>显示模式</span></button></div><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div><div class=menus_items><div class=menus_item><button class=site-page><span>文库</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/archives> <i class="icon-book-open faa-tada" style=font-size:.9em></i> <span>全部文章</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/categories> <i class="icon-folder-open faa-tada" style=font-size:.9em></i> <span>分类列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags> <i class="icon-tags faa-tada" style=font-size:.9em></i> <span>标签列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:toRandomPost()> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>随机文章</span> </a></ul></div><div class=menus_item><a class=site-page href=/tags/work> <span>推荐</span> </a><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/docs/readme> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>博客主题介绍</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/misc/lorem-ipsum> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></ul></div><div class=menus_item><button class=site-page><span>友链</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/friends> <i class="icon-link faa-tada" style=font-size:.9em></i> <span>友链列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:travelling()> <i class="icon-paper-plane faa-tada" style=font-size:.9em></i> <span>随机发现</span> </a></ul></div><div class=menus_item><button class=site-page><span>我的</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/about> <i class="icon-rocket faa-tada" style=font-size:.9em></i> <span>关于本人</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/equipment> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>我的装备</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags/project> <i class="icon-lightbulb faa-tada" style=font-size:.9em></i> <span>我的项目</span> </a></ul></div></div><span class=sidebar-menu-item-title>标签</span><div class="card-widget card-tags card-archives card-webinfo card-allinfo"><div class=item-headline></div><div class=card-tag-cloud><a class=tag-item href=/tags/blog/ style=font-size:1em title=博客>  博客<sup>31</sup> </a><a class=tag-item href=/tags/docs/ style=font-size:1em title=文档>  文档<sup>25</sup> </a><a class=tag-item href=/tags/featured/ style=font-size:1em title=必看>  必看<sup>30</sup> </a><a class=tag-item href=/tags/hot/ style=font-size:1em title=热门>  热门<sup>30</sup> </a><a class=tag-item href=/tags/project/ style=font-size:1em title=项目>  项目<sup>1</sup> </a><a class=tag-item href=/tags/work/ style=font-size:1em title=work>  work<sup>1</sup> </a></div></div></div></div><div id=console><div class=close-btn href=javascript:void(0); onclick=wjx.hideConsole()><i class=icon-circle-xmark></i></div><div class=console-card-group><div class=console-card-group-left><div class=console-card id=card-newest-comments onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>互动</div><span class=author-content-item-title>最近评论</span></div><div class=aside-list><span>正在加载中...</span></div></div></div><div class=console-card-group-right><div class="console-card tags" onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>标签</div><span class=author-content-item-title>寻找感兴趣的领域</span></div><div class=card-tag-cloud><a href=/tags/blog/ rel=tag style=color:#d3d3d3;font-size:1em> 博客<sup>31</sup> </a><a href=/tags/docs/ rel=tag style=color:#d3d3d3;font-size:1em> 文档<sup>25</sup> </a><a href=/tags/featured/ rel=tag style=color:#d3d3d3;font-size:1em> 必看<sup>30</sup> </a><a href=/tags/hot/ rel=tag style=color:#d3d3d3;font-size:1em> 热门<sup>30</sup> </a><a href=/tags/project/ rel=tag style=color:#d3d3d3;font-size:1em> 项目<sup>1</sup> </a><a href=/tags/work/ rel=tag style=color:#d3d3d3;font-size:1em> work<sup>1</sup> </a></div></div><div class="console-card history" onclick=wjx.hideConsole()><div class=item-headline><i class="fas fa-archive"></i><span>文章</span></div><ul class=card-archive-list><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2025 1月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>25</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2024 12月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>6</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul></ul></div></div></div><div class=button-group><div class=console-btn-item><button rel="external nofollow" class=darkmode_switchbutton href=javascript:void(0); onclick=navFn.switchDarkMode(); title=显示模式切换><i class=icon-moon-clear-fill style=font-size:1rem></i></button></div><div class=console-btn-item id=consoleHideAside onclick=wjx.hideAsideBtn() title=边栏显示控制><button class=asideSwitch title=侧边栏开关><i class=icon-arrows-left-right></i></button></div><div class="console-btn-item on" id=consoleCommentBarrage onclick=wjx.switchCommentBarrage() title=热评开关><button class=commentBarrage><i class=icon-chat--fill></i></button></div></div><div class=console-mask href=javascript:void(0); onclick=wjx.hideConsole()></div></div><div id=rightside><div id=rightside-config-hide><button id=translateLink title=简繁转换 type=button>繁</button><button id=darkmode title=浅色和深色模式转换 type=button><i class=icon-circle-half-stroke></i></button><button id=hide-aside-btn title=单栏和双栏切换 type=button><i class=icon-arrows-left-right></i></button></div><div id=rightside-config-show><button id=rightside-config title=设置 type=button><i class=icon-gear></i></button><a href=#post-comment id=to_comment title=直达评论><i class=icon-chat--fill style=font-size:17px></i></a><button id=go-up title=回到顶部 type=button><i class=icon-arrow-up></i></button></div></div><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/css/read-mode.css rel=preload><noscript><link href=/css/read-mode.css rel=stylesheet></noscript><div class=js-pjax><div id=rightMenu><div class="rightMenu-group rightMenu-small"><div class=rightMenu-item id=menu-backward><i class=icon-arrow-left></i></div><div class=rightMenu-item id=menu-forward><i class=icon-arrow-right></i></div><div class=rightMenu-item id=menu-refresh><i class=icon-arrow-rotate-right></i></div><div class=rightMenu-item id=menu-top><i class=icon-arrow-up></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class=rightMenu-item id=menu-copytext><i class=icon-copy></i><span>复制选中文本</span></div><div class=rightMenu-item id=menu-pastetext><i class=icon-paste></i><span>粘贴文本</span></div><a class=rightMenu-item id=menu-commenttext> <i class=icon-comment-medical></i> <span>引用到评论</span> </a><div class=rightMenu-item id=menu-newwindow><i class=icon-window-restore></i><span>新窗口打开</span></div><div class=rightMenu-item id=menu-copylink><i class=icon-link></i><span>复制链接地址</span></div><div class=rightMenu-item id=menu-copyimg><i class=icon-images></i><span>复制此图片</span></div><div class=rightMenu-item id=menu-downloadimg><i class=icon-download></i><span>下载此图片</span></div><div class=rightMenu-item id=menu-newwindowimg><i class=icon-window-restore></i><span>新窗口打开图片</span></div><div class=rightMenu-item id=menu-search><i class=icon-search--line></i><span>站内搜索</span></div><div class=rightMenu-item id=menu-searchBaidu><i class=icon-baidu></i><span>百度搜索</span></div><div class=rightMenu-item id=menu-music-toggle><i class=icon-play></i><span>播放音乐</span></div><div class=rightMenu-item id=menu-music-back><i class=icon-backward></i><span>切换到上一首</span></div><div class=rightMenu-item id=menu-music-forward><i class=icon-forward></i><span>切换到下一首</span></div><div onclick="javascript:window.open('https://y.qq.com/n/ryqq/playlist/xxxxx')" class=rightMenu-item id=menu-music-playlist><i class=icon-radio></i><span>查看所有歌曲</span></div><div class=rightMenu-item id=menu-music-copyMusicName><i class=icon-copy></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id=menu-randomPost onclick=toRandomPost()> <i class=icon-shuffle></i> <span>随便逛逛</span> </a><a class="rightMenu-item menu-link" href=../categories> <i class=icon-cube></i> <span>博客分类</span> </a><a class="rightMenu-item menu-link" href=../tags> <i class=icon-tags></i> <span>文章标签</span> </a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><div class=rightMenu-item id=menu-copy><i class=icon-copy></i><span>复制地址</span></div><div class=rightMenu-item draggable=false id=menu-commentBarrage style=display:flex><i class=icon-chat--fill style=font-size:19px></i><span class=menu-commentBarrage-text>显示热评</span></div><div class=rightMenu-item id=menu-darkmode><i class=icon-moon-clear-fill style=font-size:19px></i><span class=menu-darkmode-text>深色模式</span></div><div class=rightMenu-item id=menu-translate><i class=icon-fanti style=font-size:19px></i><span>轉為繁體</span></div></div></div><div id=rightmenu-mask></div></div><script defer onload src=/libs/qrcode/qrcode.min.js></script><script defer src=/libs/view-image/view-image.min.js></script><script defer src=/libs/tocbot/4.18.2/tocbot.min.js></script><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/tocbot/4.18.2/tocbot.css rel=preload><noscript><link href=/libs/tocbot/4.18.2/tocbot.css rel=stylesheet></noscript><script async src=/libs/snackbar/snackbar.min.js></script><script>var meting_api = "https:&#x2F;&#x2F;api.i-meto.com&#x2F;meting&#x2F;api?server=:server&amp;type=:type&amp;id=:id&amp;r=:r";</script><canvas height=880 id=universe width=1312></canvas><script defer src=/libs/canvas/dark.js></script><script src=/libs/waterfall/waterfall.min.js></script><script src=/libs/fast-average-color/index.browser.min.js></script><script>let pjaxSelectors = ['title', '#body-wrap', '#rightside-config-hide', '#rightside-config-show', '.js-pjax', '#site-config']
+          
+    pjaxSelectors.unshift('meta[property="og:type"]', 'meta[property="og:image"]', 'meta[property="og:title"]', 'meta[property="og:url"]', 'meta[property="og:description"]'
+            , 'meta[name="twitter:title"]', 'meta[name="twitter:url"]', 'meta[name="twitter:description"]', 'meta[name="twitter:image"]', 'meta[name="description"]')
+    
+    var pjax = new Pjax({
+        elements: 'a:not([target="_blank"])',
+        selectors: pjaxSelectors,
+        cacheBust: false,
+        //debug: true,        
+        analytics: false,
+        scrollRestoration: false
+    })</script><script defer src=/js/rightmenu.js></script><script data-pjax defer src=/production/js/abstract/local.js></script><script data-pjax defer src=/production/js/bundle.js></script><script defer src=/js/tw_cn.js></script><script defer src=/libs/instantpage/instantpage.min.js type=module></script><link onload="this.rel='stylesheet'" as=style href=/libs/prism/prism.min.css rel=preload><noscript><link href=/libs/prism/prism.min.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style href=/libs/prism/code.css rel=preload><noscript><link href=/libs/prism/code.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=light href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=dark href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><script defer src=/libs/prism/prism.min.js></script><style>#article-container .code-toolbar pre.close{height:300px;overflow:hidden}</style>

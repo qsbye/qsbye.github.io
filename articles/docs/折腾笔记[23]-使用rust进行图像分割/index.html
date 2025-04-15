@@ -1,0 +1,1158 @@
+<!doctype html><html lang=zh-CN><head><title>折腾笔记[23]-使用rust进行图像分割 | ByeIO·开发者博客</title><meta content=ByeIO·开发者博客 property=og:site_name><meta content=article property=og:type><meta content=折腾笔记[23]-使用rust进行图像分割 property=og:title><meta content=//articles/docs/折腾笔记[23]-使用rust进行图像分割/ property=og:url><meta content=使用rust和ort库(onnxruntime后端)推理SAM2.1模型并获取图像分割结果. property=og:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp property=og:image><meta content=summary_large_image name=twitter:card><meta content=折腾笔记[23]-使用rust进行图像分割 name=twitter:title><meta content=//articles/docs/折腾笔记[23]-使用rust进行图像分割/ name=twitter:url><meta content=使用rust和ort库(onnxruntime后端)推理SAM2.1模型并获取图像分割结果. name=twitter:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp name=twitter:image><meta content=使用rust和ort库(onnxruntime后端)推理SAM2.1模型并获取图像分割结果. name=description><script id=ld-json type=application/ld+json>
+        {
+          "@context": "https://schema.org/",
+          "@type": "Article",
+          "headline": "折腾笔记[23]-使用rust进行图像分割",
+          "author": {
+            "@type": "Person",
+            "name": "qsbye",
+            "url": "/about"
+          },
+          "image": "/processed_images/img00006.c4abedc898f992a6.webp",
+          "datePublished": "2025-01-01T00:00:00+00:00",
+          
+          "description": "使用rust和ort库(onnxruntime后端)推理SAM2.1模型并获取图像分割结果."
+        }
+    </script><meta charset=UTF-8><meta content="IE=edge" http-equiv=X-UA-Compatible><meta content="width=device-width,initial-scale=1" name=viewport><meta content="telephone=no" name=format-detection><meta content=var(--wjx-card-bg) name=theme-color><link href=/manifest.json rel=manifest><link href=/img/avatar.png rel=icon type=image/x-icon><link href=/img/avatar.png rel=apple-touch-icon><link href=/img/avatar.png rel=bookmark><link href=/img/avatar.png rel=apple-touch-icon-precomposed sizes=180x180><script src=/libs/jquery/jquery-3.7.1.min.js></script><script src=/libs/pjax/pjax.min.js></script><script src=/production/js/utils.js></script><link href=/production/css/blog.css rel=stylesheet><link href=/css/custom.css rel=stylesheet><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/snackbar/snackbar.min.css rel=preload><noscript><link href=/libs/snackbar/snackbar.min.css rel=stylesheet></noscript><script>// Added non-passive event listener
+  !function(e){"function"==typeof define&&define.amd?define(e):e()}(function(){var e,t=["scroll","wheel","touchstart","touchmove","touchenter","touchend","touchleave","mouseout","mouseleave","mouseup","mousedown","mousemove","mouseenter","mousewheel","mouseover"];if(function(){var e=!1;try{var t=Object.defineProperty({},"passive",{get:function(){e=!0}});window.addEventListener("test",null,t),window.removeEventListener("test",null,t)}catch(e){}return e}()){var n=EventTarget.prototype.addEventListener;e=n,EventTarget.prototype.addEventListener=function(n,o,r){var i,s="object"==typeof r&&null!==r,u=s?r.capture:r;(r=s?function(e){var t=Object.getOwnPropertyDescriptor(e,"passive");return t&&!0!==t.writable&&void 0===t.set?Object.assign({},e):e}(r):{}).passive=void 0!==(i=r.passive)?i:-1!==t.indexOf(n)&&!0,r.capture=void 0!==u&&u,e.call(this,n,o,r)},EventTarget.prototype.addEventListener._original=e}});</script><script>((win) => {
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return;
+        const now = new Date();
+        const expiryDay = ttl * 86400000;
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        };
+        localStorage.setItem(key, JSON.stringify(item));
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key);
+
+        if (!itemStr) {
+          return undefined;
+        }
+        const item = JSON.parse(itemStr);
+        const now = new Date();
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key);
+          return undefined;
+        }
+        return item.value;
+      },
+    };
+
+    win.getScript = (url) =>
+      new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+        script.async = true;
+        script.onerror = reject;
+        script.onload = script.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          script.onload = script.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+
+    win.getCSS = (url, id = false) =>
+      new Promise((resolve, reject) => {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = url;
+        if (id) link.id = id;
+        link.onerror = reject;
+        link.onload = link.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          link.onload = link.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(link);
+      });
+
+    win.activateDarkMode = function () {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.classList.add("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    win.activateLightMode = function () {
+      document.documentElement.setAttribute("data-theme", "light");
+      document.documentElement.classList.remove("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    const t = saveToLocal.get("theme");
+
+    const isDarkMode = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const isLightMode = window.matchMedia(
+      "(prefers-color-scheme: light)"
+    ).matches;
+    const isNotSpecified = window.matchMedia(
+      "(prefers-color-scheme: no-preference)"
+    ).matches;
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified;
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode();
+      else if (isDarkMode) activateDarkMode();
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date();
+        const hour = now.getHours();
+        const isNight = hour <= 6 || hour >= 18;
+        isNight ? activateDarkMode() : activateLightMode();
+      }
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addListener(function (e) {
+          if (saveToLocal.get("theme") === undefined) {
+            e.matches ? activateDarkMode() : activateLightMode();
+          }
+        });
+    } else if (t === "light") activateLightMode();
+    else activateDarkMode();
+
+    if ("system" === "dark")
+      activateDarkMode();
+    else activateLightMode();
+
+    const asideStatus = saveToLocal.get("aside-status");
+    if (asideStatus !== undefined) {
+      if (asideStatus === "hide") {
+        document.documentElement.classList.add("hide-aside");
+      } else {
+        document.documentElement.classList.remove("hide-aside");
+      }
+    }
+  })(window);</script><script data-pace-options='{ "restartOnRequestAfter":false,"eventLag":false}' src=/libs/pace/pace.min.js></script><script defer src=/libs/clipboard/clipboard.min.js></script><script src=/libs/countup/countup.js></script><link href=/icon/font.css rel=stylesheet><style>[data-theme=light]{--wjx-theme:#425aef!important;--wjx-theme-op:#425aef23!important;--wjx-theme-op-deep:#425aefdd!important;--wjx-theme-none:#425aef00!important}[data-theme=dark]{--wjx-theme:#f2b94b!important;--wjx-theme-op:#f2b94b23!important;--wjx-theme-op-deep:#f2b94bdd!important;--wjx-theme-none:#f2b94b00!important}:root{--halo-comment-widget-component-card-bg:var(--wjx-card-bg);--halo-comment-widget-component-theme-op:var(--wjx-theme-op);--halo-comment-widget-component-card-border:var(--wjx-card-border);--halo-comment-widget-component-shadow-border:var(--wjx-shadow-border);--halo-comment-widget-component-secondtext:var(--wjx-secondtext);--halo-comment-widget-component-lighttext:var(--wjx-lighttext);--halo-comment-widget-component-secondbg:var(--wjx-secondbg);--halo-comment-widget-component-fontcolor:var(--wjx-fontcolor);--halo-comment-widget-component-main:var(--wjx-main);--halo-comment-widget-component-background:var(--wjx-background);--halo-comment-widget-component-white:var(--wjx-white);--halo-comment-widget-component-shadow-black:var(--wjx-shadow-black)}#page{--halo-comment-widget-component-padding:1rem}.color-scheme-dark,.dark,[data-color-scheme=dark]{--halo-search-widget-color-modal-layer:var(--wjx-maskbgdeep);--halo-search-widget-color-modal-content-bg:var(--wjx-card-bg);--halo-search-widget-color-form-input:#fffc;--halo-search-widget-color-form-input-placeholder:#6b7280d9;--halo-search-widget-color-form-input-bg:var(--wjx-card-bg);--halo-search-widget-color-form-divider:#bbbbbb0f;--halo-search-widget-color-result-item-bg:var(--wjx-card-bg);--halo-search-widget-color-result-item-hover-bg:#90939914;--halo-search-widget-color-result-item-title:#fffc;--halo-search-widget-color-result-item-content:#ffffff82;--halo-search-widget-color-command-kbd-item:#c0c4ccb3;--halo-search-widget-color-command-kbd-border:#bbbbbb0f;--halo-search-widget-color-result-empty:#6b7280d9}[data-theme=light]{--halo-search-widget-color-result-item-title:#4b5563}</style><script id=site-config>var GLOBAL_CONFIG = {
+        
+                
+        
+        
+        
+        
+        htmlType: "post",
+        postTitle: "折腾笔记[23]-使用rust进行图像分割",
+        isPost: true,
+        isHome: false,
+        passageTip: {
+            enable: true,
+            day: 60,
+        },
+        copyright: {
+            enable: false,
+            limitCount: 10,
+            languages: {
+                author: " 作者：qsbye",
+                link: " 链接：",
+                source: " 来源：ByeIO·开发者博客",
+                info: " 提示：著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处并保留原文链接。"
+            }
+        },
+        lightbox: 'fancybox',
+        rightMenuEnable: true,
+        lazyload: {
+            enable: true,
+            error: "/img/404.svg"
+        },
+        isFriendLinksInFooter: true,
+        loadingBox: true,
+        progress_bar: true,
+        navMusicEnable: false,
+        isMusic: false,
+        helloText: ["🤖️ 数码科技爱好者","🔯 全栈架构都在行","🏠 智能家居小能手","🤝 科研科普两不误","🎵 业余原创音乐人","🏃 文艺青年细节控","🔍 探索世界涉猎广","🤛 热爱分享交朋友"],
+        profileStyle: "one",
+        enable: true,
+        keyboard: true,
+        date_suffix: {
+            just: '刚刚',
+            min: '分钟前',
+            hour: '小时前',
+            day: '天前',
+            month: '个月前'
+        },
+        Snackbar: {
+            chs_to_cht: "你已切换为繁体",
+            cht_to_chs: "你已切换为简体",
+            day_to_night: "你已切换为深色模式",
+            night_to_day: "你已切换为浅色模式",
+            bgLight: "#425AEF",
+            bgDark: "#f2b94b",
+            position: "top-center"
+        },
+        translate: {
+            defaultEncoding: "2",
+            translateDelay: 0,
+            msgToTraditionalChinese: "繁",
+            msgToSimplifiedChinese: "简",
+            rightMenuMsgToTraditionalChinese: "轉為繁體",
+            rightMenuMsgToSimplifiedChinese: "转为简体"
+        },
+        prism: {
+            enable: true,
+            enable_title: true,
+            enable_hr: true,
+            enable_line: true,
+            enable_copy: true,
+            enable_expander: true,
+            prism_limit: 330,
+            enable_height_limit: false
+        },
+        
+        source: {
+            power: {
+                powerLink: "/",
+                showNum: 3
+            },
+            links: {
+                linksUrl: "/friends",
+                linksNum: 3
+            },
+            jQuery: '/libs/jquery/jquery.min.js',
+            justifiedGallery: {
+                js: '/libs/justified-gallery/fjGallery.min.js',
+                css: '/libs/justified-gallery/fjGallery.css'
+            },
+            fancybox: {
+                js: '/libs/fancybox/jquery.fancybox.min.js',
+                css: '/null'
+            },
+            comments: {
+                use: "twikoo",
+                maxBarrage: 1,
+                barrageTime: 4000,
+                mailMd5: "",
+                lazyload: false,
+                textarea: "el-textarea__inner"
+            },
+            post: {
+                dynamicBackground: true
+            },
+            tool: {
+                switch: false
+            },
+            postAi: {
+                
+                gptName: "本地",
+                modeName: "local"
+            },twikoo: {
+                js: "/libs/twikoo/twikoo.all.min.js",
+                twikooUrl: "https://your-api-url",
+            },
+            footer: {
+                default_enable: true
+            },
+            about: {
+                
+                rewardList: [],
+                rewardAmount: 10
+            }
+        }
+    };</script><style id=wjx-theme-styles>:root{--wjx-main:var(--wjx-theme)!important;--wjx-main-op:var(--wjx-theme-op)!important;--wjx-main-op-deep:var(--wjx-theme-op-deep)!important;--wjx-main-op-light:var(--wjx-theme-op-light)!important;--wjx-main-none:var(--wjx-theme-none)!important}</style><script>document.addEventListener('pjax:send', function () {
+      // removeEventListener toc scroll
+      window.removeEventListener('scroll', window.tocScrollFn);
+      typeof preloader === 'object' && preloader.initLoading();
+      
+      if (window.aplayers) {
+          for (let i = 0; i < window.aplayers.length; i++) {
+              if (!window.aplayers[i].options.fixed) {
+                  window.aplayers[i].destroy()
+              }
+          }
+      }
+      
+      typeof typed === 'object' && typed.destroy();
+      typeof window.initializationRegistry === 'object' && window.initializationRegistry.clear();
+      
+      //reset readmode
+      const $bodyClassList = document.body.classList
+      $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+  })
+  document.addEventListener('pjax:complete', function () {
+      window.refreshFn();
+      
+      document.querySelectorAll('script[data-pjax]').forEach(item => {
+                  const newScript = document.createElement('script')
+                  const content = item.text || item.textContent || item.innerHTML || ""
+                  Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+                  newScript.appendChild(document.createTextNode(content))
+                  item.parentNode.replaceChild(newScript, item)
+              }
+      );
+
+      typeof chatBtnFn === 'function' && chatBtnFn();
+      typeof panguInit === 'function' && panguInit();
+      
+      // google analytics
+      typeof gtag === 'function' && gtag('config', '', {
+          'page_path': window.location.pathname
+      });
+      
+      // baidu analytics
+      typeof _hmt === 'object' && _hmt.push(['_trackPageview', window.location.pathname]);
+      
+      typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting();
+      
+      // Analytics
+      if (false) {
+          MtaH5.pgv()
+      }
+      
+      // prismjs
+      typeof Prism === 'object' && Prism.highlightAll();
+      
+      typeof preloader === 'object' && preloader.endLoading();
+  })
+  document.addEventListener('pjax:error', (e) => {
+      if (e.request.status === 404 || e.request.status === 500) {
+          window.location.href = e.request.responseURL;
+      }
+  })</script><script data-pjax src=/production/js/main.js></script><script>let initTop = 0
+  let isChatShow = true
+  const innerHeight = window.innerHeight + 0
+  window.addEventListener('scroll', btf.throttle(function (e) {
+    const $rightside = document.getElementById('rightside')
+
+    const $header = document.getElementById('page-header')
+    const $cookies_window = document.getElementById('cookies-window')
+    const isChatBtnHide = typeof chatBtnHide === 'function'
+    const isChatBtnShow = typeof chatBtnShow === 'function'
+  
+    const currentTop = window.scrollY || document.documentElement.scrollTop
+    // 找到滚动方向 true is down & false is up
+    const isDown = currentTop > initTop
+    initTop = currentTop
+    if (currentTop > 0) {
+        if (isDown) {
+            if ($header.classList.contains('nav-visible')) $header.classList.remove('nav-visible')
+            if (isChatBtnShow && isChatShow === true) {
+                chatBtnHide()
+                isChatShow = false
+            }
+        } else {
+            if (!$header.classList.contains('nav-visible')) $header.classList.add('nav-visible')
+            if (isChatBtnHide && isChatShow === false) {
+                chatBtnShow()
+                isChatShow = true
+            }
+        }
+        $header.classList.add('nav-fixed')
+        if($cookies_window!=null && $cookies_window!=''){
+            $cookies_window.classList.add('cw-hide')
+        }
+        if ($rightside && window.getComputedStyle($rightside).getPropertyValue('opacity') === '0') {
+            $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+        }
+    } else {
+        if (currentTop === 0) {
+            $header.classList.remove('nav-fixed', 'nav-visible')
+        }
+        $rightside.style.cssText = "opacity: ''; transform: ''"
+    }
+    if (document.body.scrollHeight <= innerHeight) {
+        $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+    }
+  }, 200))</script><script defer src=/libs/katex/katex.min.js></script><body><style>#loading-box{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}#loading-box .loading-bg{background:var(--wjx-card-bg);z-index:1999;opacity:1;pointer-events:all;width:100%;height:100%;transition:all .2s;animation:.3s backwards showLoading;display:flex;position:fixed}#loading-box.loaded .loading-bg{pointer-events:none;transition:all .2s;animation:.3s forwards hideLoading}#loading-box .loading-img{width:100px;height:100px;margin:auto;animation-name:loadingAction;animation-duration:.2s;animation-iteration-count:infinite;animation-direction:alternate;overflow:hidden}#loading-box .loading-image-dot{background:#6bdf8f;border:6px solid #fff;border-radius:50%;width:30px;height:30px;position:absolute;top:50%;left:50%;-webkit-transform:translate(18px,24px);-moz-transform:translate(18px,24px);-ms-transform:translate(18px,24px);-o-transform:translate(18px,24px);transform:translate(18px,24px)}@keyframes loadingAction{0%{opacity:1}to{opacity:.6}}@keyframes hideLoading{0%{opacity:1}to{opacity:0}}@keyframes showLoading{0%{opacity:0}to{opacity:1}}</style><div id=loading-box onclick=wjx.hideLoading()><div class=loading-bg><picture class=loading-img style=border-radius:50%;width:100px;height:100px><source media="(min-width: 1em)" srcset=/processed_images/logo.21eeb8b123e2a315.avif><img alt=Loading decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp><noscript><img decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp></noscript></picture><div class=loading-image-dot></div></div></div><script>var preloader = {
+            endLoading: () => {
+                //- document.body.style.overflow = 'auto';
+                document.getElementById('loading-box').classList.add("loaded")
+            },
+            initLoading: () => {
+                //- document.body.style.overflow = '';
+                document.getElementById('loading-box').classList.remove("loaded")
+            }
+        }
+        window.addEventListener('load', preloader.endLoading())
+        setTimeout(function () {
+            preloader.endLoading();
+        }, 3000)</script><div id=an_music_bg></div><div class=post data-type=post id=body-wrap><header class=post-bg id=page-header><nav class=show id=nav><div id=nav-group><div id=blog_name><div class=back-home-button tabindex=-1><i class="nav-icon back-home-button-icon icon-apps-fill" style=font-size:1rem></i><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div></div><a class="nav-item icon-home" data-pjax href=/ id=site-name title=返回博客主页> <span>ByeIO·开发者博客</span> </a></div><div id=page-name-mask><div id=page-name><a clase=nav-item id=page-name-text onclick=btf.scrollToDest(0,500)> 折腾笔记[23]-使用rust进行图像分割 </a></div></div><div id=menus><div class=menus_items><div class=menus_item><button class="site-page nav-item"><span>文库</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/archives> <i class=icon-book-open style=font-size:.9em></i> <span>全部文章</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/categories> <i class=icon-folder-open style=font-size:.9em></i> <span>分类列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags> <i class=icon-tags style=font-size:.9em></i> <span>标签列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:toRandomPost()> <i class=icon-artstation style=font-size:.9em></i> <span>随机文章</span> </a></div></div></div><div class=menus_item><a class="site-page nav-item" href=/tags/work> <span>推荐</span> </a><div class="menus_item_child vertical_nav"><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/docs/readme> <i class=icon-music style=font-size:.9em></i> <span>博客主题介绍</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/misc/lorem-ipsum> <i class=icon-music style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>友链</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/friends> <i class=icon-link style=font-size:.9em></i> <span>友链列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:travelling()> <i class=icon-paper-plane style=font-size:.9em></i> <span>随机发现</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>我的</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/about> <i class=icon-rocket style=font-size:.9em></i> <span>关于本人</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/equipment> <i class=icon-artstation style=font-size:.9em></i> <span>我的装备</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags/project> <i class=icon-lightbulb style=font-size:.9em></i> <span>我的项目</span> </a></div></div></div></div></div><div id=nav-right><div class=nav-button id=randomPost_button><button class="site-page nav-item" href=javascript:void(0); onclick=toRandomPost() title=随机文章><i class="nav-icon icon-dice"></i></button></div><div class=nav-button id=darkmode_button><button class="site-page console_switchbutton nav-item" title="切换模式 - 日夜交替，黑白互换。" href=javascript:void(0); onclick=navFn.switchDarkMode();><i class="nav-icon icon-moon-clear-fill" style=font-size:1rem></i></button></div><div class=nav-button id=nav-console><button class="site-page console_switchbutton nav-item" href=javascript:void(0); onclick=wjx.showConsole() title=显示中控台><i class="nav-icon icon-dashboard"></i></button></div><div class=nav-button id=nav-totop onclick=btf.scrollToDest(0,500)><button class="totopbtn nav-item"><i class="nav-icon icon-arrow-up" style=font-size:1rem></i><span id=percent>0</span></button></div><div id=toggle-menu><button class="site-page nav-item"><i class="nav-icon icon-bars"></i></button></div></div></div></nav><div class="coverdiv loaded" id=coverdiv><img alt=cover class=nolazyload decoding=async id=post-cover loading=lazy src=/processed_images/img00006.c4abedc898f992a6.webp></div><div id=post-info><div id=post-firstinfo><div class=meta-firstline><a class=post-meta-original href=/copyright title=该文章为原创文章，注意版权协议>原创</a><span class=post-meta-categories> <a href=/categories/theme/ title=主题> 主题 </a> </span><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/ title=博客> <span class="tags-name tags-punctuation">博客</span> </a><a class=post-meta__tags href=/tags/docs/ title=文档> <span class="tags-name tags-punctuation">文档</span> </a><a class=post-meta__tags href=/tags/featured/ title=必看> <span class="tags-name tags-punctuation">必看</span> </a><a class=post-meta__tags href=/tags/hot/ title=热门> <span class="tags-name tags-punctuation">热门</span> </a></div></div></div></div><h1 class=post-title>折腾笔记[23]-使用rust进行图像分割</h1><div id=post-meta><div class=meta-secondline><span class=post-meta-author data-flag-title=文章作者 title=文章作者> <i class="icon-zuozhe post-meta-icon"></i>qsbye </span><span class=post-meta-wordcount> <i class="icon-file-word post-meta-icon" title=字数></i> <span class=post-meta-label>字数:</span> <span class=word-count>4485</span> <span class=post-meta-separator></span> <i class="icon-clock post-meta-icon" title=阅读耗时></i> <span class=post-meta-label>阅读耗时:</span> <span> 23 分钟</span> </span><span class=post-meta-date> <i class="icon-calendar-days post-meta-icon"></i> <time title="2025-01-01 00:00:00" datetime=2025-01-01> 2025/01/01 </time> </span><span class=post-meta-wechat title=该文章在博客首发> <i class="icon-rss post-meta-icon"></i>博客独享 </span><a class=post-meta-pv data-flag-title=热度 title=热度> <i class="icon-fire post-meta-icon"></i> <span class=post-meta-label>热度:</span> <span id=twikoo_visitors> <i class="icon-spinner fa-spin"></i> </span> </a><a class=post-meta-commentcount data-flag-title=评论数 href=#post-comment title=评论数> <i class="icon-chat--fill post-meta-icon" style=font-size:17px></i> <span class=post-meta-label>评论:</span> <span id=twikoo-count> <i class="icon-spinner fa-spin"></i> </span> </a></div></div></div><section class="main-hero-waves-area waves-area"><svg viewbox="0 24 150 28" class=waves-svg preserveaspectratio=none shape-rendering=auto xlink=http://www.w3.org/1999/xlink xmlns=http://www.w3.org/2000/svg><defs><path d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z" id=gentle-wave></path></defs><g class=parallax><use href=#gentle-wave x=48 y=0></use><use href=#gentle-wave x=48 y=3></use><use href=#gentle-wave x=48 y=5></use><use href=#gentle-wave x=48 y=7></use></g></svg></section></header><main class="layout right-aside" id=content-inner><div id=post><div id=abstract-container><div class=abstract-title><i class=icon-bilibili></i><div class=abstract-title-text>文章摘要</div><div id=abstract-tag>本地</div></div><div id=abstract-content style=display:block>使用rust和ort库(onnxruntime后端)推理SAM2.1模型并获取图像分割结果.</div><div class=abstract-btn-box><div class=abstract-btn-item id=abstract-intro>介绍自己</div><div class=abstract-btn-item id=abstract-generate>生成本文简介</div><div class=abstract-btn-item id=abstract-recommend>推荐相关文章</div><div class=abstract-btn-item id=abstract-home>前往主页</div><div class=abstract-btn-item id=abstract-hide style=margin-left:auto>隐藏本摘要</div></div></div><div class="note simple warning" data-tip-enable=true data-update-date=2025-01-01 id=passage-tip></div><article class="post-content line-numbers" id=article-container><h2 id=zhai-yao>摘要</h2><p>使用rust和ort库(onnxruntime后端)推理SAM2.1模型并获取图像分割结果.<h2 id=guan-jian-ci>关键词</h2><p>rust;onnx;SAM2;segment;predict;<h2 id=guan-jian-xin-xi>关键信息</h2><p>项目地址:[https://github.com/ByeIO/bye.orbslam3.rs/blob/dev1/crates/seekslam_examples/examples/ort_segment.rs] 配置文件:<pre class=language-toml data-lang=toml><code class=language-toml data-lang=toml>[workspace.package]
+version = "0.0.1"
+edition = "2024"
+[workspace.dependencies]
+# 错误处理
+anyhow = "1.0.97"
+# 时间格式化
+chrono = "0.4.40"
+# Model Context Protocol协议定义
+rust-mcp-schema = { version = "0.2.2", path = "./static/rust-mcp-schema" }
+# Model Context Protocol开发工具
+# rust-mcp-sdk = { version = "0.1.2", path = "./static/rust-mcp-sdk/crates/rust-mcp-sdk" }
+rust-mcp-sdk = { version = "0.1.2" }
+# 多线程框架
+tokio = { version = "1.44.1", features = ["full"] }
+# ros2接口
+ros2-interfaces-humble = "0.0.1"
+# 日志后端
+log = { version = "0.4.27", features = ["std"] }
+# prototxt文件读取
+protokit = "0.2.0"
+# protobuf处理
+prost = "0.13.5"
+prost-build = { version = "0.13.5", features = ["cleanup-markdown"] }
+# onnx运行时
+wonnx = { version = "0.5.1", path = "./static/wonnx/wonnx" }
+# 线性代数
+nalgebra = { version = "0.33.2", features = ["rand"] }
+ndarray = { version = "0.16.1", path = "./static/ndarray" }
+# 随机数
+rand = "0.9.0"
+rand_distr = "0.5.1"
+# 图像处理
+image = "0.25.6"
+imageproc = "0.25.0"
+# 图优化
+factrs = "0.2.0"
+# wasm运行时
+wasmtime-cli = { version = "31.0.0", path="./static/wasmtime-cli-31.0.0" }
+# tract运行时
+tract-onnx = { version = "0.21.11", features = ["getrandom-js"], path = "./static/tract-onnx"}
+# javascript/ESM运行时
+deno_cli = { version = "2.2.8", path = "./static/deno" }
+# 临时文件
+tempfile = "3.19.1"
+# 嵌入文件
+embed-file = "0.2.0"
+# onnxruntime(C绑定), 默认特性
+ort = { version = "2.0.0-rc.9", path = "./static/ort" }
+# YOLOv11
+yolo-rs = "0.1.2"
+
+[patch.crates-io]
+# 替换依赖文件
+ndarray = { version = "0.16.1", path = "./static/ndarray" }
+</code></pre><h2 id=yuan-li-jian-jie>原理简介</h2><h3 id=ortku-jian-jie>ort库简介</h3><p>[https://github.com/pykeio/ort] [https://ort.pyke.io/] [https://github.com/pykeio/ort/discussions/categories/show-and-tell] <strong>ort既可以使用C++绑定的onnxruntime后端(自动下载), 也可以使用纯rust的tract后端</strong><p>这些文档是针对最新 alpha 版本的 ort，即 2.0.0-rc.9。此版本已具备生产环境的可用性（只是 API 尚未稳定），我们推荐新旧项目都使用该版本。<p>ort 让机器学习模型通过 ONNX Runtime 部署到生产环境变得轻松，ONNX Runtime 是一种硬件加速的推理引擎。借助 ort 和 ONNX Runtime，你几乎可以在任何硬件上运行几乎所有机器学习模型（包括 ResNet、YOLOv8、BERT、LLaMA 等），通常比 PyTorch 更快，并且额外享有 Rust 的高效性。<p>ONNX 是一种可互操作的神经网络规范。你所选择的机器学习框架——PyTorch、TensorFlow、Keras、PaddlePaddle 等——会将你的模型转化为由基本操作（如 MatMul 或 Add）组成的 ONNX 图。然后，这个图可以被转换为另一个框架中的模型，或者直接通过 ONNX Runtime 进行推理。<p>将神经网络转化为类似 ONNX 的图表示，为更多优化和更广泛的加速硬件支持打开了大门。ONNX Runtime 可以显著提高大多数模型的推理速度 / 延迟，并且能够通过 NVIDIA CUDA & TensorRT、Intel OpenVINO、Qualcomm QNN、华为 CANN 等实现加速。<p>ort 是 Rust 通往 ONNX Runtime 的桥梁，让你可以通过易于使用且符合人体工程学的 API 推理你的 ONNX 模型。许多商业、开源和研究项目都在一些相当重要的生产场景中使用 ort 来提升推理性能：<ul><li><strong>Twitter</strong> 在其推荐系统的部分环节使用 ort，每天处理数亿次请求。<li><strong>Bloop</strong> 的语义代码搜索功能由 ort 提供支持。<li><strong>SurrealDB</strong> 强大的 SurrealQL 查询语言支持通过 ort 调用机器学习模型，包括 ONNX 图。<li><strong>Google 的 Magika</strong> 文件类型检测库由 ort 提供支持。<li><strong>Wasmtime</strong>，一个开源的 WebAssembly 运行时，通过 ort 支持 WASI-NN 标准的 ONNX 推理。<li><strong>rust-bert</strong> 在 Rust 中实现了许多现成可用的 NLP 管道，类似于 Hugging Face Transformers，同时支持 tch 和 ort 后端。</ul><p>Fast ML inference & training for ONNX models in Rust These docs are for the latest alpha version of ort, 2.0.0-rc.9. This version is production-ready (just not API stable) and we recommend new & existing projects use it. ort makes it easy to deploy your machine learning models to production via ONNX Runtime, a hardware-accelerated inference engine. With ort + ONNX Runtime, you can run almost any ML model (including ResNet, YOLOv8, BERT, LLaMA) on almost any hardware, often far faster than PyTorch, and with the added bonus of Rust’s efficiency.<p>ONNX is an interoperable neural network specification. Your ML framework of choice — PyTorch, TensorFlow, Keras, PaddlePaddle, etc. — turns your model into an ONNX graph comprised of basic operations like MatMul or Add. This graph can then be converted into a model in another framework, or inferenced directly with ONNX Runtime.<p>Converting a neural network to a graph representation like ONNX opens the door to more optimizations and broader acceleration hardware support. ONNX Runtime can significantly improve the inference speed/latency of most models and enable acceleration with NVIDIA CUDA & TensorRT, Intel OpenVINO, Qualcomm QNN, Huawei CANN, and much more.<p>ort is the Rust gateway to ONNX Runtime, allowing you to infer your ONNX models via an easy-to-use and ergonomic API. Many commercial, open-source, & research projects use ort in some pretty serious production scenarios to boost inference performance:<p>Twitter uses ort in part of their recommendations system, serving hundreds of millions of requests a day. Bloop’s semantic code search feature is powered by ort. SurrealDB’s powerful SurrealQL query language supports calling ML models, including ONNX graphs through ort. Google’s Magika file type detection library is powered by ort. Wasmtime, an open-source WebAssembly runtime, supports ONNX inference for the WASI-NN standard via ort. rust-bert implements many ready-to-use NLP pipelines in Rust à la Hugging Face Transformers with both tch & ort backends.<h3 id=tu-xiang-fen-ge-gai-nian-jian-jie>图像分割概念简介</h3><h4 id=bian-ma-qi-encoder>编码器（Encoder）</h4><ul><li><strong>功能</strong>：编码器的作用是将输入图像转换为一组特征表示，这些特征能够捕捉图像中的语义信息、纹理、形状等关键信息，为后续的分割任务提供基础的视觉特征。<li><strong>代码体现</strong>：在代码中，<code>encoder_session</code> 用于加载编码器模型，通过调用 <code>self.encoder_session.run</code>，将输入图像 <code>image</code> 传递给编码器模型，得到编码器的输出特征 <code>high_res_feats_0</code>、<code>high_res_feats_1</code> 和 <code>image_embed</code>。</ul><h4 id=jie-ma-qi-decoder>解码器（Decoder）</h4><ul><li><strong>功能</strong>：解码器的作用是将编码器提取的特征进一步处理，结合其他输入（如提示信息等），生成最终的分割掩码（masks）。它需要根据编码器提供的特征，理解图像中不同区域的语义，并输出每个像素所属的类别或对象的掩码。<li><strong>代码体现</strong>：<code>decoder_session</code> 用于加载解码器模型。在 <code>predict</code> 方法中，通过调用 <code>self.decoder_session.run</code>，将编码器的特征 <code>features</code>、提示信息（如点坐标 <code>point_coords</code>、点标签 <code>point_labels</code>、边框 <code>box</code> 等）以及一些其他辅助信息（如 <code>mask_input</code>、<code>has_mask_input</code>、<code>orig_im_size</code> 等）传递给解码器模型，得到分割掩码 <code>masks</code> 和 IoU 预测值 <code>iou_pred</code>。</ul><h4 id=tu-xiang-yu-yi-fen-ge>图像语义分割</h4><p>目标是理解图像内容，为每个像素分配正确的语义标签，使计算机能够“读懂”图像中的物体.<h4 id=fen-ge-yan-ma-masks>分割掩码（Masks）</h4><ul><li><strong>功能</strong>：分割掩码是图像分割任务的输出，它是一个与输入图像尺寸相同的二维或三维数组，其中每个像素的值表示该像素属于某个特定对象或类别的置信度或标签。通过分割掩码，可以清晰地看到图像中不同对象的边界和区域。<li><strong>代码体现</strong>：在代码中，<code>masks</code> 是解码器输出的一个重要结果。它经过一系列的处理，包括调整大小到原始图像尺寸等操作，最终用于生成分割结果的可视化图像。</ul><h4 id=dian-ti-shi-point-prompts>点提示（Point Prompts）</h4><ul><li><strong>功能</strong>：点提示是用户在图像上指定的某些点，这些点可以用来引导分割模型关注特定的区域或对象。通过提供点提示，用户可以告诉模型哪些区域是感兴趣的，从而帮助模型更准确地分割出目标对象。<li><strong>代码体现</strong>：代码中的 <code>point_coords</code> 和 <code>point_labels</code> 分别表示点提示的坐标和对应的标签。在 <code>predict</code> 方法中，会根据这些点提示信息来调整分割的逻辑和结果。</ul><h4 id=bian-kuang-ti-shi-box-prompts>边框提示（Box Prompts）</h4><ul><li><strong>功能</strong>：边框提示是用户在图像上指定的一个矩形区域，用于指示模型关注该区域内的对象。它可以帮助模型更好地定位和分割出边框内的目标对象。<li><strong>代码体现</strong>：<code>box</code> 是边框提示的输入，在代码中会对其进行处理，如转换坐标等操作，并将其作为解码器的输入之一，以影响分割结果。</ul><h4 id=iou-yu-ce-zhi-iou-predictions>IoU 预测值（IoU Predictions）</h4><ul><li><strong>功能</strong>：IoU（Intersection over Union）预测值是模型对分割结果质量的一种评估。它表示预测的分割掩码与真实标注之间的重叠程度，通常用于衡量分割的准确性。在某些情况下，IoU 预测值可以帮助用户了解模型对分割结果的置信度。<li><strong>代码体现</strong>：<code>iou_pred</code> 是解码器输出的一个结果，它与分割掩码一起返回，为用户提供关于分割质量的参考信息。</ul><h4 id=di-fen-bian-lu-yan-ma-low-resolution-masks>低分辨率掩码（Low-Resolution Masks）</h4><ul><li><strong>功能</strong>：低分辨率掩码是在较低分辨率下生成的分割掩码，它通常用于后续的处理或作为中间结果。低分辨率掩码可以减少计算量和存储需求，同时在一些情况下也能提供足够的分割信息。<li><strong>代码体现</strong>：在代码中，<code>low_res_masks</code> 是从解码器输出的 <code>masks</code> 中提取出来的，它可能用于一些后续的处理步骤，如进一步的优化或分析。</ul><h4 id=ti-shi-bian-ma-qi-prompt-encoder>提示编码器（Prompt Encoder）</h4><ul><li><strong>功能</strong>：提示编码器的作用是将用户提供的提示信息（如点提示、边框提示等）进行编码，转换为模型能够理解和处理的格式。它将提示信息与图像特征相结合，使模型能够根据提示来调整分割的逻辑。<li><strong>代码体现</strong>：虽然代码中没有直接出现“提示编码器”的具体实现，但从解码器的输入中可以看出，点提示和边框提示等信息被传递给解码器，这暗示了解码器内部可能包含了提示编码器的功能，对这些提示信息进行了处理。</ul><h4 id=ji-yi-ji-zhi-memory-mechanism>记忆机制（Memory Mechanism）</h4><ul><li><strong>功能</strong>：记忆机制主要用于处理视频分割任务中的时间依赖性和物体遮挡问题。它通过存储过去帧的信息，帮助模型在当前帧中更好地理解物体的运动和变化，从而实现对物体的连续跟踪和准确分割。<li><strong>代码体现</strong>：虽然代码中没有明确的“记忆机制”实现，但根据 SAM2.1 模型的架构描述，记忆机制是其核心组成部分之一，它在处理视频分割任务时起着关键作用。</ul><h3 id=tu-xiang-fen-ge-yi-ban-shi-yong-bu-zou>图像分割一般使用步骤</h3><ol><li>加载模型<li>设置图像：使用预测器的 set_image() 方法设置图像<li>提供提示：指定点、框或掩码作为提示，指示您想要分割的对象<li>生成掩码：调用预测器的 predict() 方法生成图像的分割掩码<li>使用或可视化结果：模型将返回分割掩码，您可以根据需要使用或可视化这些掩码(叠加掩码到图像)</ol><h3 id=sam-segment-anything-2-1-jian-jie>SAM(Segment-Anything 2.1)简介</h3><p>[https://ai-bot.cn/sam-2-1/] [https://ai.meta.com/blog/fair-news-segment-anything-2-1-meta-spirit-lm-layer-skip-salsa-sona/?utm_source=ai-bot.cn] [https://www.jiqizhixin.com/articles/2023-04-17-3] [https://arxiv.org/abs/2408.00714] [https://github.com/facebookresearch/sam2] Segment Anything Model 2（SAM 2）是一个用于解决图像和视频中可提示视觉分割的基础模型。我们将SAM扩展到视频领域，即将图像视为只有单帧的视频。该模型设计为简单的Transformer架构，并配备流式内存以实现实时视频处理。我们构建了一个模型在环（model-in-the-loop）的数据引擎，通过用户交互来改进模型和数据，从而收集了我们目前最大的视频分割数据集——SA-V数据集。在我们的数据上训练的SAM 2在各种任务和视觉领域中都展现出了强大的性能。<p>Segment Anything Model 2 (SAM 2) is a foundation model towards solving promptable visual segmentation in images and videos. We extend SAM to video by considering images as a video with a single frame. The model design is a simple transformer architecture with streaming memory for real-time video processing. We build a model-in-the-loop data engine, which improves model and data via user interaction, to collect our SA-V dataset, the largest video segmentation dataset to date. SAM 2 trained on our data provides strong performance across a wide range of tasks and visual domains.<h3 id=ovseg-open-vocabulary-segmentation-jian-jie>OVSeg(open-vocabulary segmentation) 简介</h3><p>[https://github.com/facebookresearch/ov-seg] [https://huggingface.co/spaces/facebook/ov-seg] [https://jeff-liangf.github.io/projects/ovseg/] 开放词汇语义分割旨在根据文本描述将图像分割成语义区域，这些文本描述可能在训练过程中并未见过。最近的两阶段方法首先生成类别无关的掩码提议，然后利用预训练的视觉-语言模型（例如CLIP）对掩码区域进行分类。我们发现这种范式的性能瓶颈在于预训练的CLIP模型，因为它在掩码图像上表现不佳。为了解决这个问题，我们提出对CLIP进行微调，使用收集到的掩码图像区域及其对应的文本描述。我们通过挖掘现有的图像-标题数据集（例如COCO Captions），利用CLIP将掩码图像区域与图像标题中的名词进行匹配，来收集训练数据。与更精确且手动标注的固定类别分割标签（例如COCO-Stuff）相比，我们发现我们这种噪声较多但多样化的数据集能够更好地保留CLIP的泛化能力。除了对整个模型进行微调外，我们还利用掩码图像中的“空白”区域，采用我们称之为掩码提示调整的方法。实验表明，掩码提示调整在不修改CLIP任何权重的情况下带来了显著的改进，并且可以进一步改进一个完全微调的模型。特别是，在COCO上训练并在ADE20K-150上评估时，我们最好的模型达到了29.6%的mIoU，比之前的最佳水平高出8.5%。这是首次开放词汇通用模型在没有针对特定数据集进行调整的情况下，与2017年的监督专家模型性能相匹配。<p>Open-Vocabulary Semantic Segmentation with Mask-adapted CLIP<p>Open-vocabulary semantic segmentation aims to segment an image into semantic regions according to text descriptions, which may not have been seen during training. Recent two-stage methods first generate class-agnostic mask proposals and then leverage pre-trained vision-language models, e.g., CLIP, to classify masked regions. We identify the performance bottleneck of this paradigm to be the pre-trained CLIP model, since it does not perform well on masked images. To address this, we propose to finetune CLIP on a collection of masked image regions and their corresponding text descriptions. We collect training data by mining an existing image-caption dataset (e.g., COCO Captions), using CLIP to match masked image regions to nouns in the image captions. Compared with the more precise and manually annotated segmentation labels with fixed classes (e.g., COCO-Stuff), we find our noisy but diverse dataset can better retain CLIP's generalization ability. Along with finetuning the entire model, we utilize the "blank" areas in masked images using a method we dub mask prompt tuning. Experiments demonstrate mask prompt tuning brings significant improvement without modifying any weights of CLIP, and it can further improve a fully finetuned model. In particular, when trained on COCO and evaluated on ADE20K-150, our best model achieves 29.6% mIoU, which is +8.5% higher than the previous state-of-the-art. For the first time, open-vocabulary generalist models match the performance of supervised specialist models in 2017 without dataset specific adaptations.<h3 id=shi-yong-sam2-1jin-xing-tu-xiang-fen-ge-de-shu-xue-yuan-li>使用SAM2.1进行图像分割的数学原理</h3><p>[https://arxiv.org/abs/2408.00714] [https://docs.ultralytics.com/zh/models/sam-2/] SAM2是一个基于Transformer的统一模型，用于图像和视频分割任务。其核心数学原理可以分解为以下几个部分<ul><li>方法细节 <ul><li>图像编码器：使用MAE预训练的Hiera图像编码器，提供每帧的特征嵌入。<li>记忆注意力：通过堆叠L个Transformer块，将当前帧的特征与过去的记忆特征进行交叉注意力操作。<li>提示编码器和掩码解码器：与SAM相同，能够处理点、框或掩码作为提示。<li>记忆编码器：通过卷积模块下采样预测掩码，并将其与未条件化的帧嵌入相结合，生成记忆。<li>记忆库：保留过去预测的内存，用于后续帧的使用。</ul></ul><table><thead><tr><th>方法概括<tbody><tr><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250412134155587-1301872683.png></table><h4><strong>1. 核心任务</strong></h4><p>SAM2的目标是<strong>可提示视觉分割（Promptable Visual Segmentation, PVS）</strong>，其数学形式可表示为： $$ \mathcal{M} = f_{\theta}(I, P, M_{\text{mem}}) $$ 其中：<ul><li>$I$：输入图像或视频帧。<li>$P$：用户提示（点击、框、掩码）。<li>$M_{\text{mem}}$：记忆模块存储的历史信息。<li>$\mathcal{M}$：输出的分割掩码。</ul><h4 id=-1><strong>2. 关键模块与数学原理</strong></h4><h5 id=-2><strong>2.1 图像编码器（Image Encoder）</strong></h5><ul><li>基于分层Transformer（Hiera架构），提取多尺度特征： <ul><li>输入帧$I$通过编码器生成特征金字塔${F_s}_{s=4,8,16,32}$（$s$为步长）。<li>高层特征（$s=16,32$）用于记忆模块，低层特征（$s=4,8$）通过跳跃连接注入掩码解码器，保留细节。</ul></ul><h5 id=-3><strong>2.2 记忆模块（Memory Bank）</strong></h5><ul><li><strong>记忆更新</strong>：对第$t$帧，记忆编码器生成记忆向量$m_t$： $$ m_t = \text{Conv}(F_t^{16} \oplus \text{Downsample}(\mathcal{M}_t)) $$ 其中$\oplus$表示逐元素相加，$\text{Downsample}$为空间下采样。<li><strong>记忆存储</strong>：维护两个FIFO队列： <ul><li><strong>空间记忆</strong>：存储最近$N$帧的$m_t$。<li><strong>对象指针</strong>：轻量级向量，记录语义信息。</ul></ul><h5 id=-4><strong>2.3 记忆注意力（Memory Attention）</strong></h5><ul><li>当前帧特征$F_t$与记忆模块交互： $$ \tilde{F}<em>t = \text{CrossAttn}(F_t, {m</em>{t-k}}_{k=1}^N) + \text{SelfAttn}(F_t) $$ <ul><li>使用2D-RoPE相对位置编码，增强时空一致性。<li>跨注意力机制聚合历史信息，无需GRU等递归结构。</ul></ul><h5 id=-5><strong>2.4 掩码解码器（Mask Decoder）</strong></h5><ul><li>类似SAM的两路Transformer结构，输入为： <ul><li>提示嵌入$P$（通过位置编码+类型嵌入）。<li>记忆增强的特征$\tilde{F}_t$。</ul><li>输出多尺度掩码： $$ \mathcal{M}_t = \text{MLP}(\text{Upsample}(\tilde{F}_t \oplus F_t^{4,8})) $$ 其中低层特征$F_t^{4,8}$通过跳跃连接补充细节。</ul><h5 id=-6><strong>3. 训练策略</strong></h5><ul><li><strong>数据混合</strong>：联合训练图像（SA-1B）和视频（SA-V）数据，损失函数为掩码IoU和交叉熵： $$ \mathcal{L} = \lambda_1 \mathcal{L}<em>{\text{IoU}} + \lambda_2 \mathcal{L}</em>{\text{CE}} $$<li><strong>交互模拟</strong>：在训练时随机采样提示（点击/框/掩码），模拟用户交互。</ul><h5 id=-7><strong>4. 关键创新</strong></h5><ol><li><strong>统一建模</strong>：通过记忆模块将图像分割（SAM）推广到视频，静态场景下记忆为空，退化为SAM。<li><strong>高效注意力</strong>：移除相对位置偏置（RPB），采用FlashAttention-2加速计算。<li><strong>数据引擎</strong>：通过模型-人工协同标注（Phase 1→3），生成大规模数据集SA-V（35.5M掩码）。</ol><h5 id=-8><strong>5. 数学优势</strong></h5><ul><li><strong>实时性</strong>：流式处理（逐帧编码+记忆缓存），速度达43.8 FPS（A100）。<li><strong>泛化性</strong>：通过零样本任务验证，在17个视频和37个图像数据集上超越SAM（6倍加速）。</ul><hr><h2 id=-9>实现</h2><ol><li><p>模型下载 [https://huggingface.co/IRPC/frogforge-sam2.1-onnx/tree/main] [https://huggingface.co/IRPC/frogforge-sam2.1-onnx/resolve/main/onnx/fp32/sam2.1_base_plus.encoder.onnx] [https://huggingface.co/IRPC/frogforge-sam2.1-onnx/resolve/main/onnx/fp32/sam2.1_base_plus.decoder.onnx]</p> <ul><li>使用netron软件查看onnx模型的输入和输出</ul> <table><thead><tr><th>编码器<th>解码器<tbody><tr><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250412134215613-1957943041.png><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250412134222047-853254232.png></table><li><p>Python版本代码</p></ol><pre class=language-py data-lang=py><code class=language-py data-lang=py># 测试SAM2.1图片分割
+
+# 编码模型: ../../../assets/ailia-models/segment-anything-2/sam2.1_base_plus.encoder.onnx
+## 输出: 
+## high_res_feats_0
+## name: high_res_feats_0
+## tensor: float32[Reshapehigh_res_feats_0_dim_0,Reshapehigh_res_feats_0_dim_1,Reshapehigh_res_feats_0_dim_2,Reshapehigh_res_feats_0_dim_3]
+## high_res_feats_1
+## name: high_res_feats_1
+## tensor: float32[Reshapehigh_res_feats_1_dim_0,Reshapehigh_res_feats_1_dim_1,Reshapehigh_res_feats_1_dim_2,Reshapehigh_res_feats_1_dim_3]
+## image_embed
+## name: image_embed
+## tensor: float32[Reshapeimage_embed_dim_0,Reshapeimage_embed_dim_1,Reshapeimage_embed_dim_2,Reshapeimage_embed_dim_3]
+
+# 解码模型: ../../../assets/ailia-models/segment-anything-2/sam2.1_base_plus.decoder.onnx
+## 输出:
+## masks
+## name: masks
+## tensor: float32[Resizemasks_dim_0,Resizemasks_dim_1,Resizemasks_dim_2,Resizemasks_dim_3]
+## iou_predictions
+## name: iou_predictions
+## tensor: float32[Resizemasks_dim_0,Whereiou_predictions_dim_1]
+
+# 输入图片../assets/rgb1.png
+# 输出../result/segment_onnx.png
+
+import os
+import cv2
+import numpy as np
+import onnxruntime as ort
+
+class SAM2ImagePredictor:
+    def __init__(self, encoder_model_path, decoder_model_path):
+        """
+        初始化 SAM2 图像分割预测器
+        :param encoder_model_path: 编码器模型路径
+        :param decoder_model_path: 解码器模型路径
+        """
+        self.encoder_session = ort.InferenceSession(encoder_model_path)
+        self.decoder_session = ort.InferenceSession(decoder_model_path)
+
+    def trunc_normal(self, size, std=0.02, a=-2, b=2):
+        """
+        生成截断正态分布的随机数
+        :param size: 输出数组的形状
+        :param std: 标准差
+        :param a: 截断下限
+        :param b: 截断上限
+        :return: 截断正态分布的随机数数组
+        """
+        values = np.random.normal(loc=0., scale=std, size=size)
+        values = np.clip(values, a * std, b * std)
+        return values
+
+    def set_image(self, image):
+        """
+        设置输入图像并获取编码器的特征
+        :param image: 输入图像
+        :return: 编码器的特征
+        """
+        # 调整图像大小为模型期望的尺寸
+        image = cv2.resize(image, (1024, 1024))
+        # 调整通道顺序为模型期望的顺序（CHW）
+        image = np.transpose(image, (2, 0, 1))
+        # 添加批量维度
+        image = np.expand_dims(image, axis=0).astype(np.float32)
+        outputs = self.encoder_session.run(None, {"image": image})
+        high_res_feats_0, high_res_feats_1, image_embed = outputs
+        features = {
+            "high_res_feats_0": high_res_feats_0,
+            "high_res_feats_1": high_res_feats_1,
+            "image_embed": image_embed
+        }
+        return features
+
+    def predict(self, features, orig_hw, point_coords=None, point_labels=None, box=None, mask_input=None):
+        """
+        进行图像分割预测
+        :param features: 编码器的特征
+        :param orig_hw: 原始图像的高和宽
+        :param point_coords: 点提示的坐标
+        :param point_labels: 点提示的标签
+        :param box: 边框提示
+        :param mask_input: 掩码输入
+        :return: 分割掩码、IoU 预测值和低分辨率掩码
+        """
+        if point_coords is not None and len(point_coords) != 0:
+            point_coords = point_coords.astype(np.float32)
+            unnorm_coords = self.transform_coords(point_coords, orig_hw)
+            labels = point_labels.astype(np.float32)
+            if len(unnorm_coords.shape) == 2:
+                unnorm_coords, labels = unnorm_coords[None, ...], labels[None, ...]
+        else:
+            unnorm_coords, labels = None, None
+
+        if box is not None:
+            box = box.astype(np.float32)
+            unnorm_box = self.transform_boxes(box, orig_hw)
+        else:
+            unnorm_box = None
+
+        if mask_input is not None:
+            mask_input = mask_input.astype(np.float32)
+            if len(mask_input.shape) == 3:
+                mask_input = mask_input[None, :, :, :]
+        else:
+            # 确保 mask_input 的维度为 4
+            mask_input = np.zeros((1, 1, 256, 256), dtype=np.float32)
+
+        # 如果没有点提示和边框提示，创建一个默认的点提示
+        if unnorm_coords is None and unnorm_box is None:
+            unnorm_coords = np.array([[[0.5, 0.5]]], dtype=np.float32)  # 默认点提示在图像中心
+            labels = np.array([[1]], dtype=np.float32)  # 默认标签为1，修改为 float32
+
+        if unnorm_coords is not None:
+            concat_points = (unnorm_coords, labels)
+        else:
+            concat_points = None
+
+        if unnorm_box is not None:
+            box_coords = unnorm_box.reshape(-1, 2, 2)
+            box_labels = np.array([[2, 3]], dtype=np.float32)  # 修改为 float32
+            box_labels = box_labels.repeat(unnorm_box.shape[0], 1)
+            if concat_points is not None:
+                concat_coords = np.concatenate([box_coords, concat_points[0]], axis=1)
+                concat_labels = np.concatenate([box_labels, concat_points[1]], axis=1)
+                concat_points = (concat_coords, concat_labels.astype(np.int32))
+            else:
+                concat_points = (box_coords, box_labels.astype(np.int32))
+
+        if mask_input is None:
+            mask_input_dummy = np.zeros((1, 256, 256), dtype=np.float32)
+            masks_enable = np.array([0], dtype=np.float32)
+        else:
+            mask_input_dummy = mask_input
+            masks_enable = np.array([1], dtype=np.float32)
+
+        if concat_points is None:
+            raise ValueError("concat_points must be exists")
+
+        orig_im_size = np.array(orig_hw, dtype=np.int32)
+
+        sparse_embeddings, dense_embeddings = self.decoder_session.run(
+            None,
+            {
+                "point_coords": concat_points[0],  # 修改为模型期望的输入名称 f32
+                "point_labels": concat_points[1],  # 修改为模型期望的输入名称 f32
+                "mask_input": mask_input_dummy,   # 修改为模型期望的输入名称 f32
+                "has_mask_input": masks_enable,   # 修改为模型期望的输入名称 f32
+                "orig_im_size": orig_im_size,     # 添加模型期望的输入 i32
+                "image_embed": features["image_embed"],  # 修改为模型期望的输入名称 f32
+                "high_res_feats_0": features["high_res_feats_0"],  # 修改为模型期望的输入名称 f32
+                "high_res_feats_1": features["high_res_feats_1"]   # 修改为模型期望的输入名称 f32
+            }
+        )
+
+        masks, iou_pred = sparse_embeddings, dense_embeddings
+
+        low_res_masks = masks[:, 1:, :, :]
+        iou_predictions = iou_pred[:, 1:]
+
+        masks = self.postprocess_masks(masks, orig_hw)
+
+        return masks, iou_predictions, low_res_masks
+
+    def transform_coords(self, coords, orig_hw):
+        """
+        转换坐标
+        :param coords: 坐标
+        :param orig_hw: 原始图像的高和宽
+        :return: 转换后的坐标
+        """
+        h, w = orig_hw
+        coords = coords.copy()
+        coords[..., 0] = coords[..., 0] / w
+        coords[..., 1] = coords[..., 1] / h
+
+        resolution = 1024
+        coords = coords * resolution
+        return coords
+
+    def transform_boxes(self, boxes, orig_hw):
+        """
+        转换边框
+        :param boxes: 边框
+        :param orig_hw: 原始图像的高和宽
+        :return: 转换后的边框
+        """
+        boxes = self.transform_coords(boxes.reshape(-1, 2, 2), orig_hw)
+        return boxes
+
+    def postprocess_masks(self, masks, orig_hw):
+        interpolated_masks = []
+        for mask in masks:
+            # 打印 mask 的形状，便于调试
+            print("Original mask shape:", mask.shape)
+
+            # 确保 mask 的形状为 (num_masks, height, width)
+            if len(mask.shape) == 4:  # 如果有 batch 维度，去掉 batch 维度
+                mask = np.squeeze(mask, axis=0)
+            if len(mask.shape) == 3:  # 如果已经是 (num_masks, height, width)，直接使用
+                pass
+            else:
+                raise ValueError(f"Unexpected mask shape: {mask.shape}")
+
+            # 转换为 (height, width, num_masks)
+            mask = np.transpose(mask, (1, 2, 0))
+
+            # 调整大小到原始图像尺寸
+            resized_mask = cv2.resize(mask, (orig_hw[1], orig_hw[0]), interpolation=cv2.INTER_LINEAR)
+
+            # 打印 resized_mask 的形状，便于调试
+            print("Resized mask shape:", resized_mask.shape)
+
+            # 如果 resized_mask 是二维的，添加一个新的维度
+            if len(resized_mask.shape) == 2:
+                resized_mask = resized_mask[:, :, np.newaxis]
+
+            # 转换回 (num_masks, height, width)
+            resized_mask = np.transpose(resized_mask, (2, 0, 1))
+
+            interpolated_masks.append(resized_mask)
+
+        interpolated_masks = np.array(interpolated_masks)
+
+        return interpolated_masks
+
+if __name__ == "__main__":
+    # 输入图片路径
+    input_image_path = "../assets/rgb1.png"
+    # 输出图片路径
+    output_image_path = "../result/segment_onnx.png"
+    # 编码器模型路径
+    encoder_model_path = "../../../assets/ailia-models/segment-anything-2/sam2.1_base_plus.encoder.onnx"
+    # 解码器模型路径
+    decoder_model_path = "../../../assets/ailia-models/segment-anything-2/sam2.1_base_plus.decoder.onnx"
+
+    # 读取输入图片
+    image = cv2.imread(input_image_path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    orig_hw = image.shape[:2]
+
+    # 初始化 SAM2 图像分割预测器
+    predictor = SAM2ImagePredictor(encoder_model_path, decoder_model_path)
+
+    # 设置输入图像并获取编码器的特征
+    features = predictor.set_image(image)
+
+    # 进行图像分割预测
+    masks, iou_predictions, low_res_masks = predictor.predict(features, orig_hw)
+
+    # 将分割掩码转换为可视化图像
+    mask = masks[0, 0].astype(np.uint8) * 255
+    mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+
+    # 将分割掩码叠加到原始图像上
+    result = cv2.addWeighted(image, 0.5, mask, 0.5, 0)
+    result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
+
+    # 保存输出图片
+    cv2.imwrite(output_image_path, result)
+</code></pre><ol start=3><li>Rust版本代码</ol><pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>#![allow(unused)]
+#![allow(deprecated)]
+
+//! 测试 SAM2.1 图片分割
+//! 编码模型: ../../../assets/ailia-models/segment-anything-2/sam2.1_base_plus.encoder.onnx
+//! 输出:
+//! high_res_feats_0
+//! name: high_res_feats_0
+//! tensor: float32[Reshapehigh_res_feats_0_dim_0,Reshapehigh_res_feats_0_dim_1,Reshapehigh_res_feats_0_dim_2,Reshapehigh_res_feats_0_dim_3]
+//! high_res_feats_1
+//! name: high_res_feats_1
+//! tensor: float32[Reshapehigh_res_feats_1_dim_0,Reshapehigh_res_feats_1_dim_1,Reshapehigh_res_feats_1_dim_2,Reshapehigh_res_feats_1_dim_3]
+//! image_embed
+//! name: image_embed
+//! tensor: float32[Reshapeimage_embed_dim_0,Reshapeimage_embed_dim_1,Reshapeimage_embed_dim_2,Reshapeimage_embed_dim_3]
+//!
+//! 解码模型: ../../../assets/ailia-models/segment-anything-2/sam2.1_base_plus.decoder.onnx
+//! 输出:
+//! masks
+//! name: masks
+//! tensor: float32[Resizemasks_dim_0,Resizemasks_dim_1,Resizemasks_dim_2,Resizemasks_dim_3]
+//! iou_predictions
+//! name: iou_predictions
+//! tensor: float32[Resizemasks_dim_0,Whereiou_predictions_dim_1]
+//!
+//! 输入图片 ./assets/rgb1.png
+//! 输出 ./result/segment_onnx.png
+
+// 导入标准库路径处理模块
+use std::path::Path;
+
+// 导入 ORT 相关模块
+use ort::{inputs, session::Session};
+use ort::value::Tensor;
+
+// 图像处理相关模块
+use image::{GenericImageView, ImageBuffer, Rgb};
+
+// 错误处理模块
+use anyhow::Result;
+
+// 线性代数库
+use ndarray::{ 
+    Array, ArrayD, ArrayViewD, 
+    Dim, Ix1, Ix2, Ix3, Ix4, 
+    IxDyn, stack, Axis,
+    IxDynImpl, ArrayBase,
+};
+use ndarray::OwnedRepr;
+
+// 随机数
+use rand::rng;
+
+// 随机分布
+use rand_distr::{ Normal, Distribution};
+
+// 生成截断正态分布的随机数
+fn trunc_normal(size: &[usize], std: f32, a: f32, b: f32) -> ArrayD&LTf32> {
+    // 创建正态分布（需处理可能的错误）
+    let dist = Normal::new(0.0, std as f64).expect("Invalid normal distribution parameters");
+    let mut rng = rand::rng();
+    
+    // 使用 mapv 进行向量化操作
+    ArrayD::zeros(size).mapv(|_ : f32| {
+        let v = dist.sample(&mut rng) as f32;
+        v.clamp(a * std, b * std) // 等价于 max(a).min(b)
+    })
+}
+
+// 转换坐标
+fn transform_coords(coords: &mut Array&LTf32, Ix2>, orig_hw: (u32, u32)) {
+    let (h, w) = (orig_hw.0 as f32, orig_hw.1 as f32);
+    coords.index_axis_mut(ndarray::Axis(1), 0).mapv_inplace(|x| x / w);
+    coords.index_axis_mut(ndarray::Axis(1), 1).mapv_inplace(|y| y / h);
+
+    let resolution = 1024.0;
+    coords.mapv_inplace(|x| x * resolution);
+}
+
+// 转换边框
+fn transform_boxes(boxes: &mut Array&LTf32, Ix2>, orig_hw: (u32, u32)) {
+    // 直接处理二维数组
+    transform_coords(boxes, orig_hw); 
+}
+
+// 后处理掩码
+fn postprocess_masks(masks: &Array&LTf32, Ix4>, orig_hw: (u32, u32)) -> Array&LTf32, Ix4> {
+
+    // 创建一个用于存储插值后的掩码的向量
+    let mut interpolated_masks = Vec::new();
+
+    // 遍历输入的掩码数组
+    for mask in masks.outer_iter() {
+
+        // 将当前掩码转换为动态维度数组
+        let mut _mask = mask.into_dyn();
+
+        // 使用临时变量解决借用冲突
+        let mut temp_mask: ArrayViewD&LTf32>;
+
+        // 检查掩码的维度，如果为4，则提取第一个维度的数据
+        if _mask.ndim() == 4 {
+            // 转换为动态维度
+            temp_mask = _mask.index_axis(ndarray::Axis(0), 0).into_dyn();
+        } else {
+            // 如果不是4维，直接赋值, 使用「视图」
+            temp_mask = _mask.view(); 
+        }
+
+        // 如果掩码的维度不是3，则抛出异常
+        if _mask.ndim() != 3 {
+            panic!("Unexpected mask shape: {:?}", mask.shape());
+        }
+
+        // 翻转掩码的坐标轴
+        let mut mask_ = temp_mask.reversed_axes();
+        // 使用image库将掩码转换为图像，并进行缩放
+        let resized_mask = image::imageops::resize(
+            &ImageBuffer::from_fn(
+                mask_.shape()[1] as u32,
+                mask_.shape()[0] as u32,
+                |x, y| Rgb([(mask_[[y as usize, x as usize, 0]] * 255.0) as u8; 3]),
+            ),
+            orig_hw.1,
+            orig_hw.0,
+            image::imageops::FilterType::Nearest,
+        );
+
+        // 将缩放后的图像转换为数组
+        let mut resized_mask = Array::from_shape_fn(
+            (resized_mask.height() as usize, resized_mask.width() as usize, 1),
+            |(y, x, _)| resized_mask.get_pixel(x as u32, y as u32)[0] as f32 / 255.0,
+        );
+
+        // 再次翻转数组的坐标轴
+        resized_mask = resized_mask.reversed_axes();
+
+        // 将处理后的掩码添加到向量中
+        interpolated_masks.push(resized_mask);
+    }
+    // 创建一个视图数组
+    let views: Vec<_> = interpolated_masks.iter()
+        .map(|arr| arr.view())
+        .collect();
+    
+    // 将视图数组堆叠成一个新的数组
+    ndarray::stack(ndarray::Axis(0), &views).unwrap()
+}
+
+struct SAM2ImagePredictor {
+    encoder_session: Session,
+    decoder_session: Session,
+}
+
+impl SAM2ImagePredictor {
+    // 构造函数
+    fn new(encoder_model_path: &str, decoder_model_path: &str) -> Result&LTSelf> {
+        let encoder_session = Session::builder()?.commit_from_file(encoder_model_path)?;
+        let decoder_session = Session::builder()?.commit_from_file(decoder_model_path)?;
+        Ok(SAM2ImagePredictor {
+            encoder_session,
+            decoder_session,
+        })
+    }
+
+    // 修正返回类型，明确返回的三个数组的具体形状
+    fn set_image(&mut self, image: &image::DynamicImage) -> Result<(Array&LTf32, Ix4>, Array&LTf32, Ix4>, Array&LTf32, Ix4>)> {
+        // 调整图像大小为模型期望的尺寸
+        let resized_img = image.resize_exact(1024, 1024, image::imageops::FilterType::Nearest);
+        // 创建四维数组保存预处理数据 [batch=1, channels=3, height=1024, width=1024]
+        let mut input_array = Array::zeros((1, 3, 1024, 1024));
+        // 遍历所有像素进行归一化处理
+        for (x, y, pixel) in resized_img.to_rgb8().enumerate_pixels() {
+            // 归一化 R 通道
+            input_array[[0, 0, y as usize, x as usize]] = pixel[0] as f32 / 255.0; 
+            // 归一化 G 通道
+            input_array[[0, 1, y as usize, x as usize]] = pixel[1] as f32 / 255.0; 
+            // 归一化 B 通道
+            input_array[[0, 2, y as usize, x as usize]] = pixel[2] as f32 / 255.0; 
+        }
+        // 将数组转换为 ORT 张量
+        let input_tensor = ort::value::Value::from_array(input_array.clone())?;
+
+        // 运行编码器模型推理
+        let outputs = self.encoder_session.run(inputs![input_tensor])?;
+        // 提取推理结果中的特征和嵌入向量
+        let (high_res_feats_0_shape, high_res_feats_0) = outputs["high_res_feats_0"].try_extract_tensor::&LTf32>()?;
+        let (high_res_feats_1_shape, high_res_feats_1) = outputs["high_res_feats_1"].try_extract_tensor::&LTf32>()?;
+        let (image_embed_shape, image_embed) = outputs["image_embed"].try_extract_tensor::&LTf32>()?;
+
+        // println!("high_res_feats_0的shape大小: {}", outputs["high_res_feats_0"].try_extract_tensor::&LTf32>()?.0);
+        // println!("high_res_feats_1的shape大小: {}", outputs["high_res_feats_1"].try_extract_tensor::&LTf32>()?.0);
+        // println!("image_embed的shape大小: {}", outputs["image_embed"].try_extract_tensor::&LTf32>()?.0);
+
+        // 将特征和嵌入向量转换为 ndarray 数组
+        Ok((
+            // 高分辨率特征 0
+            Array::from_shape_vec(
+                Dim::<[usize; 4]>::new(
+                    [high_res_feats_0_shape[0] as usize, high_res_feats_0_shape[1] as usize, 
+                    high_res_feats_0_shape[2] as usize, high_res_feats_0_shape[3] as usize]
+                ), 
+                high_res_feats_0.to_vec()
+            )?, 
+            // 高分辨率特征 1
+            Array::from_shape_vec(
+                Dim::<[usize; 4]>::new(
+                    [high_res_feats_1_shape[0] as usize, high_res_feats_1_shape[1] as usize, 
+                    high_res_feats_1_shape[2] as usize, high_res_feats_1_shape[3] as usize]
+                ), 
+                high_res_feats_1.to_vec()
+            )?, 
+            // 图像嵌入向量
+            Array::from_shape_vec(
+                Dim::<[usize; 4]>::new(
+                    [image_embed_shape[0] as usize, image_embed_shape[1] as usize,
+                    image_embed_shape[2] as usize, image_embed_shape[3] as usize]
+                ),
+                image_embed.to_vec()
+            )?, 
+        ))
+    }
+
+    // 执行预测
+    fn predict(
+        &mut self,
+        features: (Array&LTf32, Ix4>, Array&LTf32, Ix4>, Array&LTf32, Ix4>), 
+        orig_hw: (u32, u32), 
+        point_coords: Option&LTArray&LTf32, Ix2>>, 
+        point_labels: Option&LTArray&LTf32, Ix1>>, 
+        box_coords: Option&LTArray&LTf32, Ix2>>, 
+        mask_input: Option&LTArray&LTf32, Ix4>>, 
+    ) -> Result<(Array&LTf32, Ix4>, Array&LTf32, Ix2>, Array&LTf32, Ix4>)> {
+        // 初始化未归一化的坐标和标签
+        let mut unnorm_coords: Option&LTArrayD&LTf32>> = None;
+        let mut labels: Option&LTArrayD&LTf32>> = None;
+    
+        // 如果有输入点坐标
+        if let Some(mut coords) = point_coords {
+            if coords.len() != 0 {
+                // 转换坐标
+                transform_coords(&mut coords, orig_hw); 
+    
+                // 插入轴
+                let coords_3d = coords.insert_axis(Axis(0)).into_dyn();
+                let lbls = point_labels.unwrap().insert_axis(Axis(0)).into_dyn();
+    
+                // 设置未归一化的坐标
+                unnorm_coords = Some(coords_3d); 
+                // 设置标签
+                labels = Some(lbls); 
+            }
+        }
+    
+        // 初始化未归一化的边框
+        let mut unnorm_box: Option&LTArrayD&LTf32>> = None;
+        if let Some(mut box_) = box_coords {
+            // 调整边框形状
+            let mut box_3d = box_
+                .to_shape((1, 2, 2))
+                .unwrap()
+                .into_owned()
+                .into_dyn();
+    
+            // 转换边框
+            // 动态数组转为固定维度数组再调用处理函数
+            // 转换为固定二维数组
+            let mut fixed_box_3d: ArrayBase<_, Ix2> = match box_3d.view_mut().to_owned().into_dimensionality::&LTIx2>() {
+                Ok(array) => array,
+                Err(_) => panic!("The array is not 2-dimensional!"),
+            };
+            transform_boxes(&mut fixed_box_3d.to_owned(), orig_hw); 
+            unnorm_box = Some(box_3d);
+        }
+    
+        // 处理输入掩码
+        let mut mask_input = mask_input.map(|mut m| {
+            if m.ndim() == 3 {
+                // 插入轴
+                // m = m.insert_axis(Axis(0)); 
+            }
+            m.into_dyn()
+        });
+        // 如果没有输入掩码，创建一个默认的掩码
+        if mask_input.is_none() {
+            mask_input = Some(Array::zeros((1, 1, 256, 256)).into_dyn());
+        }
+    
+        // 如果没有点坐标和边框，创建默认的点坐标和标签
+        if unnorm_coords.is_none() && unnorm_box.is_none() {
+            unnorm_coords = Some(Array::from_shape_vec((1, 1, 2), vec![0.5, 0.5]).unwrap().into_dyn());
+            labels = Some(Array::from_shape_vec((1, 1), vec![1.0]).unwrap().into_dyn());
+        }
+    
+        // 合并点坐标和边框
+        let mut concat_points: Option<(ArrayD&LTf32>, ArrayD&LTf32>)> = None;
+        if let Some(coords) = unnorm_coords {
+            concat_points = Some((coords, labels.unwrap()));
+        }
+    
+        if let Some(mut box_coords) = unnorm_box {
+            // 创建边框标签
+            let box_labels = Array::from_shape_vec((1, 2), vec![2.0, 3.0]).unwrap().into_dyn();
+            if let Some((mut concat_coords, mut concat_labels)) = concat_points {
+                // 合并点坐标和边框坐标
+                let concat_coords = ndarray::stack(Axis(1), &[box_coords.view(), concat_coords.view()]).unwrap().into_dyn();
+                // 合并点标签和边框标签
+                let concat_labels = ndarray::stack(Axis(1), &[box_labels.view(), concat_labels.view()]).unwrap().into_dyn();
+                concat_points = Some((concat_coords, concat_labels));
+            } else {
+                concat_points = Some((box_coords, box_labels));
+            }
+        }
+    
+        // 获取掩码输入
+        let mask_input_dummy = mask_input.unwrap();
+        // 创建掩码启用标志
+        let masks_enable = Array::from_shape_vec((1,), vec![if mask_input_dummy.len() > 0 { 1.0 } else { 0.0 }]).unwrap().into_dyn();
+    
+        // 解构输入特征
+        let (high_res_feats_0, high_res_feats_1, image_embed) = features;
+        // 创建原始图像大小数组
+        let orig_im_size = Array::from_shape_vec((2,), vec![orig_hw.0 as i32, orig_hw.1 as i32]).unwrap().into_dyn();
+    
+        // 获取合并后的点坐标和标签
+        let (concat_coords, concat_labels) = concat_points.ok_or_else(|| anyhow::anyhow!("concat_points must be exists"))?;
+    
+        // 在 predict 方法中
+        let outputs = self.decoder_session.run(inputs![
+            "point_coords" => ort::value::Value::from_array(concat_coords.mapv(|x| x as f32))?,
+            "point_labels" => ort::value::Value::from_array(concat_labels.mapv(|x| x as f32))?,
+            "mask_input" => ort::value::Value::from_array(mask_input_dummy.mapv(|x| x as f32))?,
+            "has_mask_input" => ort::value::Value::from_array(masks_enable.mapv(|x| x as f32))?,
+            "orig_im_size" => ort::value::Value::from_array(orig_im_size.mapv(|x| x as i32))?,
+            "image_embed" => ort::value::Value::from_array(image_embed.mapv(|x| x as f32))?,
+            "high_res_feats_0" => ort::value::Value::from_array(high_res_feats_0.mapv(|x| x as f32))?,
+            "high_res_feats_1" => ort::value::Value::from_array(high_res_feats_1.mapv(|x| x as f32))?
+        ])?;
+    
+        // 提取推理结果
+        let (masks_shape, masks) = outputs["masks"].try_extract_tensor::&LTf32>()?;
+        let (iou_pred_shape, iou_pred) = outputs["iou_predictions"].try_extract_tensor::&LTf32>()?;
+
+        println!("masks_shape: {}", masks_shape);
+        println!("iou_pred_shape: {}", iou_pred_shape);
+    
+        // 将推理结果转换为 ndarray 数组, 掩码
+        let mut masks = Array::from_shape_vec((masks.len(),), masks.to_vec())?.into_dyn();
+        // IOU 预测
+        let iou_pred = Array::from_shape_vec((iou_pred.len(),), iou_pred.to_vec())?.into_dyn();
+    
+        // FIXME: 这两个返回值没有用到, 所以直接忽略
+        // 提取低分辨率掩码
+        // let low_res_masks = masks.slice(ndarray::s![.., 1.., .., ..]).to_owned();
+        let low_res_masks: Array&LTf32, Ix4> = masks.clone().into_shape((1, 1, 480, 640))?;
+        // 提取 IOU 预测
+        // let iou_predictions = iou_pred.slice(ndarray::s![.., 1..]).to_owned();
+        let iou_predictions: Array&LTf32, Ix2> = iou_pred.clone().into_shape((1, 1))?;
+    
+        // 后处理掩码
+        // 动态数组转为固定维度数组再调用处理函数
+        // 转换为固定四维数组
+
+        let mut fixed_masks = low_res_masks.clone();
+        // let mut fixed_masks: ArrayBase<_, Ix4> = match masks.view_mut().to_owned().into_dimensionality::&LTIx4>() {
+        //     Ok(array) => array,
+        //     Err(_) => {
+        //         // panic!("The array is not 4-dimensional!"),
+        //     }
+        // };
+
+
+        let masks = postprocess_masks(&mut fixed_masks, orig_hw);
+    
+        // 返回结果
+        Ok((masks, iou_predictions, low_res_masks))
+        // Ok((masks, Array&LTf32, Ix2>::zeros(), Array&LTf32, Ix4>::zeros()))
+    }
+
+}
+
+fn main() -> Result<()> {
+    // 输入图片路径
+    let input_image_path = "./assets/rgb1.png";
+    // 输出图片路径
+    let output_image_path = "./result/ort_segment.png";
+    // 编码器模型路径
+    let encoder_model_path = "../../assets/ailia-models/segment-anything-2/sam2.1_base_plus.encoder.onnx";
+    // 解码器模型路径
+    let decoder_model_path = "../../assets/ailia-models/segment-anything-2/sam2.1_base_plus.decoder.onnx";
+
+    // 创建输出目录（如果不存在）
+    std::fs::create_dir_all(Path::new(output_image_path).parent().unwrap())?;
+
+    // 读取输入图片
+    let image = image::open(input_image_path)?;
+    let orig_hw = (image.height(), image.width());
+
+    // 初始化 SAM2 图像分割预测器
+    let mut predictor = SAM2ImagePredictor::new(encoder_model_path, decoder_model_path)?;
+
+    // 设置输入图像并获取编码器的特征
+    let features = predictor.set_image(&image)?;
+
+    // 进行图像分割预测
+    let (masks, iou_predictions, low_res_masks) = predictor.predict(features, orig_hw, None, None, None, None)?;
+
+    // FIXME: 绘图错误
+    // 将分割掩码转换为可视化图像 
+    let mask = masks.slice(ndarray::s![0, 0, .., ..]).mapv(|x| (x * 255.0) as u8);
+    let mut img_buffer = ImageBuffer::from_fn(orig_hw.1, orig_hw.0, |x, y| Rgb([mask[[x as usize, y as usize]]; 3]));
+
+    // 将分割掩码叠加到原始图像上
+    let orig_img = image.to_rgb8();
+    for (x, y, pixel) in img_buffer.enumerate_pixels_mut() {
+        let orig_pixel = orig_img.get_pixel(x, y);
+        *pixel = Rgb([
+            ((orig_pixel[0] as f32 * 0.5 + pixel[0] as f32 * 0.5) as u8),
+            ((orig_pixel[1] as f32 * 0.5 + pixel[1] as f32 * 0.5) as u8),
+            ((orig_pixel[2] as f32 * 0.5 + pixel[2] as f32 * 0.5) as u8),
+        ]);
+    }
+
+    // 保存输出图片
+    img_buffer.save(output_image_path)?;
+
+    Ok(())
+}
+</code></pre><h3 id=-10>效果对比</h3><table><thead><tr><th>原图<th>Python结果<th>Rust结果<tbody><tr><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250412134256360-1125855337.png><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250412134317941-307546098.png><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250412134332478-828850684.png></table></article><div><div class=post-copyright><div class=post-copyright__author_group><a class=post-copyright__author_img href=/about> <picture class="post-copyright__author_img_back progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> </a><div class=post-copyright__author_name>ByeIO·开发者博客</div><div class=post-copyright__author_desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div></div><div class=post-tools id=post-tools><div class=post-tools-left><div class=rewardLeftButton><div class="reward-link mode"><a class=reward-link-button href=/subscribe> <i class=icon-plant-fill></i>订阅 </a></div></div><div class=shareRight><div class="copyright-link mobile"><div class=copyright-qrcode><div class=copyright-button title=使用手机访问这篇文章><i class=icon-qrcode></i></div><div class=copyright-main><div class=copyright-main-all><div id=qrcode></div><div class=reward-dec>使用手机访问这篇文章</div></div></div></div></div><div class="copyright-link copyurl"><div class=copyright-button id=post-share-url onclick=rm.copyPageUrl() title=复制链接><i class=icon-link></i></div></div></div></div></div><div class=post-copyright__notice><span class=post-copyright-info> 本文是原创文章，采用 <a href=/copyright target=_blank>CC BY-NC-ND 4.0</a> 协议，转载请注明 <a href=/ target=_blank>本站名称及地址</a> </span></div></div><div class=post-tools-right><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/> <span class=tags-punctuation>博客</span> <span class=tagsPageCount>31</span> </a><a class=post-meta__tags href=/tags/docs/> <span class=tags-punctuation>文档</span> <span class=tagsPageCount>25</span> </a><a class=post-meta__tags href=/tags/featured/> <span class=tags-punctuation>必看</span> <span class=tagsPageCount>30</span> </a><a class=post-meta__tags href=/tags/hot/> <span class=tags-punctuation>热门</span> <span class=tagsPageCount>30</span> </a></div></div></div><link href=/css/post-copyright-one.css rel=stylesheet></div><nav class="pagination-post needEndHide" id=pagination><div class="prev-post pull-left"><a href=/articles/docs/折腾笔记[20]-使用rust交换protobuf数据/> <div class=pagination-info><div class=label>上一篇</div><div class=prev_info>折腾笔记[20]-使用rust交换protobuf数据</div></div> </a></div><div class="next-post pull-right"><a href=/articles/docs/折腾笔记[24]-使用rust基于光流法对比图像/> <div class=pagination-info><div class=label>下一篇</div><div class=next_info>折腾笔记[24]-使用rust基于光流法对比图像</div></div> </a></div></nav><div class=relatedPosts><div class=headline><i class=icon-cainixihuan style=font-size:1.1rem></i><span>喜欢这篇文章的人也看了</span></div><div class=relatedPosts-list><div><a href=/articles/docs/ROS笔记[1]-搭建Gazebo仿真环境/ title=ROS笔记[1]-搭建Gazebo仿真环境> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[1]-搭建Gazebo仿真环境</div></div> </a></div><div><a href=/articles/docs/ROS笔记[2]-获取OpenMV数据并发布到ROS消息/ title=ROS笔记[2]-获取OpenMV数据并发布到ROS消息> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[2]-获取OpenMV数据并发布到ROS消息</div></div> </a></div></div></div><link href=/css/related-posts-two.css rel=stylesheet><hr></div><div class=aside-content id=aside-content><div class="card-widget card-info"><div class=card-content><div class="card-info-avatar is-center"><div class=author-info__top-group><div class=author-info__sayhi id=author-info__sayhi onclick=wjx.changeSayHelloText()>好久不见，你终于来了</div></div></div><div class=avatar-img-group><picture class="avatar-img progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture></div><div class=author-info__description_group>为创造者而生的开源 Zola 主题~</div><div class=author-info__bottom-group><a class=author-info__bottom-group-left href=/about> <div class=author-info__name>qsbye</div> <div class=author-info__desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div> </a><div class="card-info-social-icons is-center"><a rel="external nofollow" class=social-icon href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=GitHub> <i class=icon-github></i> </a></div></div></div><style>.avatar-img-group:before{content:"";-o-transition:1s;background:var(--wjx-green);border:5px solid var(--wjx-background);z-index:2;border-radius:50%;width:26px;height:26px;-webkit-transition:all 1s;-moz-transition:all 1s;-ms-transition:all 1s;transition:all 1s;position:absolute;bottom:2px;right:2px}.card-info-avatar.is-center{flex-direction:column;align-items:flex-start;display:flex}#aside-content .card-info .avatar-img{opacity:1;border:5px solid var(--wjx-white);border-radius:500px;width:118px;transition:all .3s;position:absolute;top:0;right:0;overflow:hidden}.page #aside-content .card-info .avatar-img{border-color:var(--wjx-card-bg)}.author-info__top-group{width:100%;height:28px;display:flex}.avatar-img-group{transform-origin:bottom;border-radius:500px;width:118px;height:118px;transition:all .3s cubic-bezier(.69,.39,0,1.21);position:absolute;top:90px;right:calc(50% - 59px)}#aside-content .card-info:hover .avatar-img-group{opacity:0;transform:scale(0)}.author-info__bottom-group{justify-content:space-between;align-items:center;width:100%;padding:1.2rem;display:flex;position:absolute;bottom:0;left:0}a.author-info__bottom-group-left:hover{opacity:.8}#aside-content .card-info .card-info-social-icons{cursor:pointer;flex-flow:wrap;justify-content:flex-start;margin:0;display:flex}#aside-content .card-info .card-info-social-icons i:hover{cursor:pointer;background-color:#000;transform:rotate(540deg)}#aside-content .card-info .card-info-social-icons .social-icon{margin:0 0 0 8px}#aside-content .card-info .card-info-social-icons i{background:var(--wjx-white-op);color:var(--wjx-white);justify-content:center;align-items:center;width:40px;height:40px;font-size:1rem;display:flex}#aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-white);color:var(--wjx-main);box-shadow:none;transform:scale(1.1)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{background:var(--wjx-black-op);color:var(--wjx-card-bg)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-card-bg);color:var(--wjx-fontcolor)}#aside-content .card-info .banner-button{border-radius:20px;justify-content:center;width:118px;height:40px}@media screen and (width>=1300px){#aside-content .card-info .card-info-social-icons i{color:var(--wjx-white)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{color:var(--wjx-card-bg)}}#aside-content .card-info .card-info-data>.card-info-data-item:hover{background:var(--wjx-post-blockquote-bg);transform:scale(.97)}#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.headline,#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.length-num{color:var(--wjx-blue)}.author-info__description_group{color:var(--wjx-white);opacity:0;width:100%;padding:1.2rem;transition:all .3s;position:absolute;top:50px;left:0}.card-widget:hover .author-info__description_group{opacity:1}.author-info__description2{text-align:justify;z-index:2;color:#fffc;width:100%;margin:.3rem 0;line-height:1.38}.author-info__description2 b{color:var(--wjx-white)}[data-theme=dark] .page div#author-info__sayhi{background:var(--wjx-black-op);color:var(--wjx-black)}#aside-content .card-info .author-info__name{text-align:left;color:var(--wjx-white);margin-bottom:5px;font-size:20px;font-weight:700;line-height:1}.page #aside-content .card-info .author-info__name,.page .author-info__desc{color:var(--wjx-white)}.author-info__desc{color:var(--wjx-white);opacity:.6;font-size:12px;line-height:1}.author-info__description{text-align:justify;color:var(--wjx-white);opacity:1;margin:.3rem 0;line-height:1.38}.page .author-info__description{color:var(--wjx-card-bg)}.author-info__description b{color:var(--wjx-white);opacity:1}.page .author-info__description b{color:var(--wjx-card-bg);opacity:1}.avatar-sticker{z-index:0;background:var(--wjx-white);border-radius:50%;justify-content:center;align-items:center;width:33px;height:33px;line-height:34px;transition:all .3s ease-out .2s;display:flex;position:absolute;bottom:2px;right:2px;transform:scale(1)}.page .avatar-sticker{background:var(--wjx-card-bg)}.avatar-sticker img{width:26px;height:26px}.card-widget:hover .avatar-sticker{opacity:0;transform:scale(0)}.author-info__description b{color:var(--wjx-white)}#aside-content>.card-widget.card-info:before{background:linear-gradient(-25deg,var(--wjx-main),var(--wjx-main-op-deep),var(--wjx-main),var(--wjx-main-op-deep));content:"";background-size:400%;width:100%;height:100%;animation:15s infinite gradient;position:absolute;top:0;left:0}</style></div><div class="card-widget wjx-right-widget" onclick="javascript:window.open('/subscribe')" id=card-wechat><div id=flip-wrapper><div id=flip-content><div style="background:url(/img/wechat/qr-green.avif) 50%/100% no-repeat" class=face></div><div class="back face" style="background:url(/img/wechat/qr-white.avif) 50%/100% no-repeat"></div></div></div><style>#aside-content .card-widget#card-wechat{background:#07c160}#aside-content .card-widget#card-wechat:before{content:"";background:url(/img/wechat/gzh_cover.avif) 50%/cover no-repeat;width:100%;height:90%;transition:all .2s cubic-bezier(.45,.04,.43,1.21);position:absolute;top:0;left:0}#aside-content .card-widget#card-wechat:hover:before{opacity:0;transition:all .3s ease-out;top:100%}</style></div><div class=sticky_layout><div class=card-widget id=card-toc><div class=item-headline><i class=icon-bars></i><span>文章目录</span><span class=toc-percentage></span></div><div class=toc-content></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-chat--fill style=font-size:19px></i><span>最新评论</span></div><div class=aside-list id=newcomm></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-eicon_map-2-line1></i><span>最近发布</span></div><div class=aside-list><div class=aside-list-item><a class=thumbnail href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5>配置orangepi5pro运行rknn版本的yolov5</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行>计算机控制apm飞控自动飞行</a></div></div><div class=aside-list-item><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=thumbnail> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=title>翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境>搭建ArduPilot的SITL仿真环境</a></div></div></div></div><div class="card-widget card-categories"><div class=item-headline><i class=icon-folder-open></i><span>分类</span></div><div class=aside-list><ul class=card-category-list><li class=card-category-list-item><a class=card-category-list-link href=/categories/misc/ rel=tag> <span class=card-category-list-name>杂谈</span> <span class=card-category-list-count>6</span> </a><li class=card-category-list-item><a class=card-category-list-link href=/categories/theme/ rel=tag> <span class=card-category-list-name>主题</span> <span class=card-category-list-count>25</span> </a></ul></div></div></div></div></main><footer id=footer><div id=wjx-footer-bar><div class=footer-logo>qsbye</div><div class=footer-bar-description>ByeIO·开发者博客|技术解决方案|开发思考|总结</div><a class=footer-bar-link href=/about>了解更多</a></div><div id=footer_deal><a rel="external nofollow noopener noreferrer" class=deal_link href=mailto:mail@example.com target=_blank title=Mail> <i class=icon-envelope></i> </a><picture class="footer_mini_logo progressive-picture" onclick="btf.scrollToDest(0, 500)" style=border-radius:500px><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img alt=返回顶部 class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img alt=返回顶部 decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture><a rel="external nofollow noopener noreferrer" class=deal_link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=Github> <i class=icon-github></i> </a></div><div id=wjx-footer><div class=footer-group><h3 class=footer-title>文库</h3><div class=footer-links><a class=footer-item data-pjax href=/archives target=_blank>全部文章</a><a class=footer-item data-pjax href=/categories target=_blank>分类列表</a><a class=footer-item data-pjax href=/tags target=_blank>标签列表</a><a class=footer-item data-pjax href=javascript:toRandomPost() target=_blank>随机文章</a></div></div><div class=footer-group><h3 class=footer-title>作品</h3><div class=footer-links><a class=footer-item data-pjax href=/articles/misc/lorem-ipsum target=_blank>Lorem Ipsum</a></div></div><div class=footer-group><h3 class=footer-title>协议</h3><div class=footer-links><a class=footer-item data-pjax href=/privacy target=_blank>隐私协议</a><a class=footer-item data-pjax href=/cookies target=_blank>Cookies</a><a class=footer-item data-pjax href=/copyright target=_blank>版权协议</a></div></div><div class=footer-group><div class=footer-title-group><h3 class=footer-title>友链</h3><button class=random-friends-btn id=footer-random-friends-btn onclick=javascript:wjx.addFriendLinksInFooter(); title=换一批友情链接><i class=icon-arrow-rotate-right style=font-size:16px></i></button></div><div class=footer-links id=friend-links-in-footer></div></div></div><div id=footer-bar style=padding:1rem><div class=footer-bar-links><div class=footer-bar-left><div id=footer-bar-tips><div class=copyright-group>© <span class=inline-word id=copyright-info>2025</span>  By  <a class=footer-bar-link href=/ target=_blank> <picture class=progressive-picture id=copyright-logo><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> ByeIO·开发者博客 </a><script defer>var startYear = 2025;
+                            var currentYear = new Date().getFullYear();
+                            var copyrightInfo = `${startYear !== currentYear ? startYear + ' - ' : ''}${currentYear}`;
+                            document.getElementById('copyright-info').innerHTML = copyrightInfo;</script></div><div class=compliance-group><a rel="noopener external nofollow noreferrer" class=footer-bar-link href=https://beian.miit.gov.cn/#/Integrated/index target=_blank> ICP </a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang> <div class=status-light></div> <span>本站及主题基于 Zola 构建</span> </a></div></div></div><div class=footer-bar-right><a class=footer-bar-link href=/subscribe target=_blank>订阅</a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank>主题</a><a class=footer-bar-link href=/about>关于</a><a class=footer-bar-link href=mailto:mail@example.com target=_blank>反馈</a><a class="footer-bar-link cc" href=/copyright rel=license target=_blank title=CC版权协议> <i class=icon-copyright-line></i> <i class=icon-creative-commons-by-line></i> <i class=icon-creative-commons-nc-line></i> <i class=icon-creative-commons-nd-line></i> </a></div></div></div><div id=quit-box onclick=RemoveRewardMask()></div><div class="comment-barrage needEndHide" style=display:none></div><style>a.footer-bar-link.cloud{align-items:center;display:flex}img.entered.loading.cloud{height:32px}</style></footer></div><div id=sidebar><div id=menu-mask></div><div id=sidebar-menus><span class=sidebar-menu-item-title>功能</span><div class=sidebar-menu-item><button class="darkmode_switchbutton menu-child" href=javascript:void(0); onclick=rm.switchDarkMode() title=显示模式切换><i class=icon-moon style=font-size:.9rem;line-height:2></i> <span>显示模式</span></button></div><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div><div class=menus_items><div class=menus_item><button class=site-page><span>文库</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/archives> <i class="icon-book-open faa-tada" style=font-size:.9em></i> <span>全部文章</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/categories> <i class="icon-folder-open faa-tada" style=font-size:.9em></i> <span>分类列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags> <i class="icon-tags faa-tada" style=font-size:.9em></i> <span>标签列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:toRandomPost()> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>随机文章</span> </a></ul></div><div class=menus_item><a class=site-page href=/tags/work> <span>推荐</span> </a><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/docs/readme> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>博客主题介绍</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/misc/lorem-ipsum> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></ul></div><div class=menus_item><button class=site-page><span>友链</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/friends> <i class="icon-link faa-tada" style=font-size:.9em></i> <span>友链列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:travelling()> <i class="icon-paper-plane faa-tada" style=font-size:.9em></i> <span>随机发现</span> </a></ul></div><div class=menus_item><button class=site-page><span>我的</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/about> <i class="icon-rocket faa-tada" style=font-size:.9em></i> <span>关于本人</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/equipment> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>我的装备</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags/project> <i class="icon-lightbulb faa-tada" style=font-size:.9em></i> <span>我的项目</span> </a></ul></div></div><span class=sidebar-menu-item-title>标签</span><div class="card-widget card-tags card-archives card-webinfo card-allinfo"><div class=item-headline></div><div class=card-tag-cloud><a class=tag-item href=/tags/blog/ style=font-size:1em title=博客>  博客<sup>31</sup> </a><a class=tag-item href=/tags/docs/ style=font-size:1em title=文档>  文档<sup>25</sup> </a><a class=tag-item href=/tags/featured/ style=font-size:1em title=必看>  必看<sup>30</sup> </a><a class=tag-item href=/tags/hot/ style=font-size:1em title=热门>  热门<sup>30</sup> </a><a class=tag-item href=/tags/project/ style=font-size:1em title=项目>  项目<sup>1</sup> </a><a class=tag-item href=/tags/work/ style=font-size:1em title=work>  work<sup>1</sup> </a></div></div></div></div><div id=console><div class=close-btn href=javascript:void(0); onclick=wjx.hideConsole()><i class=icon-circle-xmark></i></div><div class=console-card-group><div class=console-card-group-left><div class=console-card id=card-newest-comments onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>互动</div><span class=author-content-item-title>最近评论</span></div><div class=aside-list><span>正在加载中...</span></div></div></div><div class=console-card-group-right><div class="console-card tags" onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>标签</div><span class=author-content-item-title>寻找感兴趣的领域</span></div><div class=card-tag-cloud><a href=/tags/blog/ rel=tag style=color:#d3d3d3;font-size:1em> 博客<sup>31</sup> </a><a href=/tags/docs/ rel=tag style=color:#d3d3d3;font-size:1em> 文档<sup>25</sup> </a><a href=/tags/featured/ rel=tag style=color:#d3d3d3;font-size:1em> 必看<sup>30</sup> </a><a href=/tags/hot/ rel=tag style=color:#d3d3d3;font-size:1em> 热门<sup>30</sup> </a><a href=/tags/project/ rel=tag style=color:#d3d3d3;font-size:1em> 项目<sup>1</sup> </a><a href=/tags/work/ rel=tag style=color:#d3d3d3;font-size:1em> work<sup>1</sup> </a></div></div><div class="console-card history" onclick=wjx.hideConsole()><div class=item-headline><i class="fas fa-archive"></i><span>文章</span></div><ul class=card-archive-list><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2025 1月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>25</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2024 12月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>6</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul></ul></div></div></div><div class=button-group><div class=console-btn-item><button rel="external nofollow" class=darkmode_switchbutton href=javascript:void(0); onclick=navFn.switchDarkMode(); title=显示模式切换><i class=icon-moon-clear-fill style=font-size:1rem></i></button></div><div class=console-btn-item id=consoleHideAside onclick=wjx.hideAsideBtn() title=边栏显示控制><button class=asideSwitch title=侧边栏开关><i class=icon-arrows-left-right></i></button></div><div class="console-btn-item on" id=consoleCommentBarrage onclick=wjx.switchCommentBarrage() title=热评开关><button class=commentBarrage><i class=icon-chat--fill></i></button></div></div><div class=console-mask href=javascript:void(0); onclick=wjx.hideConsole()></div></div><div id=rightside><div id=rightside-config-hide><button id=translateLink title=简繁转换 type=button>繁</button><button id=darkmode title=浅色和深色模式转换 type=button><i class=icon-circle-half-stroke></i></button><button id=hide-aside-btn title=单栏和双栏切换 type=button><i class=icon-arrows-left-right></i></button></div><div id=rightside-config-show><button id=rightside-config title=设置 type=button><i class=icon-gear></i></button><a href=#post-comment id=to_comment title=直达评论><i class=icon-chat--fill style=font-size:17px></i></a><button id=go-up title=回到顶部 type=button><i class=icon-arrow-up></i></button></div></div><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/css/read-mode.css rel=preload><noscript><link href=/css/read-mode.css rel=stylesheet></noscript><div class=js-pjax><div id=rightMenu><div class="rightMenu-group rightMenu-small"><div class=rightMenu-item id=menu-backward><i class=icon-arrow-left></i></div><div class=rightMenu-item id=menu-forward><i class=icon-arrow-right></i></div><div class=rightMenu-item id=menu-refresh><i class=icon-arrow-rotate-right></i></div><div class=rightMenu-item id=menu-top><i class=icon-arrow-up></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class=rightMenu-item id=menu-copytext><i class=icon-copy></i><span>复制选中文本</span></div><div class=rightMenu-item id=menu-pastetext><i class=icon-paste></i><span>粘贴文本</span></div><a class=rightMenu-item id=menu-commenttext> <i class=icon-comment-medical></i> <span>引用到评论</span> </a><div class=rightMenu-item id=menu-newwindow><i class=icon-window-restore></i><span>新窗口打开</span></div><div class=rightMenu-item id=menu-copylink><i class=icon-link></i><span>复制链接地址</span></div><div class=rightMenu-item id=menu-copyimg><i class=icon-images></i><span>复制此图片</span></div><div class=rightMenu-item id=menu-downloadimg><i class=icon-download></i><span>下载此图片</span></div><div class=rightMenu-item id=menu-newwindowimg><i class=icon-window-restore></i><span>新窗口打开图片</span></div><div class=rightMenu-item id=menu-search><i class=icon-search--line></i><span>站内搜索</span></div><div class=rightMenu-item id=menu-searchBaidu><i class=icon-baidu></i><span>百度搜索</span></div><div class=rightMenu-item id=menu-music-toggle><i class=icon-play></i><span>播放音乐</span></div><div class=rightMenu-item id=menu-music-back><i class=icon-backward></i><span>切换到上一首</span></div><div class=rightMenu-item id=menu-music-forward><i class=icon-forward></i><span>切换到下一首</span></div><div onclick="javascript:window.open('https://y.qq.com/n/ryqq/playlist/xxxxx')" class=rightMenu-item id=menu-music-playlist><i class=icon-radio></i><span>查看所有歌曲</span></div><div class=rightMenu-item id=menu-music-copyMusicName><i class=icon-copy></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id=menu-randomPost onclick=toRandomPost()> <i class=icon-shuffle></i> <span>随便逛逛</span> </a><a class="rightMenu-item menu-link" href=../categories> <i class=icon-cube></i> <span>博客分类</span> </a><a class="rightMenu-item menu-link" href=../tags> <i class=icon-tags></i> <span>文章标签</span> </a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><div class=rightMenu-item id=menu-copy><i class=icon-copy></i><span>复制地址</span></div><div class=rightMenu-item draggable=false id=menu-commentBarrage style=display:flex><i class=icon-chat--fill style=font-size:19px></i><span class=menu-commentBarrage-text>显示热评</span></div><div class=rightMenu-item id=menu-darkmode><i class=icon-moon-clear-fill style=font-size:19px></i><span class=menu-darkmode-text>深色模式</span></div><div class=rightMenu-item id=menu-translate><i class=icon-fanti style=font-size:19px></i><span>轉為繁體</span></div></div></div><div id=rightmenu-mask></div></div><script defer onload src=/libs/qrcode/qrcode.min.js></script><script defer src=/libs/view-image/view-image.min.js></script><script defer src=/libs/tocbot/4.18.2/tocbot.min.js></script><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/tocbot/4.18.2/tocbot.css rel=preload><noscript><link href=/libs/tocbot/4.18.2/tocbot.css rel=stylesheet></noscript><script async src=/libs/snackbar/snackbar.min.js></script><script>var meting_api = "https:&#x2F;&#x2F;api.i-meto.com&#x2F;meting&#x2F;api?server=:server&amp;type=:type&amp;id=:id&amp;r=:r";</script><canvas height=880 id=universe width=1312></canvas><script defer src=/libs/canvas/dark.js></script><script src=/libs/waterfall/waterfall.min.js></script><script src=/libs/fast-average-color/index.browser.min.js></script><script>let pjaxSelectors = ['title', '#body-wrap', '#rightside-config-hide', '#rightside-config-show', '.js-pjax', '#site-config']
+          
+    pjaxSelectors.unshift('meta[property="og:type"]', 'meta[property="og:image"]', 'meta[property="og:title"]', 'meta[property="og:url"]', 'meta[property="og:description"]'
+            , 'meta[name="twitter:title"]', 'meta[name="twitter:url"]', 'meta[name="twitter:description"]', 'meta[name="twitter:image"]', 'meta[name="description"]')
+    
+    var pjax = new Pjax({
+        elements: 'a:not([target="_blank"])',
+        selectors: pjaxSelectors,
+        cacheBust: false,
+        //debug: true,        
+        analytics: false,
+        scrollRestoration: false
+    })</script><script defer src=/js/rightmenu.js></script><script data-pjax defer src=/production/js/abstract/local.js></script><script data-pjax defer src=/production/js/bundle.js></script><script defer src=/js/tw_cn.js></script><script defer src=/libs/instantpage/instantpage.min.js type=module></script><link onload="this.rel='stylesheet'" as=style href=/libs/prism/prism.min.css rel=preload><noscript><link href=/libs/prism/prism.min.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style href=/libs/prism/code.css rel=preload><noscript><link href=/libs/prism/code.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=light href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=dark href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><script defer src=/libs/prism/prism.min.js></script><style>#article-container .code-toolbar pre.close{height:300px;overflow:hidden}</style>

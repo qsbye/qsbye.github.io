@@ -1,0 +1,1494 @@
+<!doctype html><html lang=zh-CN><head><title>折腾笔记[14]-使用rust进行深度估计 | ByeIO·开发者博客</title><meta content=ByeIO·开发者博客 property=og:site_name><meta content=article property=og:type><meta content=折腾笔记[14]-使用rust进行深度估计 property=og:title><meta content=//articles/docs/折腾笔记[14]-使用rust进行深度估计/ property=og:url><meta content=使用rust实现基于REMODE数据集的单目相机在已知轨迹下的稠密深度估计. property=og:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp property=og:image><meta content=summary_large_image name=twitter:card><meta content=折腾笔记[14]-使用rust进行深度估计 name=twitter:title><meta content=//articles/docs/折腾笔记[14]-使用rust进行深度估计/ name=twitter:url><meta content=使用rust实现基于REMODE数据集的单目相机在已知轨迹下的稠密深度估计. name=twitter:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp name=twitter:image><meta content=使用rust实现基于REMODE数据集的单目相机在已知轨迹下的稠密深度估计. name=description><script id=ld-json type=application/ld+json>
+        {
+          "@context": "https://schema.org/",
+          "@type": "Article",
+          "headline": "折腾笔记[14]-使用rust进行深度估计",
+          "author": {
+            "@type": "Person",
+            "name": "qsbye",
+            "url": "/about"
+          },
+          "image": "/processed_images/img00006.c4abedc898f992a6.webp",
+          "datePublished": "2025-01-01T00:00:00+00:00",
+          
+          "description": "使用rust实现基于REMODE数据集的单目相机在已知轨迹下的稠密深度估计."
+        }
+    </script><meta charset=UTF-8><meta content="IE=edge" http-equiv=X-UA-Compatible><meta content="width=device-width,initial-scale=1" name=viewport><meta content="telephone=no" name=format-detection><meta content=var(--wjx-card-bg) name=theme-color><link href=/manifest.json rel=manifest><link href=/img/avatar.png rel=icon type=image/x-icon><link href=/img/avatar.png rel=apple-touch-icon><link href=/img/avatar.png rel=bookmark><link href=/img/avatar.png rel=apple-touch-icon-precomposed sizes=180x180><script src=/libs/jquery/jquery-3.7.1.min.js></script><script src=/libs/pjax/pjax.min.js></script><script src=/production/js/utils.js></script><link href=/production/css/blog.css rel=stylesheet><link href=/css/custom.css rel=stylesheet><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/snackbar/snackbar.min.css rel=preload><noscript><link href=/libs/snackbar/snackbar.min.css rel=stylesheet></noscript><script>// Added non-passive event listener
+  !function(e){"function"==typeof define&&define.amd?define(e):e()}(function(){var e,t=["scroll","wheel","touchstart","touchmove","touchenter","touchend","touchleave","mouseout","mouseleave","mouseup","mousedown","mousemove","mouseenter","mousewheel","mouseover"];if(function(){var e=!1;try{var t=Object.defineProperty({},"passive",{get:function(){e=!0}});window.addEventListener("test",null,t),window.removeEventListener("test",null,t)}catch(e){}return e}()){var n=EventTarget.prototype.addEventListener;e=n,EventTarget.prototype.addEventListener=function(n,o,r){var i,s="object"==typeof r&&null!==r,u=s?r.capture:r;(r=s?function(e){var t=Object.getOwnPropertyDescriptor(e,"passive");return t&&!0!==t.writable&&void 0===t.set?Object.assign({},e):e}(r):{}).passive=void 0!==(i=r.passive)?i:-1!==t.indexOf(n)&&!0,r.capture=void 0!==u&&u,e.call(this,n,o,r)},EventTarget.prototype.addEventListener._original=e}});</script><script>((win) => {
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return;
+        const now = new Date();
+        const expiryDay = ttl * 86400000;
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        };
+        localStorage.setItem(key, JSON.stringify(item));
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key);
+
+        if (!itemStr) {
+          return undefined;
+        }
+        const item = JSON.parse(itemStr);
+        const now = new Date();
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key);
+          return undefined;
+        }
+        return item.value;
+      },
+    };
+
+    win.getScript = (url) =>
+      new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+        script.async = true;
+        script.onerror = reject;
+        script.onload = script.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          script.onload = script.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+
+    win.getCSS = (url, id = false) =>
+      new Promise((resolve, reject) => {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = url;
+        if (id) link.id = id;
+        link.onerror = reject;
+        link.onload = link.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          link.onload = link.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(link);
+      });
+
+    win.activateDarkMode = function () {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.classList.add("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    win.activateLightMode = function () {
+      document.documentElement.setAttribute("data-theme", "light");
+      document.documentElement.classList.remove("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    const t = saveToLocal.get("theme");
+
+    const isDarkMode = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const isLightMode = window.matchMedia(
+      "(prefers-color-scheme: light)"
+    ).matches;
+    const isNotSpecified = window.matchMedia(
+      "(prefers-color-scheme: no-preference)"
+    ).matches;
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified;
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode();
+      else if (isDarkMode) activateDarkMode();
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date();
+        const hour = now.getHours();
+        const isNight = hour <= 6 || hour >= 18;
+        isNight ? activateDarkMode() : activateLightMode();
+      }
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addListener(function (e) {
+          if (saveToLocal.get("theme") === undefined) {
+            e.matches ? activateDarkMode() : activateLightMode();
+          }
+        });
+    } else if (t === "light") activateLightMode();
+    else activateDarkMode();
+
+    if ("system" === "dark")
+      activateDarkMode();
+    else activateLightMode();
+
+    const asideStatus = saveToLocal.get("aside-status");
+    if (asideStatus !== undefined) {
+      if (asideStatus === "hide") {
+        document.documentElement.classList.add("hide-aside");
+      } else {
+        document.documentElement.classList.remove("hide-aside");
+      }
+    }
+  })(window);</script><script data-pace-options='{ "restartOnRequestAfter":false,"eventLag":false}' src=/libs/pace/pace.min.js></script><script defer src=/libs/clipboard/clipboard.min.js></script><script src=/libs/countup/countup.js></script><link href=/icon/font.css rel=stylesheet><style>[data-theme=light]{--wjx-theme:#425aef!important;--wjx-theme-op:#425aef23!important;--wjx-theme-op-deep:#425aefdd!important;--wjx-theme-none:#425aef00!important}[data-theme=dark]{--wjx-theme:#f2b94b!important;--wjx-theme-op:#f2b94b23!important;--wjx-theme-op-deep:#f2b94bdd!important;--wjx-theme-none:#f2b94b00!important}:root{--halo-comment-widget-component-card-bg:var(--wjx-card-bg);--halo-comment-widget-component-theme-op:var(--wjx-theme-op);--halo-comment-widget-component-card-border:var(--wjx-card-border);--halo-comment-widget-component-shadow-border:var(--wjx-shadow-border);--halo-comment-widget-component-secondtext:var(--wjx-secondtext);--halo-comment-widget-component-lighttext:var(--wjx-lighttext);--halo-comment-widget-component-secondbg:var(--wjx-secondbg);--halo-comment-widget-component-fontcolor:var(--wjx-fontcolor);--halo-comment-widget-component-main:var(--wjx-main);--halo-comment-widget-component-background:var(--wjx-background);--halo-comment-widget-component-white:var(--wjx-white);--halo-comment-widget-component-shadow-black:var(--wjx-shadow-black)}#page{--halo-comment-widget-component-padding:1rem}.color-scheme-dark,.dark,[data-color-scheme=dark]{--halo-search-widget-color-modal-layer:var(--wjx-maskbgdeep);--halo-search-widget-color-modal-content-bg:var(--wjx-card-bg);--halo-search-widget-color-form-input:#fffc;--halo-search-widget-color-form-input-placeholder:#6b7280d9;--halo-search-widget-color-form-input-bg:var(--wjx-card-bg);--halo-search-widget-color-form-divider:#bbbbbb0f;--halo-search-widget-color-result-item-bg:var(--wjx-card-bg);--halo-search-widget-color-result-item-hover-bg:#90939914;--halo-search-widget-color-result-item-title:#fffc;--halo-search-widget-color-result-item-content:#ffffff82;--halo-search-widget-color-command-kbd-item:#c0c4ccb3;--halo-search-widget-color-command-kbd-border:#bbbbbb0f;--halo-search-widget-color-result-empty:#6b7280d9}[data-theme=light]{--halo-search-widget-color-result-item-title:#4b5563}</style><script id=site-config>var GLOBAL_CONFIG = {
+        
+                
+        
+        
+        
+        
+        htmlType: "post",
+        postTitle: "折腾笔记[14]-使用rust进行深度估计",
+        isPost: true,
+        isHome: false,
+        passageTip: {
+            enable: true,
+            day: 60,
+        },
+        copyright: {
+            enable: false,
+            limitCount: 10,
+            languages: {
+                author: " 作者：qsbye",
+                link: " 链接：",
+                source: " 来源：ByeIO·开发者博客",
+                info: " 提示：著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处并保留原文链接。"
+            }
+        },
+        lightbox: 'fancybox',
+        rightMenuEnable: true,
+        lazyload: {
+            enable: true,
+            error: "/img/404.svg"
+        },
+        isFriendLinksInFooter: true,
+        loadingBox: true,
+        progress_bar: true,
+        navMusicEnable: false,
+        isMusic: false,
+        helloText: ["🤖️ 数码科技爱好者","🔯 全栈架构都在行","🏠 智能家居小能手","🤝 科研科普两不误","🎵 业余原创音乐人","🏃 文艺青年细节控","🔍 探索世界涉猎广","🤛 热爱分享交朋友"],
+        profileStyle: "one",
+        enable: true,
+        keyboard: true,
+        date_suffix: {
+            just: '刚刚',
+            min: '分钟前',
+            hour: '小时前',
+            day: '天前',
+            month: '个月前'
+        },
+        Snackbar: {
+            chs_to_cht: "你已切换为繁体",
+            cht_to_chs: "你已切换为简体",
+            day_to_night: "你已切换为深色模式",
+            night_to_day: "你已切换为浅色模式",
+            bgLight: "#425AEF",
+            bgDark: "#f2b94b",
+            position: "top-center"
+        },
+        translate: {
+            defaultEncoding: "2",
+            translateDelay: 0,
+            msgToTraditionalChinese: "繁",
+            msgToSimplifiedChinese: "简",
+            rightMenuMsgToTraditionalChinese: "轉為繁體",
+            rightMenuMsgToSimplifiedChinese: "转为简体"
+        },
+        prism: {
+            enable: true,
+            enable_title: true,
+            enable_hr: true,
+            enable_line: true,
+            enable_copy: true,
+            enable_expander: true,
+            prism_limit: 330,
+            enable_height_limit: false
+        },
+        
+        source: {
+            power: {
+                powerLink: "/",
+                showNum: 3
+            },
+            links: {
+                linksUrl: "/friends",
+                linksNum: 3
+            },
+            jQuery: '/libs/jquery/jquery.min.js',
+            justifiedGallery: {
+                js: '/libs/justified-gallery/fjGallery.min.js',
+                css: '/libs/justified-gallery/fjGallery.css'
+            },
+            fancybox: {
+                js: '/libs/fancybox/jquery.fancybox.min.js',
+                css: '/null'
+            },
+            comments: {
+                use: "twikoo",
+                maxBarrage: 1,
+                barrageTime: 4000,
+                mailMd5: "",
+                lazyload: false,
+                textarea: "el-textarea__inner"
+            },
+            post: {
+                dynamicBackground: true
+            },
+            tool: {
+                switch: false
+            },
+            postAi: {
+                
+                gptName: "本地",
+                modeName: "local"
+            },twikoo: {
+                js: "/libs/twikoo/twikoo.all.min.js",
+                twikooUrl: "https://your-api-url",
+            },
+            footer: {
+                default_enable: true
+            },
+            about: {
+                
+                rewardList: [],
+                rewardAmount: 10
+            }
+        }
+    };</script><style id=wjx-theme-styles>:root{--wjx-main:var(--wjx-theme)!important;--wjx-main-op:var(--wjx-theme-op)!important;--wjx-main-op-deep:var(--wjx-theme-op-deep)!important;--wjx-main-op-light:var(--wjx-theme-op-light)!important;--wjx-main-none:var(--wjx-theme-none)!important}</style><script>document.addEventListener('pjax:send', function () {
+      // removeEventListener toc scroll
+      window.removeEventListener('scroll', window.tocScrollFn);
+      typeof preloader === 'object' && preloader.initLoading();
+      
+      if (window.aplayers) {
+          for (let i = 0; i < window.aplayers.length; i++) {
+              if (!window.aplayers[i].options.fixed) {
+                  window.aplayers[i].destroy()
+              }
+          }
+      }
+      
+      typeof typed === 'object' && typed.destroy();
+      typeof window.initializationRegistry === 'object' && window.initializationRegistry.clear();
+      
+      //reset readmode
+      const $bodyClassList = document.body.classList
+      $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+  })
+  document.addEventListener('pjax:complete', function () {
+      window.refreshFn();
+      
+      document.querySelectorAll('script[data-pjax]').forEach(item => {
+                  const newScript = document.createElement('script')
+                  const content = item.text || item.textContent || item.innerHTML || ""
+                  Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+                  newScript.appendChild(document.createTextNode(content))
+                  item.parentNode.replaceChild(newScript, item)
+              }
+      );
+
+      typeof chatBtnFn === 'function' && chatBtnFn();
+      typeof panguInit === 'function' && panguInit();
+      
+      // google analytics
+      typeof gtag === 'function' && gtag('config', '', {
+          'page_path': window.location.pathname
+      });
+      
+      // baidu analytics
+      typeof _hmt === 'object' && _hmt.push(['_trackPageview', window.location.pathname]);
+      
+      typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting();
+      
+      // Analytics
+      if (false) {
+          MtaH5.pgv()
+      }
+      
+      // prismjs
+      typeof Prism === 'object' && Prism.highlightAll();
+      
+      typeof preloader === 'object' && preloader.endLoading();
+  })
+  document.addEventListener('pjax:error', (e) => {
+      if (e.request.status === 404 || e.request.status === 500) {
+          window.location.href = e.request.responseURL;
+      }
+  })</script><script data-pjax src=/production/js/main.js></script><script>let initTop = 0
+  let isChatShow = true
+  const innerHeight = window.innerHeight + 0
+  window.addEventListener('scroll', btf.throttle(function (e) {
+    const $rightside = document.getElementById('rightside')
+
+    const $header = document.getElementById('page-header')
+    const $cookies_window = document.getElementById('cookies-window')
+    const isChatBtnHide = typeof chatBtnHide === 'function'
+    const isChatBtnShow = typeof chatBtnShow === 'function'
+  
+    const currentTop = window.scrollY || document.documentElement.scrollTop
+    // 找到滚动方向 true is down & false is up
+    const isDown = currentTop > initTop
+    initTop = currentTop
+    if (currentTop > 0) {
+        if (isDown) {
+            if ($header.classList.contains('nav-visible')) $header.classList.remove('nav-visible')
+            if (isChatBtnShow && isChatShow === true) {
+                chatBtnHide()
+                isChatShow = false
+            }
+        } else {
+            if (!$header.classList.contains('nav-visible')) $header.classList.add('nav-visible')
+            if (isChatBtnHide && isChatShow === false) {
+                chatBtnShow()
+                isChatShow = true
+            }
+        }
+        $header.classList.add('nav-fixed')
+        if($cookies_window!=null && $cookies_window!=''){
+            $cookies_window.classList.add('cw-hide')
+        }
+        if ($rightside && window.getComputedStyle($rightside).getPropertyValue('opacity') === '0') {
+            $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+        }
+    } else {
+        if (currentTop === 0) {
+            $header.classList.remove('nav-fixed', 'nav-visible')
+        }
+        $rightside.style.cssText = "opacity: ''; transform: ''"
+    }
+    if (document.body.scrollHeight <= innerHeight) {
+        $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+    }
+  }, 200))</script><script defer src=/libs/katex/katex.min.js></script><body><style>#loading-box{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}#loading-box .loading-bg{background:var(--wjx-card-bg);z-index:1999;opacity:1;pointer-events:all;width:100%;height:100%;transition:all .2s;animation:.3s backwards showLoading;display:flex;position:fixed}#loading-box.loaded .loading-bg{pointer-events:none;transition:all .2s;animation:.3s forwards hideLoading}#loading-box .loading-img{width:100px;height:100px;margin:auto;animation-name:loadingAction;animation-duration:.2s;animation-iteration-count:infinite;animation-direction:alternate;overflow:hidden}#loading-box .loading-image-dot{background:#6bdf8f;border:6px solid #fff;border-radius:50%;width:30px;height:30px;position:absolute;top:50%;left:50%;-webkit-transform:translate(18px,24px);-moz-transform:translate(18px,24px);-ms-transform:translate(18px,24px);-o-transform:translate(18px,24px);transform:translate(18px,24px)}@keyframes loadingAction{0%{opacity:1}to{opacity:.6}}@keyframes hideLoading{0%{opacity:1}to{opacity:0}}@keyframes showLoading{0%{opacity:0}to{opacity:1}}</style><div id=loading-box onclick=wjx.hideLoading()><div class=loading-bg><picture class=loading-img style=border-radius:50%;width:100px;height:100px><source media="(min-width: 1em)" srcset=/processed_images/logo.21eeb8b123e2a315.avif><img alt=Loading decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp><noscript><img decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp></noscript></picture><div class=loading-image-dot></div></div></div><script>var preloader = {
+            endLoading: () => {
+                //- document.body.style.overflow = 'auto';
+                document.getElementById('loading-box').classList.add("loaded")
+            },
+            initLoading: () => {
+                //- document.body.style.overflow = '';
+                document.getElementById('loading-box').classList.remove("loaded")
+            }
+        }
+        window.addEventListener('load', preloader.endLoading())
+        setTimeout(function () {
+            preloader.endLoading();
+        }, 3000)</script><div id=an_music_bg></div><div class=post data-type=post id=body-wrap><header class=post-bg id=page-header><nav class=show id=nav><div id=nav-group><div id=blog_name><div class=back-home-button tabindex=-1><i class="nav-icon back-home-button-icon icon-apps-fill" style=font-size:1rem></i><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div></div><a class="nav-item icon-home" data-pjax href=/ id=site-name title=返回博客主页> <span>ByeIO·开发者博客</span> </a></div><div id=page-name-mask><div id=page-name><a clase=nav-item id=page-name-text onclick=btf.scrollToDest(0,500)> 折腾笔记[14]-使用rust进行深度估计 </a></div></div><div id=menus><div class=menus_items><div class=menus_item><button class="site-page nav-item"><span>文库</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/archives> <i class=icon-book-open style=font-size:.9em></i> <span>全部文章</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/categories> <i class=icon-folder-open style=font-size:.9em></i> <span>分类列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags> <i class=icon-tags style=font-size:.9em></i> <span>标签列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:toRandomPost()> <i class=icon-artstation style=font-size:.9em></i> <span>随机文章</span> </a></div></div></div><div class=menus_item><a class="site-page nav-item" href=/tags/work> <span>推荐</span> </a><div class="menus_item_child vertical_nav"><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/docs/readme> <i class=icon-music style=font-size:.9em></i> <span>博客主题介绍</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/misc/lorem-ipsum> <i class=icon-music style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>友链</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/friends> <i class=icon-link style=font-size:.9em></i> <span>友链列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:travelling()> <i class=icon-paper-plane style=font-size:.9em></i> <span>随机发现</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>我的</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/about> <i class=icon-rocket style=font-size:.9em></i> <span>关于本人</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/equipment> <i class=icon-artstation style=font-size:.9em></i> <span>我的装备</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags/project> <i class=icon-lightbulb style=font-size:.9em></i> <span>我的项目</span> </a></div></div></div></div></div><div id=nav-right><div class=nav-button id=randomPost_button><button class="site-page nav-item" href=javascript:void(0); onclick=toRandomPost() title=随机文章><i class="nav-icon icon-dice"></i></button></div><div class=nav-button id=darkmode_button><button class="site-page console_switchbutton nav-item" title="切换模式 - 日夜交替，黑白互换。" href=javascript:void(0); onclick=navFn.switchDarkMode();><i class="nav-icon icon-moon-clear-fill" style=font-size:1rem></i></button></div><div class=nav-button id=nav-console><button class="site-page console_switchbutton nav-item" href=javascript:void(0); onclick=wjx.showConsole() title=显示中控台><i class="nav-icon icon-dashboard"></i></button></div><div class=nav-button id=nav-totop onclick=btf.scrollToDest(0,500)><button class="totopbtn nav-item"><i class="nav-icon icon-arrow-up" style=font-size:1rem></i><span id=percent>0</span></button></div><div id=toggle-menu><button class="site-page nav-item"><i class="nav-icon icon-bars"></i></button></div></div></div></nav><div class="coverdiv loaded" id=coverdiv><img alt=cover class=nolazyload decoding=async id=post-cover loading=lazy src=/processed_images/img00006.c4abedc898f992a6.webp></div><div id=post-info><div id=post-firstinfo><div class=meta-firstline><a class=post-meta-original href=/copyright title=该文章为原创文章，注意版权协议>原创</a><span class=post-meta-categories> <a href=/categories/theme/ title=主题> 主题 </a> </span><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/ title=博客> <span class="tags-name tags-punctuation">博客</span> </a><a class=post-meta__tags href=/tags/docs/ title=文档> <span class="tags-name tags-punctuation">文档</span> </a><a class=post-meta__tags href=/tags/featured/ title=必看> <span class="tags-name tags-punctuation">必看</span> </a><a class=post-meta__tags href=/tags/hot/ title=热门> <span class="tags-name tags-punctuation">热门</span> </a></div></div></div></div><h1 class=post-title>折腾笔记[14]-使用rust进行深度估计</h1><div id=post-meta><div class=meta-secondline><span class=post-meta-author data-flag-title=文章作者 title=文章作者> <i class="icon-zuozhe post-meta-icon"></i>qsbye </span><span class=post-meta-wordcount> <i class="icon-file-word post-meta-icon" title=字数></i> <span class=post-meta-label>字数:</span> <span class=word-count>2773</span> <span class=post-meta-separator></span> <i class="icon-clock post-meta-icon" title=阅读耗时></i> <span class=post-meta-label>阅读耗时:</span> <span> 14 分钟</span> </span><span class=post-meta-date> <i class="icon-calendar-days post-meta-icon"></i> <time title="2025-01-01 00:00:00" datetime=2025-01-01> 2025/01/01 </time> </span><span class=post-meta-wechat title=该文章在博客首发> <i class="icon-rss post-meta-icon"></i>博客独享 </span><a class=post-meta-pv data-flag-title=热度 title=热度> <i class="icon-fire post-meta-icon"></i> <span class=post-meta-label>热度:</span> <span id=twikoo_visitors> <i class="icon-spinner fa-spin"></i> </span> </a><a class=post-meta-commentcount data-flag-title=评论数 href=#post-comment title=评论数> <i class="icon-chat--fill post-meta-icon" style=font-size:17px></i> <span class=post-meta-label>评论:</span> <span id=twikoo-count> <i class="icon-spinner fa-spin"></i> </span> </a></div></div></div><section class="main-hero-waves-area waves-area"><svg viewbox="0 24 150 28" class=waves-svg preserveaspectratio=none shape-rendering=auto xlink=http://www.w3.org/1999/xlink xmlns=http://www.w3.org/2000/svg><defs><path d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z" id=gentle-wave></path></defs><g class=parallax><use href=#gentle-wave x=48 y=0></use><use href=#gentle-wave x=48 y=3></use><use href=#gentle-wave x=48 y=5></use><use href=#gentle-wave x=48 y=7></use></g></svg></section></header><main class="layout right-aside" id=content-inner><div id=post><div id=abstract-container><div class=abstract-title><i class=icon-bilibili></i><div class=abstract-title-text>文章摘要</div><div id=abstract-tag>本地</div></div><div id=abstract-content style=display:block>使用rust实现基于REMODE数据集的单目相机在已知轨迹下的稠密深度估计.</div><div class=abstract-btn-box><div class=abstract-btn-item id=abstract-intro>介绍自己</div><div class=abstract-btn-item id=abstract-generate>生成本文简介</div><div class=abstract-btn-item id=abstract-recommend>推荐相关文章</div><div class=abstract-btn-item id=abstract-home>前往主页</div><div class=abstract-btn-item id=abstract-hide style=margin-left:auto>隐藏本摘要</div></div></div><div class="note simple warning" data-tip-enable=true data-update-date=2025-01-01 id=passage-tip></div><article class="post-content line-numbers" id=article-container><h2 id=zhai-yao>摘要</h2><p>使用rust实现基于REMODE数据集的单目相机在已知轨迹下的稠密深度估计. Implement dense depth estimation for a monocular camera with a known trajectory based on the REMODE dataset using Rust.<h2 id=guan-jian-ci>关键词</h2><p>rust;slam;REMODE;epipolar;depth evaludate;<h2 id=guan-jian-xin-xi>关键信息</h2><p><strong>项目地址</strong>:[https://github.com/ByeIO/slambook2.rs]<pre class=language-toml data-lang=toml><code class=language-toml data-lang=toml>[package]
+name = "exp65-rust-ziglang-slambook2"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+env_logger = { version = "0.11.6", default-features = false, features = [
+    "auto-color",
+    "humantime",
+] }
+
+# 随机数
+rand = "0.8.5"
+rand_distr = "0.4.3"
+fastrand = "2.3.0"
+
+# 线性代数
+nalgebra = { version = "0.33.2",features = ["rand"]}
+ndarray = "0.16.1"
+
+# winit
+wgpu = "23.0.1"
+winit = "0.30.8"
+
+# egui
+eframe = "0.30.0"
+egui = { version = "0.30.0", features = [
+    "default"
+]}
+egui_extras = {version = "0.30.0",features = ["default", "image"]}
+
+# three_d
+three-d = {path = "./static/three-d" , features=["egui-gui"] }
+three-d-asset = {version = "0.9",features = ["hdr", "http"] }
+
+# sophus
+sophus = { version = "0.11.0" }
+sophus_autodiff = { version = "0.11.0" }
+sophus_geo = "0.11.0"
+sophus_image = "0.11.0"
+sophus_lie = "0.11.0"
+sophus_opt = "0.11.0"
+sophus_renderer = "0.11.0"
+sophus_sensor = "0.11.0"
+sophus_sim = "0.11.0"
+sophus_spline = "0.11.0"
+sophus_tensor = "0.11.0"
+sophus_timeseries = "0.11.0"
+sophus_viewer = "0.11.0"
+tokio = "1.43.0"
+approx = "0.5.1"
+bytemuck = "1.21.0"
+thingbuf = "0.1.6"
+
+# rust-cv计算机视觉
+cv = { version = "0.6.0" , features = ["default"] }
+cv-core = "0.15.0"
+cv-geom = "0.7.0"
+cv-pinhole = "0.6.0"
+akaze = "0.7.0"
+eight-point = "0.8.0"
+lambda-twist = "0.7.0"
+image = "0.25.5"
+imageproc = "0.25.0"
+
+# 最小二乘优化
+gomez = "0.5.0"
+
+# 图优化
+factrs = { version = "0.2.0", features = [] }
+gs-rs = { version = "0.1.0", path = "./static/gs-rs" }
+
+# ORB角点检测
+bye_orb_rs = { version = "0.1.1", path = "./static/bye_orb_rs" }
+
+# 词袋
+bye_abow_rs = { version = "0.1.0", path = "./static/bye_abow_rs" }
+
+# 依赖覆盖
+[patch.crates-io]
+pulp = { path = "./static/pulp" }
+mio = { path = "./static/mio", version = "1.0.3" }
+</code></pre><h2 id=yuan-li-jian-jie>原理简介</h2><h3 id=remodeshu-ju-ji-jian-jie>REMODE数据集简介</h3><p>[https://blog.csdn.net/qq_36122936/article/details/89002724] [https://www.cnblogs.com/zonghaochen/p/8858585.html] [http://rpg.ifi.uzh.ch/datasets/remode_test_data.zip] REMODE数据集是一个用于单目相机实时三维重建研究的数据集，主要包含单目RGB图像及其对应的位姿信息。 REMODE数据集由苏黎世大学的研究人员在进行单目RGB相机实时三维重建研究时采集。数据集中的图像通常由无人机采集的单目俯视图像组成。 数据集包含一系列单目RGB图像，例如在REMODE测试数据集中，共有约200张图像。 每张图像都配有真实位姿信息，这些位姿信息通常以文本文件的形式记录。<h3 id=chou-mi-shen-du-gu-ji-jian-jie>稠密深度估计简介</h3><p>稠密深度估计是计算机视觉领域中的一项重要技术，旨在为图像中的每个像素都估计出一个深度值，从而生成一幅完整的深度图，以获取场景的三维信息。以下是其简介：<h4 id=ding-yi-yu-mu-biao>定义与目标</h4><ul><li>传统的图像是二维的，仅包含颜色和纹理等信息，而稠密深度估计的目标就是在二维图像的基础上，为每个像素赋予一个深度值，使得计算机能够理解场景中物体的远近关系，恢复出场景的三维结构。深度图中的每个像素值代表了该像素所对应的场景点与相机之间的距离，距离值越大，表示该点离相机越远，反之则越近。</ul><h4 id=fang-fa-fen-lei>方法分类</h4><ul><li><strong>基于立体视觉的方法</strong>：模拟人类双眼视觉原理，使用两个或多个相机从不同视角拍摄同一场景，通过计算不同图像之间的视差来估计深度。例如，通过对左右两幅图像中的对应点进行匹配，根据三角测量原理，利用相机的相对位置和姿态以及匹配点的视差来计算场景点的深度。<li><strong>基于单目视觉的方法</strong>：仅使用单目相机拍摄的图像来估计深度。这种方法通常需要借助一些先验知识或假设，例如场景的几何结构、物体的运动信息、图像的纹理和明暗等线索。如利用图像序列中物体的运动信息，结合相机的运动模型和几何约束，通过对多帧图像的分析来估计深度。<li><strong>基于多模态的方法</strong>：融合多种传感器的数据来进行深度估计，如将激光雷达（LiDAR）获取的深度信息与相机图像数据相结合。激光雷达可以直接测量场景中物体的距离，但数据稀疏且成本较高；相机图像则具有丰富的纹理信息，但缺乏深度信息。通过将两者的数据进行融合，可以充分利用各自的优势，提高深度估计的精度和可靠性。</ul><h4 id=tiao-zhan-yu-nan-dian>挑战与难点</h4><ul><li><strong>纹理缺失区域</strong>：在一些纹理较少或无纹理的区域，如平滑的墙面、大面积的天空等，缺乏足够的特征信息来进行准确的深度估计，容易导致深度值不准确或模糊。<li><strong>遮挡问题</strong>：当场景中存在物体相互遮挡时，被遮挡部分的深度信息难以直接获取，需要通过一些额外的假设或推理来估计，这增加了深度估计的难度和不确定性。<li><strong>光照变化</strong>：光照条件的变化会影响图像的灰度和颜色信息，从而影响基于图像特征的深度估计算法的准确性。例如，在强光或阴影下，图像的对比度和纹理特征可能会发生较大变化，导致匹配错误或深度估计偏差。<li><strong>实时性要求</strong>：在一些实时应用场景中，如自动驾驶和机器人导航，需要在短时间内完成大量图像的深度估计，对算法的实时性和计算效率提出了很高的要求。</ul><p><strong>代码中涉及的数学原理:</strong><h4 id=1-ji-xian-sou-suo-yu-san-jiao-hua>1. <strong>极线搜索与三角化</strong></h4><ul><li><strong>极线搜索</strong>：在参考图像和当前图像之间，通过极线约束寻找匹配点。极线是参考图像中的点在当前图像中的投影线，搜索范围由深度均值和方差决定。<li><strong>三角化</strong>：通过两帧图像中的匹配点，利用相机的位姿变换，计算三维点的深度。公式为： $$ d_{\text{ref}} \cdot \mathbf{f}<em>{\text{ref}} = d</em>{\text{cur}} \cdot (\mathbf{R}<em>{\text{RC}} \cdot \mathbf{f}</em>{\text{cur}}) + \mathbf{t}<em>{\text{RC}} $$ 其中，$\mathbf{f}</em>{\text{ref}}$ 和 $\mathbf{f}<em>{\text{cur}}$ 是归一化的像素方向向量，$\mathbf{R}</em>{\text{RC}}$ 和 $\mathbf{t}_{\text{RC}}$ 是相对位姿的旋转和平移。</ul><h4 id=2-ncc-gui-yi-hua-hu-xiang-guan>2. <strong>NCC（归一化互相关）</strong></h4><ul><li><strong>NCC</strong> 用于衡量两个图像块的相似度，公式为： $$ \text{NCC} = \frac{\sum (I_{\text{ref}} - \mu_{\text{ref}})(I_{\text{curr}} - \mu_{\text{curr}})}{\sqrt{\sum (I_{\text{ref}} - \mu_{\text{ref}})^2 \sum (I_{\text{curr}} - \mu_{\text{curr}})^2}} $$ 其中，$I_{\text{ref}}$ 和 $I_{\text{curr}}$ 是参考图像和当前图像的像素值，$\mu_{\text{ref}}$ 和 $\mu_{\text{curr}}$ 是图像块的均值。</ul><h4 id=3-shen-du-lu-bo-qi>3. <strong>深度滤波器</strong></h4><ul><li><strong>深度更新</strong>：通过高斯融合更新深度估计，公式为： $$ \mu_{\text{fuse}} = \frac{\sigma_{\text{curr}}^2 \cdot \mu_{\text{prev}} + \sigma_{\text{prev}}^2 \cdot \mu_{\text{curr}}}{\sigma_{\text{prev}}^2 + \sigma_{\text{curr}}^2} $$ $$ \sigma_{\text{fuse}}^2 = \frac{\sigma_{\text{prev}}^2 \cdot \sigma_{\text{curr}}^2}{\sigma_{\text{prev}}^2 + \sigma_{\text{curr}}^2} $$ 其中，$\mu_{\text{prev}}$ 和 $\sigma_{\text{prev}}^2$ 是之前的深度均值和方差，$\mu_{\text{curr}}$ 和 $\sigma_{\text{curr}}^2$ 是当前估计的深度均值和方差。</ul><h4 id=4-xiang-su-yu-xiang-ji-zuo-biao-zhuan-huan>4. <strong>像素与相机坐标转换</strong></h4><ul><li><strong>像素到相机坐标</strong>：通过相机内参将像素坐标转换为相机坐标系下的方向向量，公式为： $$ \mathbf{p}_{\text{cam}} = \left( \frac{u - c_x}{f_x}, \frac{v - c_y}{f_y}, 1 \right) $$<li><strong>相机坐标到像素</strong>：将相机坐标系下的点投影到像素平面，公式为： $$ \mathbf{p}_{\text{px}} = \left( \frac{f_x \cdot x}{z} + c_x, \frac{f_y \cdot y}{z} + c_y \right) $$</ul><h4 id=5-shen-du-gu-ji-de-bu-que-ding-xing>5. <strong>深度估计的不确定性</strong></h4><ul><li><strong>不确定性计算</strong>：通过几何关系计算深度估计的不确定性，公式为： $$ d_{\text{cov}} = p' - d_{\text{est}} $$ 其中，$p'$ 是通过极线方向调整后的深度估计值，$d_{\text{est}}$ 是当前的深度估计值。</ul><h4 id=6-shen-du-tu-ping-gu>6. <strong>深度图评估</strong></h4><ul><li><strong>误差计算</strong>：通过比较真实深度图和估计深度图，计算平均误差和平方误差，公式为： $$ \text{error} = d_{\text{truth}} - d_{\text{estimate}} $$ $$ \text{ave_error} = \frac{\sum \text{error}}{N} $$ $$ \text{ave_error_sq} = \frac{\sum \text{error}^2}{N} $$</ul><p>这些数学原理构成了单目相机稠密深度估计的核心算法。<h2 id=shi-xian>实现</h2><p>原始cpp代码:[https://github.com/gaoxiang12/slambook2/blob/master/ch12/dense_mono/dense_mapping.cpp]<pre class=language-cpp data-lang=cpp><code class=language-cpp data-lang=cpp>#include &LTiostream>
+#include &LTvector>
+#include &LTfstream>
+
+using namespace std;
+
+#include &LTboost/timer.hpp>
+
+// for sophus
+#include &LTsophus/se3.hpp>
+
+using Sophus::SE3d;
+
+// for eigen
+#include &LTEigen/Core>
+#include &LTEigen/Geometry>
+
+using namespace Eigen;
+
+#include &LTopencv2/core/core.hpp>
+#include &LTopencv2/highgui/highgui.hpp>
+#include &LTopencv2/imgproc/imgproc.hpp>
+
+using namespace cv;
+
+/**********************************************
+* 本程序演示了单目相机在已知轨迹下的稠密深度估计
+* 使用极线搜索 + NCC 匹配的方式，与书本的 12.2 节对应
+* 请注意本程序并不完美，你完全可以改进它——我其实在故意暴露一些问题(这是借口)。
+***********************************************/
+
+// ------------------------------------------------------------------
+// parameters
+const int boarder = 20;         // 边缘宽度
+const int width = 640;          // 图像宽度
+const int height = 480;         // 图像高度
+const double fx = 481.2f;       // 相机内参
+const double fy = -480.0f;
+const double cx = 319.5f;
+const double cy = 239.5f;
+const int ncc_window_size = 3;    // NCC 取的窗口半宽度
+const int ncc_area = (2 * ncc_window_size + 1) * (2 * ncc_window_size + 1); // NCC窗口面积
+const double min_cov = 0.1;     // 收敛判定：最小方差
+const double max_cov = 10;      // 发散判定：最大方差
+
+// ------------------------------------------------------------------
+// 重要的函数
+/// 从 REMODE 数据集读取数据
+bool readDatasetFiles(
+    const string &path,
+    vector&LTstring> &color_image_files,
+    vector&LTSE3d> &poses,
+    cv::Mat &ref_depth
+);
+
+/**
+ * 根据新的图像更新深度估计
+ * @param ref           参考图像
+ * @param curr          当前图像
+ * @param T_C_R         参考图像到当前图像的位姿
+ * @param depth         深度
+ * @param depth_cov     深度方差
+ * @return              是否成功
+ */
+bool update(
+    const Mat &ref,
+    const Mat &curr,
+    const SE3d &T_C_R,
+    Mat &depth,
+    Mat &depth_cov2
+);
+
+/**
+ * 极线搜索
+ * @param ref           参考图像
+ * @param curr          当前图像
+ * @param T_C_R         位姿
+ * @param pt_ref        参考图像中点的位置
+ * @param depth_mu      深度均值
+ * @param depth_cov     深度方差
+ * @param pt_curr       当前点
+ * @param epipolar_direction  极线方向
+ * @return              是否成功
+ */
+bool epipolarSearch(
+    const Mat &ref,
+    const Mat &curr,
+    const SE3d &T_C_R,
+    const Vector2d &pt_ref,
+    const double &depth_mu,
+    const double &depth_cov,
+    Vector2d &pt_curr,
+    Vector2d &epipolar_direction
+);
+
+/**
+ * 更新深度滤波器
+ * @param pt_ref    参考图像点
+ * @param pt_curr   当前图像点
+ * @param T_C_R     位姿
+ * @param epipolar_direction 极线方向
+ * @param depth     深度均值
+ * @param depth_cov2    深度方向
+ * @return          是否成功
+ */
+bool updateDepthFilter(
+    const Vector2d &pt_ref,
+    const Vector2d &pt_curr,
+    const SE3d &T_C_R,
+    const Vector2d &epipolar_direction,
+    Mat &depth,
+    Mat &depth_cov2
+);
+
+/**
+ * 计算 NCC 评分
+ * @param ref       参考图像
+ * @param curr      当前图像
+ * @param pt_ref    参考点
+ * @param pt_curr   当前点
+ * @return          NCC评分
+ */
+double NCC(const Mat &ref, const Mat &curr, const Vector2d &pt_ref, const Vector2d &pt_curr);
+
+// 双线性灰度插值
+inline double getBilinearInterpolatedValue(const Mat &img, const Vector2d &pt) {
+    uchar *d = &img.data[int(pt(1, 0)) * img.step + int(pt(0, 0))];
+    double xx = pt(0, 0) - floor(pt(0, 0));
+    double yy = pt(1, 0) - floor(pt(1, 0));
+    return ((1 - xx) * (1 - yy) * double(d[0]) +
+            xx * (1 - yy) * double(d[1]) +
+            (1 - xx) * yy * double(d[img.step]) +
+            xx * yy * double(d[img.step + 1])) / 255.0;
+}
+
+// ------------------------------------------------------------------
+// 一些小工具
+// 显示估计的深度图
+void plotDepth(const Mat &depth_truth, const Mat &depth_estimate);
+
+// 像素到相机坐标系
+inline Vector3d px2cam(const Vector2d px) {
+    return Vector3d(
+        (px(0, 0) - cx) / fx,
+        (px(1, 0) - cy) / fy,
+        1
+    );
+}
+
+// 相机坐标系到像素
+inline Vector2d cam2px(const Vector3d p_cam) {
+    return Vector2d(
+        p_cam(0, 0) * fx / p_cam(2, 0) + cx,
+        p_cam(1, 0) * fy / p_cam(2, 0) + cy
+    );
+}
+
+// 检测一个点是否在图像边框内
+inline bool inside(const Vector2d &pt) {
+    return pt(0, 0) >= boarder && pt(1, 0) >= boarder
+           && pt(0, 0) + boarder < width && pt(1, 0) + boarder <= height;
+}
+
+// 显示极线匹配
+void showEpipolarMatch(const Mat &ref, const Mat &curr, const Vector2d &px_ref, const Vector2d &px_curr);
+
+// 显示极线
+void showEpipolarLine(const Mat &ref, const Mat &curr, const Vector2d &px_ref, const Vector2d &px_min_curr,
+                      const Vector2d &px_max_curr);
+
+/// 评测深度估计
+void evaludateDepth(const Mat &depth_truth, const Mat &depth_estimate);
+// ------------------------------------------------------------------
+
+
+int main(int argc, char **argv) {
+    if (argc != 2) {
+        cout << "Usage: dense_mapping path_to_test_dataset" << endl;
+        return -1;
+    }
+
+    // 从数据集读取数据
+    vector&LTstring> color_image_files;
+    vector&LTSE3d> poses_TWC;
+    Mat ref_depth;
+    bool ret = readDatasetFiles(argv[1], color_image_files, poses_TWC, ref_depth);
+    if (ret == false) {
+        cout << "Reading image files failed!" << endl;
+        return -1;
+    }
+    cout << "read total " << color_image_files.size() << " files." << endl;
+
+    // 第一张图
+    Mat ref = imread(color_image_files[0], 0);                // gray-scale image
+    SE3d pose_ref_TWC = poses_TWC[0];
+    double init_depth = 3.0;    // 深度初始值
+    double init_cov2 = 3.0;     // 方差初始值
+    Mat depth(height, width, CV_64F, init_depth);             // 深度图
+    Mat depth_cov2(height, width, CV_64F, init_cov2);         // 深度图方差
+
+    for (int index = 1; index < color_image_files.size(); index++) {
+        cout << "*** loop " << index << " ***" << endl;
+        Mat curr = imread(color_image_files[index], 0);
+        if (curr.data == nullptr) continue;
+        SE3d pose_curr_TWC = poses_TWC[index];
+        SE3d pose_T_C_R = pose_curr_TWC.inverse() * pose_ref_TWC;   // 坐标转换关系： T_C_W * T_W_R = T_C_R
+        update(ref, curr, pose_T_C_R, depth, depth_cov2);
+        evaludateDepth(ref_depth, depth);
+        plotDepth(ref_depth, depth);
+        imshow("image", curr);
+        waitKey(1);
+    }
+
+    cout << "estimation returns, saving depth map ..." << endl;
+    imwrite("depth.png", depth);
+    cout << "done." << endl;
+
+    return 0;
+}
+
+bool readDatasetFiles(
+    const string &path,
+    vector&LTstring> &color_image_files,
+    std::vector&LTSE3d> &poses,
+    cv::Mat &ref_depth) {
+    ifstream fin(path + "/first_200_frames_traj_over_table_input_sequence.txt");
+    if (!fin) return false;
+
+    while (!fin.eof()) {
+        // 数据格式：图像文件名 tx, ty, tz, qx, qy, qz, qw ，注意是 TWC 而非 TCW
+        string image;
+        fin >> image;
+        double data[7];
+        for (double &d:data) fin >> d;
+
+        color_image_files.push_back(path + string("/images/") + image);
+        poses.push_back(
+            SE3d(Quaterniond(data[6], data[3], data[4], data[5]),
+                 Vector3d(data[0], data[1], data[2]))
+        );
+        if (!fin.good()) break;
+    }
+    fin.close();
+
+    // load reference depth
+    fin.open(path + "/depthmaps/scene_000.depth");
+    ref_depth = cv::Mat(height, width, CV_64F);
+    if (!fin) return false;
+    for (int y = 0; y < height; y++)
+        for (int x = 0; x < width; x++) {
+            double depth = 0;
+            fin >> depth;
+            ref_depth.ptr&LTdouble>(y)[x] = depth / 100.0;
+        }
+
+    return true;
+}
+
+// 对整个深度图进行更新
+bool update(const Mat &ref, const Mat &curr, const SE3d &T_C_R, Mat &depth, Mat &depth_cov2) {
+    for (int x = boarder; x < width - boarder; x++)
+        for (int y = boarder; y < height - boarder; y++) {
+            // 遍历每个像素
+            if (depth_cov2.ptr&LTdouble>(y)[x] < min_cov || depth_cov2.ptr&LTdouble>(y)[x] > max_cov) // 深度已收敛或发散
+                continue;
+            // 在极线上搜索 (x,y) 的匹配
+            Vector2d pt_curr;
+            Vector2d epipolar_direction;
+            bool ret = epipolarSearch(
+                ref,
+                curr,
+                T_C_R,
+                Vector2d(x, y),
+                depth.ptr&LTdouble>(y)[x],
+                sqrt(depth_cov2.ptr&LTdouble>(y)[x]),
+                pt_curr,
+                epipolar_direction
+            );
+
+            if (ret == false) // 匹配失败
+                continue;
+
+            // 取消该注释以显示匹配
+            // showEpipolarMatch(ref, curr, Vector2d(x, y), pt_curr);
+
+            // 匹配成功，更新深度图
+            updateDepthFilter(Vector2d(x, y), pt_curr, T_C_R, epipolar_direction, depth, depth_cov2);
+        }
+}
+
+// 极线搜索
+// 方法见书 12.2 12.3 两节
+bool epipolarSearch(
+    const Mat &ref, const Mat &curr,
+    const SE3d &T_C_R, const Vector2d &pt_ref,
+    const double &depth_mu, const double &depth_cov,
+    Vector2d &pt_curr, Vector2d &epipolar_direction) {
+    Vector3d f_ref = px2cam(pt_ref);
+    f_ref.normalize();
+    Vector3d P_ref = f_ref * depth_mu;    // 参考帧的 P 向量
+
+    Vector2d px_mean_curr = cam2px(T_C_R * P_ref); // 按深度均值投影的像素
+    double d_min = depth_mu - 3 * depth_cov, d_max = depth_mu + 3 * depth_cov;
+    if (d_min < 0.1) d_min = 0.1;
+    Vector2d px_min_curr = cam2px(T_C_R * (f_ref * d_min));    // 按最小深度投影的像素
+    Vector2d px_max_curr = cam2px(T_C_R * (f_ref * d_max));    // 按最大深度投影的像素
+
+    Vector2d epipolar_line = px_max_curr - px_min_curr;    // 极线（线段形式）
+    epipolar_direction = epipolar_line;        // 极线方向
+    epipolar_direction.normalize();
+    double half_length = 0.5 * epipolar_line.norm();    // 极线线段的半长度
+    if (half_length > 100) half_length = 100;   // 我们不希望搜索太多东西
+
+    // 取消此句注释以显示极线（线段）
+    // showEpipolarLine( ref, curr, pt_ref, px_min_curr, px_max_curr );
+
+    // 在极线上搜索，以深度均值点为中心，左右各取半长度
+    double best_ncc = -1.0;
+    Vector2d best_px_curr;
+    for (double l = -half_length; l <= half_length; l += 0.7) { // l+=sqrt(2)
+        Vector2d px_curr = px_mean_curr + l * epipolar_direction;  // 待匹配点
+        if (!inside(px_curr))
+            continue;
+        // 计算待匹配点与参考帧的 NCC
+        double ncc = NCC(ref, curr, pt_ref, px_curr);
+        if (ncc > best_ncc) {
+            best_ncc = ncc;
+            best_px_curr = px_curr;
+        }
+    }
+    if (best_ncc < 0.85f)      // 只相信 NCC 很高的匹配
+        return false;
+    pt_curr = best_px_curr;
+    return true;
+}
+
+double NCC(
+    const Mat &ref, const Mat &curr,
+    const Vector2d &pt_ref, const Vector2d &pt_curr) {
+    // 零均值-归一化互相关
+    // 先算均值
+    double mean_ref = 0, mean_curr = 0;
+    vector&LTdouble> values_ref, values_curr; // 参考帧和当前帧的均值
+    for (int x = -ncc_window_size; x <= ncc_window_size; x++)
+        for (int y = -ncc_window_size; y <= ncc_window_size; y++) {
+            double value_ref = double(ref.ptr&LTuchar>(int(y + pt_ref(1, 0)))[int(x + pt_ref(0, 0))]) / 255.0;
+            mean_ref += value_ref;
+
+            double value_curr = getBilinearInterpolatedValue(curr, pt_curr + Vector2d(x, y));
+            mean_curr += value_curr;
+
+            values_ref.push_back(value_ref);
+            values_curr.push_back(value_curr);
+        }
+
+    mean_ref /= ncc_area;
+    mean_curr /= ncc_area;
+
+    // 计算 Zero mean NCC
+    double numerator = 0, demoniator1 = 0, demoniator2 = 0;
+    for (int i = 0; i < values_ref.size(); i++) {
+        double n = (values_ref[i] - mean_ref) * (values_curr[i] - mean_curr);
+        numerator += n;
+        demoniator1 += (values_ref[i] - mean_ref) * (values_ref[i] - mean_ref);
+        demoniator2 += (values_curr[i] - mean_curr) * (values_curr[i] - mean_curr);
+    }
+    return numerator / sqrt(demoniator1 * demoniator2 + 1e-10);   // 防止分母出现零
+}
+
+bool updateDepthFilter(
+    const Vector2d &pt_ref,
+    const Vector2d &pt_curr,
+    const SE3d &T_C_R,
+    const Vector2d &epipolar_direction,
+    Mat &depth,
+    Mat &depth_cov2) {
+    // 不知道这段还有没有人看
+    // 用三角化计算深度
+    SE3d T_R_C = T_C_R.inverse();
+    Vector3d f_ref = px2cam(pt_ref);
+    f_ref.normalize();
+    Vector3d f_curr = px2cam(pt_curr);
+    f_curr.normalize();
+
+    // 方程
+    // d_ref * f_ref = d_cur * ( R_RC * f_cur ) + t_RC
+    // f2 = R_RC * f_cur
+    // 转化成下面这个矩阵方程组
+    // => [ f_ref^T f_ref, -f_ref^T f2 ] [d_ref]   [f_ref^T t]
+    //    [ f_2^T f_ref, -f2^T f2      ] [d_cur] = [f2^T t   ]
+    Vector3d t = T_R_C.translation();
+    Vector3d f2 = T_R_C.so3() * f_curr;
+    Vector2d b = Vector2d(t.dot(f_ref), t.dot(f2));
+    Matrix2d A;
+    A(0, 0) = f_ref.dot(f_ref);
+    A(0, 1) = -f_ref.dot(f2);
+    A(1, 0) = -A(0, 1);
+    A(1, 1) = -f2.dot(f2);
+    Vector2d ans = A.inverse() * b;
+    Vector3d xm = ans[0] * f_ref;           // ref 侧的结果
+    Vector3d xn = t + ans[1] * f2;          // cur 结果
+    Vector3d p_esti = (xm + xn) / 2.0;      // P的位置，取两者的平均
+    double depth_estimation = p_esti.norm();   // 深度值
+
+    // 计算不确定性（以一个像素为误差）
+    Vector3d p = f_ref * depth_estimation;
+    Vector3d a = p - t;
+    double t_norm = t.norm();
+    double a_norm = a.norm();
+    double alpha = acos(f_ref.dot(t) / t_norm);
+    double beta = acos(-a.dot(t) / (a_norm * t_norm));
+    Vector3d f_curr_prime = px2cam(pt_curr + epipolar_direction);
+    f_curr_prime.normalize();
+    double beta_prime = acos(f_curr_prime.dot(-t) / t_norm);
+    double gamma = M_PI - alpha - beta_prime;
+    double p_prime = t_norm * sin(beta_prime) / sin(gamma);
+    double d_cov = p_prime - depth_estimation;
+    double d_cov2 = d_cov * d_cov;
+
+    // 高斯融合
+    double mu = depth.ptr&LTdouble>(int(pt_ref(1, 0)))[int(pt_ref(0, 0))];
+    double sigma2 = depth_cov2.ptr&LTdouble>(int(pt_ref(1, 0)))[int(pt_ref(0, 0))];
+
+    double mu_fuse = (d_cov2 * mu + sigma2 * depth_estimation) / (sigma2 + d_cov2);
+    double sigma_fuse2 = (sigma2 * d_cov2) / (sigma2 + d_cov2);
+
+    depth.ptr&LTdouble>(int(pt_ref(1, 0)))[int(pt_ref(0, 0))] = mu_fuse;
+    depth_cov2.ptr&LTdouble>(int(pt_ref(1, 0)))[int(pt_ref(0, 0))] = sigma_fuse2;
+
+    return true;
+}
+
+// 后面这些太简单我就不注释了（其实是因为懒）
+void plotDepth(const Mat &depth_truth, const Mat &depth_estimate) {
+    imshow("depth_truth", depth_truth * 0.4);
+    imshow("depth_estimate", depth_estimate * 0.4);
+    imshow("depth_error", depth_truth - depth_estimate);
+    waitKey(1);
+}
+
+void evaludateDepth(const Mat &depth_truth, const Mat &depth_estimate) {
+    double ave_depth_error = 0;     // 平均误差
+    double ave_depth_error_sq = 0;      // 平方误差
+    int cnt_depth_data = 0;
+    for (int y = boarder; y < depth_truth.rows - boarder; y++)
+        for (int x = boarder; x < depth_truth.cols - boarder; x++) {
+            double error = depth_truth.ptr&LTdouble>(y)[x] - depth_estimate.ptr&LTdouble>(y)[x];
+            ave_depth_error += error;
+            ave_depth_error_sq += error * error;
+            cnt_depth_data++;
+        }
+    ave_depth_error /= cnt_depth_data;
+    ave_depth_error_sq /= cnt_depth_data;
+
+    cout << "Average squared error = " << ave_depth_error_sq << ", average error: " << ave_depth_error << endl;
+}
+
+void showEpipolarMatch(const Mat &ref, const Mat &curr, const Vector2d &px_ref, const Vector2d &px_curr) {
+    Mat ref_show, curr_show;
+    cv::cvtColor(ref, ref_show, CV_GRAY2BGR);
+    cv::cvtColor(curr, curr_show, CV_GRAY2BGR);
+
+    cv::circle(ref_show, cv::Point2f(px_ref(0, 0), px_ref(1, 0)), 5, cv::Scalar(0, 0, 250), 2);
+    cv::circle(curr_show, cv::Point2f(px_curr(0, 0), px_curr(1, 0)), 5, cv::Scalar(0, 0, 250), 2);
+
+    imshow("ref", ref_show);
+    imshow("curr", curr_show);
+    waitKey(1);
+}
+
+void showEpipolarLine(const Mat &ref, const Mat &curr, const Vector2d &px_ref, const Vector2d &px_min_curr,
+                      const Vector2d &px_max_curr) {
+
+    Mat ref_show, curr_show;
+    cv::cvtColor(ref, ref_show, CV_GRAY2BGR);
+    cv::cvtColor(curr, curr_show, CV_GRAY2BGR);
+
+    cv::circle(ref_show, cv::Point2f(px_ref(0, 0), px_ref(1, 0)), 5, cv::Scalar(0, 255, 0), 2);
+    cv::circle(curr_show, cv::Point2f(px_min_curr(0, 0), px_min_curr(1, 0)), 5, cv::Scalar(0, 255, 0), 2);
+    cv::circle(curr_show, cv::Point2f(px_max_curr(0, 0), px_max_curr(1, 0)), 5, cv::Scalar(0, 255, 0), 2);
+    cv::line(curr_show, Point2f(px_min_curr(0, 0), px_min_curr(1, 0)), Point2f(px_max_curr(0, 0), px_max_curr(1, 0)),
+             Scalar(0, 255, 0), 1);
+
+    imshow("ref", ref_show);
+    imshow("curr", curr_show);
+    waitKey(1);
+}
+</code></pre><p>使用rust重构:<pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_imports)]
+#![allow(non_fmt_panics)]
+#![allow(unused_mut)]
+#![allow(unused_assignments)]
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![allow(rustdoc::missing_crate_level_docs)]
+#![allow(unsafe_code)]
+#![allow(clippy::undocumented_unsafe_blocks)]
+#![allow(unused_must_use)]
+#![allow(non_snake_case)]
+#![allow(unused_doc_comments)]
+
+//! 本程序演示了单目相机在已知轨迹下的稠密深度估计，
+//! 使用极线搜索 + NCC 匹配的方式，与书本的 12.2 节对应。
+//! 添加了图像保存到文件的功能。
+
+use std::fs::File;
+use std::io::{self, BufRead, Write, BufReader, Cursor};
+use std::path::Path;
+use std::fs::create_dir_all;
+
+use std::cell::{
+    RefMut, Ref, RefCell
+};
+
+// 线性代数
+use nalgebra::{
+    Quaternion, Vector3, Matrix3, UnitQuaternion, 
+    Isometry3, Translation3, Const,
+    Matrix, Point3, ViewStorage, Rotation3,
+    Matrix3x1, VectorView3, DMatrix, DVector, SVector,
+    Vector6, Matrix6, Vector2, Matrix2, 
+};
+
+// 李代数
+use factrs::{
+    assign_symbols,
+    core::{BetweenResidual, GaussNewton, Graph, Values},
+    dtype, fac,
+    linalg::{ ForwardProp, Numeric, NumericalDiff, VectorX, DiffResult, MatrixX },
+    residuals::{Residual1, Residual2},
+    traits::*,
+    variables::{VectorVar2, SE2, VectorVar3, SE3, SO3, SO2, MatrixLieGroup},
+    containers::Key,
+    noise::{GaussianNoise},
+    optimizers::{LevenMarquardt}
+};
+
+// 图像处理
+use image::{
+    DynamicImage, GrayImage, ImageBuffer, Luma, 
+    GenericImageView, Rgb, RgbImage, 
+    buffer::ConvertBuffer,
+};
+use imageproc::drawing::{
+    draw_cross_mut, draw_filled_circle_mut, draw_line_segment_mut,
+};
+
+// 随机数
+use rand::Rng;
+use rand_distr::{
+    Distribution, Normal
+};
+
+// 边缘宽度
+const BOARDER: i32 = 20;     
+// 图像宽度    
+const WIDTH: i32 = 640;          
+// 图像高度
+const HEIGHT: i32 = 480;         
+// 相机内参
+const FX: f64 = 481.2;           
+const FY: f64 = -480.0;
+const CX: f64 = 319.5;
+const CY: f64 = 239.5;
+// NCC 取的窗口半宽度
+const NCC_WINDOW_SIZE: i32 = 3;  
+// NCC窗口面积
+const NCC_AREA: i32 = (2 * NCC_WINDOW_SIZE + 1) * (2 * NCC_WINDOW_SIZE + 1); 
+// 收敛判定：最小方差
+const MIN_COV: f64 = 0.1;        
+// 发散判定：最大方差
+const MAX_COV: f64 = 10.0;    
+// 图像保存目录
+const OUTPUT_DIR: &str = "./result/ch12-dense_mono_dense_mapping";
+
+// 从 REMODE 数据集读取数据
+fn read_dataset_files(
+    path: &str,
+    color_image_files: &mut Vec&LTString>,
+    poses: &mut Vec&LTSE3>,
+    ref_depth: &mut ImageBuffer&LTLuma&LTf64>, Vec&LTf64>>,
+) -> io::Result<()> {
+    println!("开始读取数据集文件...");
+    let file = File::open(format!("{}/first_200_frames_traj_over_table_input_sequence.txt", path))?;
+    let reader = io::BufReader::new(file);
+
+    for line in reader.lines() {
+        let line = line?;
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        if parts.len() < 8 {
+            continue;
+        }
+
+        let image = parts[0];
+        let data: Vec&LTf64> = parts[1..8].iter().map(|s| s.parse().unwrap()).collect();
+
+        color_image_files.push(format!("{}/images/{}", path, image));
+        poses.push(SE3::from_rot_trans(
+            SO3::from_xyzw(data[3], data[4], data[5],data[6]),
+            Vector3::new(data[0], data[1], data[2]),
+        ));
+    }
+
+    println!("读取轨迹和图像文件完成，共读取 {} 张图像", color_image_files.len());
+
+    // 加载参考深度图
+    let depth_file = File::open(format!("{}/depthmaps/scene_000.depth", path))?;
+    let depth_reader = io::BufReader::new(depth_file);
+
+    for (y, line) in depth_reader.lines().enumerate() {
+        let line = line?;
+        let depths: Vec&LTf64> = line.split_whitespace().map(|s| s.parse().unwrap()).collect();
+        for (x, depth) in depths.iter().enumerate() {
+            let x_index = std::cmp::min(ref_depth.width() as usize - 1, x);
+            let y_index = std::cmp::min(ref_depth.height() as usize - 1, y);
+            ref_depth.put_pixel(x_index as u32, y_index as u32, Luma([*depth / 100.0]));
+        }
+    }
+
+    println!("参考深度图加载完成");
+    Ok(())
+}
+
+// 极线搜索
+fn epipolar_search(
+    ref_img: &GrayImage,
+    curr_img: &GrayImage,
+    t_c_r: &SE3,
+    pt_ref: &Vector2&LTf64>,
+    depth_mu: f64,
+    depth_cov: f64,
+    pt_curr: &mut Vector2&LTf64>,
+    epipolar_direction: &mut Vector2&LTf64>,
+) -> bool {
+    println!("开始极线搜索，参考点：{:?}", pt_ref);
+    let f_ref = px2cam(pt_ref);
+    let p_ref = f_ref * depth_mu;
+
+    let px_mean_curr = cam2px(&(t_c_r.apply((&p_ref).into())));
+    let d_min = depth_mu - 3.0 * depth_cov;
+    let d_max = depth_mu + 3.0 * depth_cov;
+    let px_min_curr = cam2px(&(t_c_r.apply((&(f_ref * d_min)).into())));
+    let px_max_curr = cam2px(&(t_c_r.apply((&(f_ref * d_max)).into())));
+
+    let epipolar_line = px_max_curr - px_min_curr;
+    *epipolar_direction = epipolar_line;
+    epipolar_direction.normalize();
+    let half_length = 0.5 * epipolar_line.norm();
+
+    // 在极线上搜索，以深度均值点为中心，左右各取半长度
+    let mut best_ncc = -1.0;
+    let mut best_px_curr = Vector2::zeros();
+
+    for l in (-half_length as i32..=half_length as i32).step_by(1) {
+        let px_curr = px_mean_curr + (l as f64) * *epipolar_direction;
+        if !inside(&px_curr) {
+            continue;
+        }
+
+        let ncc = ncc(ref_img, curr_img, pt_ref, &px_curr);
+        if ncc > best_ncc {
+            best_ncc = ncc;
+            best_px_curr = px_curr;
+        }
+    }
+
+    if best_ncc < 0.85 {
+        println!("极线搜索失败，最佳 NCC 为 {}", best_ncc);
+        return false;
+    }
+
+    *pt_curr = best_px_curr;
+    println!("极线搜索成功，最佳匹配点：{:?}", pt_curr);
+    true
+}
+
+// 计算 NCC 评分
+fn ncc(ref_img: &GrayImage, curr_img: &GrayImage, pt_ref: &Vector2&LTf64>, pt_curr: &Vector2&LTf64>) -> f64 {
+    println!("计算 NCC 评分，参考点：{:?}，当前点：{:?}", pt_ref, pt_curr);
+    let mut mean_ref = 0.0;
+    let mut mean_curr = 0.0;
+    let mut values_ref = Vec::new();
+    let mut values_curr = Vec::new();
+
+    for x in -NCC_WINDOW_SIZE..=NCC_WINDOW_SIZE {
+        for y in -NCC_WINDOW_SIZE..=NCC_WINDOW_SIZE {
+            let value_ref = ref_img.get_pixel((pt_ref.x + x as f64) as u32, (pt_ref.y + y as f64) as u32)[0] as f64 / 255.0;
+            mean_ref += value_ref;
+
+            let value_curr = get_bilinear_interpolated_value(curr_img, &(pt_curr + Vector2::new(x as f64, y as f64)));
+            mean_curr += value_curr;
+
+            values_ref.push(value_ref);
+            values_curr.push(value_curr);
+        }
+    }
+
+    mean_ref /= NCC_AREA as f64;
+    mean_curr /= NCC_AREA as f64;
+
+    let mut numerator = 0.0;
+    let mut demoniator1 = 0.0;
+    let mut demoniator2 = 0.0;
+
+    for i in 0..values_ref.len() {
+        let n = (values_ref[i] - mean_ref) * (values_curr[i] - mean_curr);
+        numerator += n;
+        demoniator1 += (values_ref[i] - mean_ref) * (values_ref[i] - mean_ref);
+        demoniator2 += (values_curr[i] - mean_curr) * (values_curr[i] - mean_curr);
+    }
+
+    let ncc_score = numerator / (demoniator1 * demoniator2 + 1e-10).sqrt();
+    println!("NCC 评分：{}", ncc_score);
+    ncc_score
+}
+
+// 双线性灰度插值
+fn get_bilinear_interpolated_value(img: &GrayImage, pt: &Vector2&LTf64>) -> f64 {
+    println!("双线性插值，点：{:?}", pt);
+    let x = pt.x as u32;
+    let y = pt.y as u32;
+    let xx = pt.x - x as f64;
+    let yy = pt.y - y as f64;
+
+    let d00 = img.get_pixel(x, y)[0] as f64;
+    let d01 = img.get_pixel(x, y + 1)[0] as f64;
+    let d10 = img.get_pixel(x + 1, y)[0] as f64;
+    let d11 = img.get_pixel(x + 1, y + 1)[0] as f64;
+
+    let interpolated_value = ((1.0 - xx) * (1.0 - yy) * d00 + xx * (1.0 - yy) * d10 + (1.0 - xx) * yy * d01 + xx * yy * d11) / 255.0;
+    println!("插值结果：{}", interpolated_value);
+    interpolated_value
+}
+
+// 像素到相机坐标系
+fn px2cam(px: &Vector2&LTf64>) -> Vector3&LTf64> {
+    println!("像素到相机坐标系，像素点：{:?}", px);
+    Vector3::new((px.x - CX) / FX, (px.y - CY) / FY, 1.0)
+}
+
+// 相机坐标系到像素
+fn cam2px(p_cam: &Vector3&LTf64>) -> Vector2&LTf64> {
+    println!("相机坐标系到像素，相机点：{:?}", p_cam);
+    Vector2::new(p_cam.x * FX / p_cam.z + CX, p_cam.y * FY / p_cam.z + CY)
+}
+
+// 检测一个点是否在图像边框内
+fn inside(pt: &Vector2&LTf64>) -> bool {
+    println!("检查点是否在图像边框内，点：{:?}", pt);
+    pt.x >= (BOARDER as f64) && pt.y >= (BOARDER as f64) && pt.x + (BOARDER as f64) < (WIDTH as f64) && pt.y + (BOARDER as f64) < (HEIGHT as f64)
+}
+
+// 更新深度滤波器
+fn update_depth_filter(
+    pt_ref: &Vector2&LTf64>,
+    pt_curr: &Vector2&LTf64>,
+    t_c_r: &SE3,
+    epipolar_direction: &Vector2&LTf64>,
+    depth: &mut ImageBuffer&LTLuma&LTf64>, Vec&LTf64>>,
+    depth_cov2: &mut ImageBuffer&LTLuma&LTf64>, Vec&LTf64>>,
+) -> bool {
+    println!("更新深度滤波器，参考点：{:?}，当前点：{:?}", pt_ref, pt_curr);
+    let t_r_c = t_c_r.inverse();
+    let f_ref = px2cam(pt_ref).normalize();
+    let f_curr = px2cam(pt_curr).normalize();
+
+    let t = t_r_c.xyz().clone();
+    let f2 = t_r_c.rot().apply((&f_curr).into());
+    let b = Vector2::new(t.dot(&f_ref), t.dot(&f2));
+    let a = Matrix2::new(
+        f_ref.dot(&f_ref),
+        -f_ref.dot(&f2),
+        -f_ref.dot(&f2),
+        -f2.dot(&f2),
+    );
+    let ans = a.try_inverse().unwrap() * b;
+    let xm = ans[0] * f_ref;
+    let xn = t + ans[1] * f2;
+    let p_esti = (xm + xn) / 2.0;
+    let depth_estimation = p_esti.norm();
+
+    // 计算不确定性
+    let p = f_ref * depth_estimation;
+    let a = p - t;
+    let t_norm = t.norm();
+    let a_norm = a.norm();
+    let alpha = (f_ref.dot(&t) / t_norm).acos();
+    let beta = (-a.dot(&t) / (a_norm * t_norm)).acos();
+    let f_curr_prime = px2cam(&(pt_curr + epipolar_direction)).normalize();
+    let beta_prime = (f_curr_prime.dot(&-t) / t_norm).acos();
+    let gamma = std::f64::consts::PI - alpha - beta_prime;
+    let p_prime = t_norm * beta_prime.sin() / gamma.sin();
+    let d_cov = p_prime - depth_estimation;
+    let d_cov2 = d_cov * d_cov;
+
+    // 高斯融合
+    let mu = depth.get_pixel(pt_ref.x as u32, pt_ref.y as u32)[0];
+    let sigma2 = depth_cov2.get_pixel(pt_ref.x as u32, pt_ref.y as u32)[0];
+
+    let mu_fuse = (d_cov2 * mu + sigma2 * depth_estimation) / (sigma2 + d_cov2);
+    let sigma_fuse2 = (sigma2 * d_cov2) / (sigma2 + d_cov2);
+
+    depth.put_pixel(pt_ref.x as u32, pt_ref.y as u32, Luma([mu_fuse]));
+    depth_cov2.put_pixel(pt_ref.x as u32, pt_ref.y as u32, Luma([sigma_fuse2]));
+
+    println!("深度更新完成，新深度：{}", mu_fuse);
+    true
+}
+
+// 显示并保存极线匹配
+fn show_epipolar_match(ref_img: &GrayImage, curr_img: &GrayImage, px_ref: (i32, i32), px_curr: (i32, i32), index: usize, output_dir: &Path) {
+    let mut ref_show : RgbImage = ref_img.convert();
+    let mut curr_show : RgbImage = curr_img.convert();
+
+    draw_filled_circle_mut(&mut ref_show, px_ref, 5, Rgb([0, 255, 0]));
+    draw_filled_circle_mut(&mut curr_show, px_curr, 5, Rgb([255, 0, 0]));
+
+    let rand_number = rand::random::&LTu32>() % 1000;
+    ref_show.save(output_dir.join(format!("ref_match_{index}_{rand_number}.png"))).unwrap();
+    curr_show.save(output_dir.join(format!("curr_match_{index}_{rand_number}.png"))).unwrap();
+}
+
+// 显示并保存极线
+fn show_epipolar_line(ref_img: &GrayImage, curr_img: &GrayImage, px_ref: (f32, f32), px_min_curr: (f32, f32), px_max_curr: (f32, f32), index: usize, output_dir: &Path) {
+    let mut curr_show : RgbImage = curr_img.convert();
+
+    draw_line_segment_mut(&mut curr_show, px_min_curr, px_max_curr, Rgb([0, 255, 0])); //极线
+    draw_filled_circle_mut(&mut curr_show, (px_ref.0 as i32, px_ref.1 as i32), 5, Rgb([255, 0, 0])); // 参考点
+    let rand_number = rand::random::&LTu32>() % 1000;
+    curr_show.save(output_dir.join(format!("epipolar_line_{index}_{rand_number}.png"))).unwrap();
+}
+
+// 评估深度估计
+fn evaluate_depth(depth_truth: &ImageBuffer&LTLuma&LTf64>, Vec&LTf64>>, depth_estimate: &ImageBuffer&LTLuma&LTf64>, Vec&LTf64>>) {
+    let mut error_sum = 0.0;
+    let mut error_sq_sum = 0.0;
+    let mut count = 0;
+
+    for (x, y, pixel) in depth_truth.enumerate_pixels() {
+        let est_pixel = depth_estimate.get_pixel(x, y)[0];
+        let error = pixel[0] - est_pixel;
+        error_sum += error;
+        error_sq_sum += error * error;
+        count += 1;
+    }
+
+    let avg_error = error_sum / count as f64;
+    let avg_sq_error = error_sq_sum / count as f64;
+
+    println!("Average Error: {avg_error}, Average Squared Error: {avg_sq_error}");
+}
+
+// 保存深度图可视化
+fn save_depth_image(depth_image: &ImageBuffer&LTLuma&LTf64>, Vec&LTf64>>, file_path: &Path) {
+    let max_depth = depth_image.pixels().map(|p| p[0]).fold(f64::MIN, f64::max);
+    let scale_factor = 255.0 / max_depth;
+    let buffer: Vec&LTu8> = depth_image
+        .pixels()
+        .map(|p| (p[0] * scale_factor) as u8)
+        .collect();
+    let new_img = GrayImage::from_raw(depth_image.width(), depth_image.height(), buffer).unwrap();
+    new_img.save(file_path).unwrap();
+}
+
+// 主函数
+fn main() -> Result<(), Box&LTdyn std::error::Error>> {
+    println!("程序开始执行...");
+    // 判断图像保存目录是否存在
+    let output_dir = Path::new(OUTPUT_DIR);
+    if !output_dir.exists() {
+        create_dir_all(output_dir)?;
+    }
+
+    // 加载数据集
+    let path = "./assets/ch12-REMODE";
+    let mut color_image_files = Vec::new();
+    let mut poses = Vec::new();
+    let mut ref_depth = ImageBuffer::new(WIDTH as u32, HEIGHT as u32);
+
+    read_dataset_files(path, &mut color_image_files, &mut poses, &mut ref_depth)?;
+
+    let ref_img = image::open(&color_image_files[0])?.to_luma8();
+    let pose_ref_twc = &poses[0];
+    let init_depth = 3.0;
+    let init_cov2 = 3.0;
+    let mut depth = ImageBuffer::from_pixel(WIDTH as u32, HEIGHT as u32, Luma([init_depth]));
+    let mut depth_cov2 = ImageBuffer::from_pixel(WIDTH as u32, HEIGHT as u32, Luma([init_cov2]));
+
+    for index in 1..color_image_files.len() {
+        println!("处理第 {} 张图像", index);
+        let curr_img = image::open(&color_image_files[index])?.to_luma8();
+        let pose_curr_twc = &poses[index];
+        let pose_t_c_r = pose_curr_twc.inverse() * pose_ref_twc.clone();
+
+        // 更新深度图
+        for x in BOARDER..WIDTH - BOARDER {
+            for y in BOARDER..HEIGHT - BOARDER {
+                let depth_cov = (depth_cov2.get_pixel(x as u32, y as u32)[0] as f64).sqrt();
+                if depth_cov < MIN_COV || depth_cov > MAX_COV {
+                    continue;
+                }
+
+                let mut pt_curr = Vector2::zeros();
+                let mut epipolar_direction = Vector2::zeros();
+                let pt_ref = Vector2::new(x as f64, y as f64);
+
+                if epipolar_search(&ref_img, &curr_img, &pose_t_c_r, &pt_ref, depth.get_pixel(x as u32, y as u32)[0], depth_cov, &mut pt_curr, &mut epipolar_direction) {
+                    update_depth_filter(&pt_ref, &pt_curr, &pose_t_c_r, &epipolar_direction, &mut depth, &mut depth_cov2);
+                    // 显示极线(线段)
+                    show_epipolar_line(&ref_img, &curr_img, (x as f32, y as f32), (pt_curr.x as f32, pt_curr.y as f32), (pt_curr.x as f32 + epipolar_direction.x as f32, pt_curr.y as f32 + epipolar_direction.y as f32), index, output_dir);
+                    // 显示极线匹配
+                    show_epipolar_match(&ref_img, &curr_img, (x, y), (pt_curr.x as i32, pt_curr.y as i32), index + 1, output_dir);
+                }
+            }
+        }
+        evaluate_depth(&ref_depth, &depth);
+        let rand_number = rand::random::&LTu32>() % 1000;
+        save_depth_image(&depth, &output_dir.join(format!("depth_{index}_{rand_number}.png")));
+    }
+
+    println!("程序执行完成");
+    Ok(())
+}
+</code></pre><h3 id=xiao-guo>效果</h3><pre class=language-log data-lang=log><code class=language-log data-lang=log>程序开始执行...
+开始读取数据集文件...
+读取轨迹和图像文件完成，共读取 201 张图像
+参考深度图加载完成
+处理第 1 张图像
+开始极线搜索，参考点：[[20.0, 20.0]]
+像素到相机坐标系，像素点：[[20.0, 20.0]]
+相机坐标系到像素，相机点：[[-1.8693913433010692, 1.3664523892875033, 3.0006036072515196]]
+相机坐标系到像素，相机点：[[1.3686227157496347, -1.0011821385364805, -2.197007571459172]]
+相机坐标系到像素，相机点：[[-5.107405402351772, 3.734086917111487, 8.198214785962211]]
+检查点是否在图像边框内，点：[[19.709947017813022, 20.911598228801864]]
+极线搜索失败，最佳 NCC 为 -1
+开始极线搜索，参考点：[[20.0, 21.0]]
+像素到相机坐标系，像素点：[[20.0, 21.0]]
+相机坐标系到像素，相机点：[[-1.8693827350313288, 1.3602023912233974, 3.000598715452996]]
+相机坐标系到像素，相机点：[[1.3686164140588197, -0.9966068224063478, -2.197003990414112]]
+相机坐标系到像素，相机点：[[-5.107381884121477, 3.717011604853142, 8.198201421320103]]
+检查点是否在图像边框内，点：[[19.71083876879817, 21.91104202810277]]
+极线搜索失败，最佳 NCC 为 -1
+开始极线搜索，参考点：[[20.0, 22.0]]
+像素到相机坐标系，像素点：[[20.0, 22.0]]
+相机坐标系到像素，相机点：[[-1.8693741267615887, 1.3539523931592907, 3.0005938236544716]]
+相机坐标系到像素，相机点：[[1.3686101123680046, -0.992031506276215, -2.197000409369052]]
+相机坐标系到像素，相机点：[[-5.107358365891182, 3.699936292594796, 8.198188056677997]]
+检查点是否在图像边框内，点：[[19.7117305226908, 22.910489086143826]]
+极线搜索失败，最佳 NCC 为 -1
+开始极线搜索，参考点：[[20.0, 23.0]]
+像素到相机坐标系，像素点：[[20.0, 23.0]]
+相机坐标系到像素，相机点：[[-1.8693655184918485, 1.3477023950951843, 3.0005889318559475]]
+相机坐标系到像素，相机点：[[1.3686038106771896, -0.987456190146082, -2.196996828323992]]
+相机坐标系到像素，相机点：[[-5.107334847660885, 3.6828609803364505, 8.198174692035886]]
+检查点是否在图像边框内，点：[[19.71262227949103, 23.90993940294092]]
+极线搜索失败，最佳 NCC 为 -1
+开始极线搜索，参考点：[[20.0, 24.0]]
+插值结果：0.45378002051700056
+双线性插值，点：[[34.941196008644, 273.8573589563265]]
+插值结果：0.44161817260912173
+双线性插值，点：[[34.941196008644, 274.8573589563265]]
+插值结果：0.4616305554813449
+双线性插值，点：[[34.941196008644, 275.8573589563265]]
+插值结果：0.48169858265169746
+双线性插值，点：[[34.941196008644, 276.8573589563265]]
+插值结果：0.4624760172710629
+双线性插值，点：[[34.941196008644, 277.8573589563265]]
+插值结果：0.4833474248532138
+双线性插值，点：[[34.941196008644, 278.8573589563265]]
+插值结果：0.5117548311170721
+双线性插值，点：[[35.941196008644, 272.8573589563265]]
+插值结果：0.4478432207576696
+双线性插值，点：[[35.941196008644, 273.8573589563265]]
+插值结果：0.42718292336624775
+双线性插值，点：[[35.941196008644, 274.8573589563265]]
+插值结果：0.45748061624595493
+双线性插值，点：[[35.941196008644, 275.8573589563265]]
+插值结果：0.4734576985005847
+双线性插值，点：[[35.941196008644, 276.8573589563265]]
+插值结果：0.4516662716854218
+双线性插值，点：[[35.941196008644, 277.8573589563265]]
+插值结果：0.42698323561167817
+双线性插值，点：[[35.941196008644, 278.8573589563265]]
+插值结果：0.4694125351752237
+NCC 评分：0.924036091750607
+极线搜索成功，最佳匹配点：[[32.941196008644, 275.8573589563265]]
+更新深度滤波器，参考点：[[33.0, 275.0]]，当前点：[[32.941196008644, 275.8573589563265]]
+像素到相机坐标系，像素点：[[33.0, 275.0]]
+像素到相机坐标系，像素点：[[32.941196008644, 275.8573589563265]]
+像素到相机坐标系，像素点：[[32.92309742015061, 276.001493721201]]
+深度更新完成，新深度：0.08288561637779884
+开始极线搜索，参考点：[[33.0, 276.0]]
+像素到相机坐标系，像素点：[[33.0, 276.0]]
+相机坐标系到像素，相机点：[[-1.7861402456029445, -0.23343549458515642, 2.9993614389929117]]
+相机坐标系到像素，相机点：[[1.3076786824487272, 0.17001707887216214, -2.196098241182322]]
+相机坐标系到像素，相机点：[[-4.879959173654615, -0.6368880680424751, 8.194821119168147]]
+检查点是否在图像边框内，点：[[32.94210970694951, 276.8576308424161]]
+计算 NCC 评分，参考点：[[33.0, 276.0]]，当前点：[[32.94210970694951, 276.8576308424161]]
+</code></pre><h3 id=fen-xi>分析</h3><p>这份日志记录了稠密深度估计过程中的关键步骤和数据，包括图像读取、极线搜索、坐标转换、插值计算、NCC评分以及深度滤波器更新等。以下是对各部分的详细分析：<ol><li><p><strong>数据读取</strong></p> <ul><li>“开始读取数据集文件...读取轨迹和图像文件完成，共读取201张图像，参考深度图加载完成”：程序成功读取了包含201张图像的数据集以及参考深度图，为后续的深度估计提供数据基础。</ul><li><p><strong>极线搜索</strong></p> <ul><li>日志中多次出现“开始极线搜索，参考点：[[x, y]]”，表明在不同的像素位置上进行极线搜索，尝试在当前图像中找到与参考图像中特定点匹配的点。极线搜索的范围可能由深度均值和方差等因素决定（根据前面提到的极线搜索原理）。<li>“极线搜索失败，最佳NCC为 -1”：多次出现此提示，说明在某些参考点的极线搜索过程中，未能找到合适的匹配点。NCC（归一化互相关）值为 -1 表明参考图像块与当前图像块之间的相似度极低，可能由于场景的复杂性、图像噪声或纹理缺失等原因导致匹配失败。<li>“极线搜索成功，最佳匹配点：[[x, y]]”：当极线搜索成功时，记录了找到的最佳匹配点的坐标。例如，在参考点为 [[20.0, 24.0]] 附近的搜索过程中，最终找到了最佳匹配点 [[32.941196008644, 275.8573589563265]]，并且给出了该匹配的NCC评分：0.924036091750607，表明这两个图像块之间具有较高的相似度。</ul><li><p><strong>坐标转换</strong></p> <ul><li>“像素到相机坐标系，像素点：[[x, y]]”：记录了将像素坐标转换为相机坐标系下的方向向量的操作，通过相机内参实现这种转换，为后续三角化计算深度提供基础。<li>“相机坐标系到像素，相机点：[[x, y, z]]”：展示了将相机坐标系下的点投影回像素平面的过程，这一操作有助于验证坐标转换的正确性以及检查点是否在图像边框内。</ul><li><p><strong>双线性插值与NCC评分</strong></p> <ul><li>“插值结果：x”和“双线性插值，点：[[x, y]]”：在极线搜索过程中，可能对图像进行了双线性插值操作以获取更精确的像素值，用于计算NCC评分。多个插值结果表明在不同位置进行了插值计算，以评估不同位置的相似度。<li>“NCC评分：x”：通过计算参考图像块与当前图像块之间的NCC值来衡量它们的相似度，当NCC评分足够高时，认为找到了较好的匹配点。如前面提到的极线搜索成功案例中，NCC评分为0.924036091750607，说明匹配效果较好。</ul><li><p><strong>深度滤波器更新</strong></p> <ul><li>“更新深度滤波器，参考点：[[x, y]]，当前点：[[x, y]]”：在找到极线搜索的最佳匹配点后，使用参考点和当前点的信息来更新深度滤波器。<li>“深度更新完成，新深度：x”：根据深度更新公式（如前面提到的深度滤波器部分的公式），通过高斯融合更新深度估计，得到新的深度值。例如，这里得到的新深度为0.08288561637779884 。</ul></ol><p>总体而言，这份日志详细记录了稠密深度估计过程中各个关键步骤的执行情况和中间数据，通过分析这些数据可以了解算法的执行效果、可能存在的问题（如极线搜索失败）以及深度估计的更新过程。</article><div><div class=post-copyright><div class=post-copyright__author_group><a class=post-copyright__author_img href=/about> <picture class="post-copyright__author_img_back progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> </a><div class=post-copyright__author_name>ByeIO·开发者博客</div><div class=post-copyright__author_desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div></div><div class=post-tools id=post-tools><div class=post-tools-left><div class=rewardLeftButton><div class="reward-link mode"><a class=reward-link-button href=/subscribe> <i class=icon-plant-fill></i>订阅 </a></div></div><div class=shareRight><div class="copyright-link mobile"><div class=copyright-qrcode><div class=copyright-button title=使用手机访问这篇文章><i class=icon-qrcode></i></div><div class=copyright-main><div class=copyright-main-all><div id=qrcode></div><div class=reward-dec>使用手机访问这篇文章</div></div></div></div></div><div class="copyright-link copyurl"><div class=copyright-button id=post-share-url onclick=rm.copyPageUrl() title=复制链接><i class=icon-link></i></div></div></div></div></div><div class=post-copyright__notice><span class=post-copyright-info> 本文是原创文章，采用 <a href=/copyright target=_blank>CC BY-NC-ND 4.0</a> 协议，转载请注明 <a href=/ target=_blank>本站名称及地址</a> </span></div></div><div class=post-tools-right><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/> <span class=tags-punctuation>博客</span> <span class=tagsPageCount>31</span> </a><a class=post-meta__tags href=/tags/docs/> <span class=tags-punctuation>文档</span> <span class=tagsPageCount>25</span> </a><a class=post-meta__tags href=/tags/featured/> <span class=tags-punctuation>必看</span> <span class=tagsPageCount>30</span> </a><a class=post-meta__tags href=/tags/hot/> <span class=tags-punctuation>热门</span> <span class=tagsPageCount>30</span> </a></div></div></div><link href=/css/post-copyright-one.css rel=stylesheet></div><nav class="pagination-post needEndHide" id=pagination><div class="prev-post pull-left"><a href=/articles/docs/折腾笔记[13]-使用rust对图像建立词袋/> <div class=pagination-info><div class=label>上一篇</div><div class=prev_info>折腾笔记[13]-使用rust对图像建立词袋</div></div> </a></div><div class="next-post pull-right"><a href=/articles/docs/折腾笔记[18]-使用rust读取rosbag数据/> <div class=pagination-info><div class=label>下一篇</div><div class=next_info>折腾笔记[18]-使用rust读取rosbag数据</div></div> </a></div></nav><div class=relatedPosts><div class=headline><i class=icon-cainixihuan style=font-size:1.1rem></i><span>喜欢这篇文章的人也看了</span></div><div class=relatedPosts-list><div><a href=/articles/docs/ROS笔记[1]-搭建Gazebo仿真环境/ title=ROS笔记[1]-搭建Gazebo仿真环境> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[1]-搭建Gazebo仿真环境</div></div> </a></div><div><a href=/articles/docs/ROS笔记[2]-获取OpenMV数据并发布到ROS消息/ title=ROS笔记[2]-获取OpenMV数据并发布到ROS消息> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[2]-获取OpenMV数据并发布到ROS消息</div></div> </a></div></div></div><link href=/css/related-posts-two.css rel=stylesheet><hr></div><div class=aside-content id=aside-content><div class="card-widget card-info"><div class=card-content><div class="card-info-avatar is-center"><div class=author-info__top-group><div class=author-info__sayhi id=author-info__sayhi onclick=wjx.changeSayHelloText()>好久不见，你终于来了</div></div></div><div class=avatar-img-group><picture class="avatar-img progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture></div><div class=author-info__description_group>为创造者而生的开源 Zola 主题~</div><div class=author-info__bottom-group><a class=author-info__bottom-group-left href=/about> <div class=author-info__name>qsbye</div> <div class=author-info__desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div> </a><div class="card-info-social-icons is-center"><a rel="external nofollow" class=social-icon href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=GitHub> <i class=icon-github></i> </a></div></div></div><style>.avatar-img-group:before{content:"";-o-transition:1s;background:var(--wjx-green);border:5px solid var(--wjx-background);z-index:2;border-radius:50%;width:26px;height:26px;-webkit-transition:all 1s;-moz-transition:all 1s;-ms-transition:all 1s;transition:all 1s;position:absolute;bottom:2px;right:2px}.card-info-avatar.is-center{flex-direction:column;align-items:flex-start;display:flex}#aside-content .card-info .avatar-img{opacity:1;border:5px solid var(--wjx-white);border-radius:500px;width:118px;transition:all .3s;position:absolute;top:0;right:0;overflow:hidden}.page #aside-content .card-info .avatar-img{border-color:var(--wjx-card-bg)}.author-info__top-group{width:100%;height:28px;display:flex}.avatar-img-group{transform-origin:bottom;border-radius:500px;width:118px;height:118px;transition:all .3s cubic-bezier(.69,.39,0,1.21);position:absolute;top:90px;right:calc(50% - 59px)}#aside-content .card-info:hover .avatar-img-group{opacity:0;transform:scale(0)}.author-info__bottom-group{justify-content:space-between;align-items:center;width:100%;padding:1.2rem;display:flex;position:absolute;bottom:0;left:0}a.author-info__bottom-group-left:hover{opacity:.8}#aside-content .card-info .card-info-social-icons{cursor:pointer;flex-flow:wrap;justify-content:flex-start;margin:0;display:flex}#aside-content .card-info .card-info-social-icons i:hover{cursor:pointer;background-color:#000;transform:rotate(540deg)}#aside-content .card-info .card-info-social-icons .social-icon{margin:0 0 0 8px}#aside-content .card-info .card-info-social-icons i{background:var(--wjx-white-op);color:var(--wjx-white);justify-content:center;align-items:center;width:40px;height:40px;font-size:1rem;display:flex}#aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-white);color:var(--wjx-main);box-shadow:none;transform:scale(1.1)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{background:var(--wjx-black-op);color:var(--wjx-card-bg)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-card-bg);color:var(--wjx-fontcolor)}#aside-content .card-info .banner-button{border-radius:20px;justify-content:center;width:118px;height:40px}@media screen and (width>=1300px){#aside-content .card-info .card-info-social-icons i{color:var(--wjx-white)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{color:var(--wjx-card-bg)}}#aside-content .card-info .card-info-data>.card-info-data-item:hover{background:var(--wjx-post-blockquote-bg);transform:scale(.97)}#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.headline,#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.length-num{color:var(--wjx-blue)}.author-info__description_group{color:var(--wjx-white);opacity:0;width:100%;padding:1.2rem;transition:all .3s;position:absolute;top:50px;left:0}.card-widget:hover .author-info__description_group{opacity:1}.author-info__description2{text-align:justify;z-index:2;color:#fffc;width:100%;margin:.3rem 0;line-height:1.38}.author-info__description2 b{color:var(--wjx-white)}[data-theme=dark] .page div#author-info__sayhi{background:var(--wjx-black-op);color:var(--wjx-black)}#aside-content .card-info .author-info__name{text-align:left;color:var(--wjx-white);margin-bottom:5px;font-size:20px;font-weight:700;line-height:1}.page #aside-content .card-info .author-info__name,.page .author-info__desc{color:var(--wjx-white)}.author-info__desc{color:var(--wjx-white);opacity:.6;font-size:12px;line-height:1}.author-info__description{text-align:justify;color:var(--wjx-white);opacity:1;margin:.3rem 0;line-height:1.38}.page .author-info__description{color:var(--wjx-card-bg)}.author-info__description b{color:var(--wjx-white);opacity:1}.page .author-info__description b{color:var(--wjx-card-bg);opacity:1}.avatar-sticker{z-index:0;background:var(--wjx-white);border-radius:50%;justify-content:center;align-items:center;width:33px;height:33px;line-height:34px;transition:all .3s ease-out .2s;display:flex;position:absolute;bottom:2px;right:2px;transform:scale(1)}.page .avatar-sticker{background:var(--wjx-card-bg)}.avatar-sticker img{width:26px;height:26px}.card-widget:hover .avatar-sticker{opacity:0;transform:scale(0)}.author-info__description b{color:var(--wjx-white)}#aside-content>.card-widget.card-info:before{background:linear-gradient(-25deg,var(--wjx-main),var(--wjx-main-op-deep),var(--wjx-main),var(--wjx-main-op-deep));content:"";background-size:400%;width:100%;height:100%;animation:15s infinite gradient;position:absolute;top:0;left:0}</style></div><div class="card-widget wjx-right-widget" onclick="javascript:window.open('/subscribe')" id=card-wechat><div id=flip-wrapper><div id=flip-content><div style="background:url(/img/wechat/qr-green.avif) 50%/100% no-repeat" class=face></div><div class="back face" style="background:url(/img/wechat/qr-white.avif) 50%/100% no-repeat"></div></div></div><style>#aside-content .card-widget#card-wechat{background:#07c160}#aside-content .card-widget#card-wechat:before{content:"";background:url(/img/wechat/gzh_cover.avif) 50%/cover no-repeat;width:100%;height:90%;transition:all .2s cubic-bezier(.45,.04,.43,1.21);position:absolute;top:0;left:0}#aside-content .card-widget#card-wechat:hover:before{opacity:0;transition:all .3s ease-out;top:100%}</style></div><div class=sticky_layout><div class=card-widget id=card-toc><div class=item-headline><i class=icon-bars></i><span>文章目录</span><span class=toc-percentage></span></div><div class=toc-content></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-chat--fill style=font-size:19px></i><span>最新评论</span></div><div class=aside-list id=newcomm></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-eicon_map-2-line1></i><span>最近发布</span></div><div class=aside-list><div class=aside-list-item><a class=thumbnail href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5>配置orangepi5pro运行rknn版本的yolov5</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行>计算机控制apm飞控自动飞行</a></div></div><div class=aside-list-item><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=thumbnail> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=title>翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境>搭建ArduPilot的SITL仿真环境</a></div></div></div></div><div class="card-widget card-categories"><div class=item-headline><i class=icon-folder-open></i><span>分类</span></div><div class=aside-list><ul class=card-category-list><li class=card-category-list-item><a class=card-category-list-link href=/categories/misc/ rel=tag> <span class=card-category-list-name>杂谈</span> <span class=card-category-list-count>6</span> </a><li class=card-category-list-item><a class=card-category-list-link href=/categories/theme/ rel=tag> <span class=card-category-list-name>主题</span> <span class=card-category-list-count>25</span> </a></ul></div></div></div></div></main><footer id=footer><div id=wjx-footer-bar><div class=footer-logo>qsbye</div><div class=footer-bar-description>ByeIO·开发者博客|技术解决方案|开发思考|总结</div><a class=footer-bar-link href=/about>了解更多</a></div><div id=footer_deal><a rel="external nofollow noopener noreferrer" class=deal_link href=mailto:mail@example.com target=_blank title=Mail> <i class=icon-envelope></i> </a><picture class="footer_mini_logo progressive-picture" onclick="btf.scrollToDest(0, 500)" style=border-radius:500px><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img alt=返回顶部 class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img alt=返回顶部 decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture><a rel="external nofollow noopener noreferrer" class=deal_link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=Github> <i class=icon-github></i> </a></div><div id=wjx-footer><div class=footer-group><h3 class=footer-title>文库</h3><div class=footer-links><a class=footer-item data-pjax href=/archives target=_blank>全部文章</a><a class=footer-item data-pjax href=/categories target=_blank>分类列表</a><a class=footer-item data-pjax href=/tags target=_blank>标签列表</a><a class=footer-item data-pjax href=javascript:toRandomPost() target=_blank>随机文章</a></div></div><div class=footer-group><h3 class=footer-title>作品</h3><div class=footer-links><a class=footer-item data-pjax href=/articles/misc/lorem-ipsum target=_blank>Lorem Ipsum</a></div></div><div class=footer-group><h3 class=footer-title>协议</h3><div class=footer-links><a class=footer-item data-pjax href=/privacy target=_blank>隐私协议</a><a class=footer-item data-pjax href=/cookies target=_blank>Cookies</a><a class=footer-item data-pjax href=/copyright target=_blank>版权协议</a></div></div><div class=footer-group><div class=footer-title-group><h3 class=footer-title>友链</h3><button class=random-friends-btn id=footer-random-friends-btn onclick=javascript:wjx.addFriendLinksInFooter(); title=换一批友情链接><i class=icon-arrow-rotate-right style=font-size:16px></i></button></div><div class=footer-links id=friend-links-in-footer></div></div></div><div id=footer-bar style=padding:1rem><div class=footer-bar-links><div class=footer-bar-left><div id=footer-bar-tips><div class=copyright-group>© <span class=inline-word id=copyright-info>2025</span>  By  <a class=footer-bar-link href=/ target=_blank> <picture class=progressive-picture id=copyright-logo><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> ByeIO·开发者博客 </a><script defer>var startYear = 2025;
+                            var currentYear = new Date().getFullYear();
+                            var copyrightInfo = `${startYear !== currentYear ? startYear + ' - ' : ''}${currentYear}`;
+                            document.getElementById('copyright-info').innerHTML = copyrightInfo;</script></div><div class=compliance-group><a rel="noopener external nofollow noreferrer" class=footer-bar-link href=https://beian.miit.gov.cn/#/Integrated/index target=_blank> ICP </a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang> <div class=status-light></div> <span>本站及主题基于 Zola 构建</span> </a></div></div></div><div class=footer-bar-right><a class=footer-bar-link href=/subscribe target=_blank>订阅</a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank>主题</a><a class=footer-bar-link href=/about>关于</a><a class=footer-bar-link href=mailto:mail@example.com target=_blank>反馈</a><a class="footer-bar-link cc" href=/copyright rel=license target=_blank title=CC版权协议> <i class=icon-copyright-line></i> <i class=icon-creative-commons-by-line></i> <i class=icon-creative-commons-nc-line></i> <i class=icon-creative-commons-nd-line></i> </a></div></div></div><div id=quit-box onclick=RemoveRewardMask()></div><div class="comment-barrage needEndHide" style=display:none></div><style>a.footer-bar-link.cloud{align-items:center;display:flex}img.entered.loading.cloud{height:32px}</style></footer></div><div id=sidebar><div id=menu-mask></div><div id=sidebar-menus><span class=sidebar-menu-item-title>功能</span><div class=sidebar-menu-item><button class="darkmode_switchbutton menu-child" href=javascript:void(0); onclick=rm.switchDarkMode() title=显示模式切换><i class=icon-moon style=font-size:.9rem;line-height:2></i> <span>显示模式</span></button></div><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div><div class=menus_items><div class=menus_item><button class=site-page><span>文库</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/archives> <i class="icon-book-open faa-tada" style=font-size:.9em></i> <span>全部文章</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/categories> <i class="icon-folder-open faa-tada" style=font-size:.9em></i> <span>分类列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags> <i class="icon-tags faa-tada" style=font-size:.9em></i> <span>标签列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:toRandomPost()> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>随机文章</span> </a></ul></div><div class=menus_item><a class=site-page href=/tags/work> <span>推荐</span> </a><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/docs/readme> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>博客主题介绍</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/misc/lorem-ipsum> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></ul></div><div class=menus_item><button class=site-page><span>友链</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/friends> <i class="icon-link faa-tada" style=font-size:.9em></i> <span>友链列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:travelling()> <i class="icon-paper-plane faa-tada" style=font-size:.9em></i> <span>随机发现</span> </a></ul></div><div class=menus_item><button class=site-page><span>我的</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/about> <i class="icon-rocket faa-tada" style=font-size:.9em></i> <span>关于本人</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/equipment> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>我的装备</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags/project> <i class="icon-lightbulb faa-tada" style=font-size:.9em></i> <span>我的项目</span> </a></ul></div></div><span class=sidebar-menu-item-title>标签</span><div class="card-widget card-tags card-archives card-webinfo card-allinfo"><div class=item-headline></div><div class=card-tag-cloud><a class=tag-item href=/tags/blog/ style=font-size:1em title=博客>  博客<sup>31</sup> </a><a class=tag-item href=/tags/docs/ style=font-size:1em title=文档>  文档<sup>25</sup> </a><a class=tag-item href=/tags/featured/ style=font-size:1em title=必看>  必看<sup>30</sup> </a><a class=tag-item href=/tags/hot/ style=font-size:1em title=热门>  热门<sup>30</sup> </a><a class=tag-item href=/tags/project/ style=font-size:1em title=项目>  项目<sup>1</sup> </a><a class=tag-item href=/tags/work/ style=font-size:1em title=work>  work<sup>1</sup> </a></div></div></div></div><div id=console><div class=close-btn href=javascript:void(0); onclick=wjx.hideConsole()><i class=icon-circle-xmark></i></div><div class=console-card-group><div class=console-card-group-left><div class=console-card id=card-newest-comments onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>互动</div><span class=author-content-item-title>最近评论</span></div><div class=aside-list><span>正在加载中...</span></div></div></div><div class=console-card-group-right><div class="console-card tags" onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>标签</div><span class=author-content-item-title>寻找感兴趣的领域</span></div><div class=card-tag-cloud><a href=/tags/blog/ rel=tag style=color:#d3d3d3;font-size:1em> 博客<sup>31</sup> </a><a href=/tags/docs/ rel=tag style=color:#d3d3d3;font-size:1em> 文档<sup>25</sup> </a><a href=/tags/featured/ rel=tag style=color:#d3d3d3;font-size:1em> 必看<sup>30</sup> </a><a href=/tags/hot/ rel=tag style=color:#d3d3d3;font-size:1em> 热门<sup>30</sup> </a><a href=/tags/project/ rel=tag style=color:#d3d3d3;font-size:1em> 项目<sup>1</sup> </a><a href=/tags/work/ rel=tag style=color:#d3d3d3;font-size:1em> work<sup>1</sup> </a></div></div><div class="console-card history" onclick=wjx.hideConsole()><div class=item-headline><i class="fas fa-archive"></i><span>文章</span></div><ul class=card-archive-list><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2025 1月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>25</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2024 12月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>6</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul></ul></div></div></div><div class=button-group><div class=console-btn-item><button rel="external nofollow" class=darkmode_switchbutton href=javascript:void(0); onclick=navFn.switchDarkMode(); title=显示模式切换><i class=icon-moon-clear-fill style=font-size:1rem></i></button></div><div class=console-btn-item id=consoleHideAside onclick=wjx.hideAsideBtn() title=边栏显示控制><button class=asideSwitch title=侧边栏开关><i class=icon-arrows-left-right></i></button></div><div class="console-btn-item on" id=consoleCommentBarrage onclick=wjx.switchCommentBarrage() title=热评开关><button class=commentBarrage><i class=icon-chat--fill></i></button></div></div><div class=console-mask href=javascript:void(0); onclick=wjx.hideConsole()></div></div><div id=rightside><div id=rightside-config-hide><button id=translateLink title=简繁转换 type=button>繁</button><button id=darkmode title=浅色和深色模式转换 type=button><i class=icon-circle-half-stroke></i></button><button id=hide-aside-btn title=单栏和双栏切换 type=button><i class=icon-arrows-left-right></i></button></div><div id=rightside-config-show><button id=rightside-config title=设置 type=button><i class=icon-gear></i></button><a href=#post-comment id=to_comment title=直达评论><i class=icon-chat--fill style=font-size:17px></i></a><button id=go-up title=回到顶部 type=button><i class=icon-arrow-up></i></button></div></div><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/css/read-mode.css rel=preload><noscript><link href=/css/read-mode.css rel=stylesheet></noscript><div class=js-pjax><div id=rightMenu><div class="rightMenu-group rightMenu-small"><div class=rightMenu-item id=menu-backward><i class=icon-arrow-left></i></div><div class=rightMenu-item id=menu-forward><i class=icon-arrow-right></i></div><div class=rightMenu-item id=menu-refresh><i class=icon-arrow-rotate-right></i></div><div class=rightMenu-item id=menu-top><i class=icon-arrow-up></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class=rightMenu-item id=menu-copytext><i class=icon-copy></i><span>复制选中文本</span></div><div class=rightMenu-item id=menu-pastetext><i class=icon-paste></i><span>粘贴文本</span></div><a class=rightMenu-item id=menu-commenttext> <i class=icon-comment-medical></i> <span>引用到评论</span> </a><div class=rightMenu-item id=menu-newwindow><i class=icon-window-restore></i><span>新窗口打开</span></div><div class=rightMenu-item id=menu-copylink><i class=icon-link></i><span>复制链接地址</span></div><div class=rightMenu-item id=menu-copyimg><i class=icon-images></i><span>复制此图片</span></div><div class=rightMenu-item id=menu-downloadimg><i class=icon-download></i><span>下载此图片</span></div><div class=rightMenu-item id=menu-newwindowimg><i class=icon-window-restore></i><span>新窗口打开图片</span></div><div class=rightMenu-item id=menu-search><i class=icon-search--line></i><span>站内搜索</span></div><div class=rightMenu-item id=menu-searchBaidu><i class=icon-baidu></i><span>百度搜索</span></div><div class=rightMenu-item id=menu-music-toggle><i class=icon-play></i><span>播放音乐</span></div><div class=rightMenu-item id=menu-music-back><i class=icon-backward></i><span>切换到上一首</span></div><div class=rightMenu-item id=menu-music-forward><i class=icon-forward></i><span>切换到下一首</span></div><div onclick="javascript:window.open('https://y.qq.com/n/ryqq/playlist/xxxxx')" class=rightMenu-item id=menu-music-playlist><i class=icon-radio></i><span>查看所有歌曲</span></div><div class=rightMenu-item id=menu-music-copyMusicName><i class=icon-copy></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id=menu-randomPost onclick=toRandomPost()> <i class=icon-shuffle></i> <span>随便逛逛</span> </a><a class="rightMenu-item menu-link" href=../categories> <i class=icon-cube></i> <span>博客分类</span> </a><a class="rightMenu-item menu-link" href=../tags> <i class=icon-tags></i> <span>文章标签</span> </a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><div class=rightMenu-item id=menu-copy><i class=icon-copy></i><span>复制地址</span></div><div class=rightMenu-item draggable=false id=menu-commentBarrage style=display:flex><i class=icon-chat--fill style=font-size:19px></i><span class=menu-commentBarrage-text>显示热评</span></div><div class=rightMenu-item id=menu-darkmode><i class=icon-moon-clear-fill style=font-size:19px></i><span class=menu-darkmode-text>深色模式</span></div><div class=rightMenu-item id=menu-translate><i class=icon-fanti style=font-size:19px></i><span>轉為繁體</span></div></div></div><div id=rightmenu-mask></div></div><script defer onload src=/libs/qrcode/qrcode.min.js></script><script defer src=/libs/view-image/view-image.min.js></script><script defer src=/libs/tocbot/4.18.2/tocbot.min.js></script><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/tocbot/4.18.2/tocbot.css rel=preload><noscript><link href=/libs/tocbot/4.18.2/tocbot.css rel=stylesheet></noscript><script async src=/libs/snackbar/snackbar.min.js></script><script>var meting_api = "https:&#x2F;&#x2F;api.i-meto.com&#x2F;meting&#x2F;api?server=:server&amp;type=:type&amp;id=:id&amp;r=:r";</script><canvas height=880 id=universe width=1312></canvas><script defer src=/libs/canvas/dark.js></script><script src=/libs/waterfall/waterfall.min.js></script><script src=/libs/fast-average-color/index.browser.min.js></script><script>let pjaxSelectors = ['title', '#body-wrap', '#rightside-config-hide', '#rightside-config-show', '.js-pjax', '#site-config']
+          
+    pjaxSelectors.unshift('meta[property="og:type"]', 'meta[property="og:image"]', 'meta[property="og:title"]', 'meta[property="og:url"]', 'meta[property="og:description"]'
+            , 'meta[name="twitter:title"]', 'meta[name="twitter:url"]', 'meta[name="twitter:description"]', 'meta[name="twitter:image"]', 'meta[name="description"]')
+    
+    var pjax = new Pjax({
+        elements: 'a:not([target="_blank"])',
+        selectors: pjaxSelectors,
+        cacheBust: false,
+        //debug: true,        
+        analytics: false,
+        scrollRestoration: false
+    })</script><script defer src=/js/rightmenu.js></script><script data-pjax defer src=/production/js/abstract/local.js></script><script data-pjax defer src=/production/js/bundle.js></script><script defer src=/js/tw_cn.js></script><script defer src=/libs/instantpage/instantpage.min.js type=module></script><link onload="this.rel='stylesheet'" as=style href=/libs/prism/prism.min.css rel=preload><noscript><link href=/libs/prism/prism.min.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style href=/libs/prism/code.css rel=preload><noscript><link href=/libs/prism/code.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=light href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=dark href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><script defer src=/libs/prism/prism.min.js></script><style>#article-container .code-toolbar pre.close{height:300px;overflow:hidden}</style>

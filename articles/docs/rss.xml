@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+      <title>ByeIO·开发者博客</title>
+      <link>/articles/docs/</link>
+      <description>ByeIO·开发者博客|技术解决方案|开发思考|总结</description>
+      <generator uri="https://www.getzola.org/">Zola</generator>
+      <language>en</language>
+      <atom:link href="/articles/docs/rss.xml" rel="self" type="application/rss+xml"/>
+      <lastBuildDate>Wed, 01 Jan 2025 00:00:00 +0000</lastBuildDate>
+      <item>
+          <title>ROS笔记[1]-搭建Gazebo仿真环境</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/ROS笔记[1]-搭建Gazebo仿真环境/</link>
+          <guid>/articles/docs/ROS笔记[1]-搭建Gazebo仿真环境/</guid>
+          <description xml:base="/articles/docs/ROS笔记[1]-搭建Gazebo仿真环境/">在阿里无影云电脑Ubuntu20.04上搭建ROS1-Noetic环境及Gazebo环境;搭建XTDrone仿真环境.</description>
+      </item>
+      <item>
+          <title>ROS笔记[2]-获取OpenMV数据并发布到ROS消息</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/ROS笔记[2]-获取OpenMV数据并发布到ROS消息/</link>
+          <guid>/articles/docs/ROS笔记[2]-获取OpenMV数据并发布到ROS消息/</guid>
+          <description xml:base="/articles/docs/ROS笔记[2]-获取OpenMV数据并发布到ROS消息/">Orangepi(香橙派)通过USB-CDC获取OpenMV数据并使用Python发布到ROS的&#x2F;openmv主题,实现打印&#x27;hello ros&#x27;字符串.</description>
+      </item>
+      <item>
+          <title>ROS笔记[3]-安装mavros</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/ROS笔记[3]-安装mavros/</link>
+          <guid>/articles/docs/ROS笔记[3]-安装mavros/</guid>
+          <description xml:base="/articles/docs/ROS笔记[3]-安装mavros/">在ROS1 Noetic中安装mavros并通过mavros与apm飞控通信(usb接口).</description>
+      </item>
+      <item>
+          <title>rp2040笔记[1]-使用embassy实现呼吸灯并通过命令行切换状态</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/rp2040笔记[1]-使用embassy实现呼吸灯并通过命令行切换状态/</link>
+          <guid>/articles/docs/rp2040笔记[1]-使用embassy实现呼吸灯并通过命令行切换状态/</guid>
+          <description xml:base="/articles/docs/rp2040笔记[1]-使用embassy实现呼吸灯并通过命令行切换状态/">使用rust的embassy在rp2040芯片核心板实现呼吸灯.</description>
+      </item>
+      <item>
+          <title>rp2040笔记[2]-使用pio实现dshot并驱动电机</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/rp2040笔记[2]-使用pio实现dshot并驱动电机/</link>
+          <guid>/articles/docs/rp2040笔记[2]-使用pio实现dshot并驱动电机/</guid>
+          <description xml:base="/articles/docs/rp2040笔记[2]-使用pio实现dshot并驱动电机/">基于rust和embassy框架使用pio实现dshot并驱动电机;使用全局伪静态变量记录电机速度并异步更新值.</description>
+      </item>
+      <item>
+          <title>公众号[2]-github项目分享-slambook2.rs项目</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/公众号[2]-github项目分享-slambook2.rs项目/</link>
+          <guid>/articles/docs/公众号[2]-github项目分享-slambook2.rs项目/</guid>
+          <description xml:base="/articles/docs/公众号[2]-github项目分享-slambook2.rs项目/">宝子们，今天给大家安利一个超酷的项目——slambook2的Rust🔥重构版！这可不是普通的代码重构，而是用Rust语言重新实现的SLAM（同时定位与建图）算法，简直太安全了！(≧▽≦)</description>
+      </item>
+      <item>
+          <title>折腾笔记[10]-使用rust进行ORB角点检测</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[10]-使用rust进行ORB角点检测/</link>
+          <guid>/articles/docs/折腾笔记[10]-使用rust进行ORB角点检测/</guid>
+          <description xml:base="/articles/docs/折腾笔记[10]-使用rust进行ORB角点检测/">打包ORB算法到bye_orb_rs库,使用rust进行ORB角点检测.Package the ORB algorithm into the bye_orb_rs library, and use Rust for ORB corner detection.</description>
+      </item>
+      <item>
+          <title>折腾笔记[11]-使用rust进行直接法视觉里程计估计</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[11]-使用rust进行直接法视觉里程计估计/</link>
+          <guid>/articles/docs/折腾笔记[11]-使用rust进行直接法视觉里程计估计/</guid>
+          <description xml:base="/articles/docs/折腾笔记[11]-使用rust进行直接法视觉里程计估计/">使用rust实现了一个完整的直接法视觉里程计系统，能够通过比较两幅图像中的像素强度来估计相机的运动。它通过单层和多层的优化策略，结合图像金字塔和并行计算，提高了位姿估计的精度和效率。最终，代码输出了优化后的相机位姿变换矩阵，并可视化了投影点的位置。This is a complete direct method visual odometry system implemented in Rust, which estimates camera motion by comparing pixel intensities between two images. It employs both single-layer and multi-layer optimization strategies, combined with image pyramids and parallel computing, to enhance the accuracy and efficiency of pose estimation. Finally, the code outputs the optimized camera pose transformation matrix and visualizes the positions of the projected points.</description>
+      </item>
+      <item>
+          <title>折腾笔记[12]-使用rust进行位姿图优化</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[12]-使用rust进行位姿图优化/</link>
+          <guid>/articles/docs/折腾笔记[12]-使用rust进行位姿图优化/</guid>
+          <description xml:base="/articles/docs/折腾笔记[12]-使用rust进行位姿图优化/">使用rust进行g2o格式的位姿图优化.Using Rust for Pose Graph Optimization in g2o Format.</description>
+      </item>
+      <item>
+          <title>折腾笔记[13]-使用rust对图像建立词袋</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[13]-使用rust对图像建立词袋/</link>
+          <guid>/articles/docs/折腾笔记[13]-使用rust对图像建立词袋/</guid>
+          <description xml:base="/articles/docs/折腾笔记[13]-使用rust对图像建立词袋/">使用rust对图像建立词袋并进行相似度评分.Use Rust to build a bag of words for images and perform similarity scoring.</description>
+      </item>
+      <item>
+          <title>折腾笔记[14]-使用rust进行深度估计</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[14]-使用rust进行深度估计/</link>
+          <guid>/articles/docs/折腾笔记[14]-使用rust进行深度估计/</guid>
+          <description xml:base="/articles/docs/折腾笔记[14]-使用rust进行深度估计/">使用rust实现基于REMODE数据集的单目相机在已知轨迹下的稠密深度估计.</description>
+      </item>
+      <item>
+          <title>折腾笔记[18]-使用rust读取rosbag数据</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[18]-使用rust读取rosbag数据/</link>
+          <guid>/articles/docs/折腾笔记[18]-使用rust读取rosbag数据/</guid>
+          <description xml:base="/articles/docs/折腾笔记[18]-使用rust读取rosbag数据/">使用rust读取rosbag数据(ROS1格式).</description>
+      </item>
+      <item>
+          <title>折腾笔记[19]-使用rust发布和订阅ros2消息</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[19]-使用rust发布和订阅ros2消息/</link>
+          <guid>/articles/docs/折腾笔记[19]-使用rust发布和订阅ros2消息/</guid>
+          <description xml:base="/articles/docs/折腾笔记[19]-使用rust发布和订阅ros2消息/">使用rust发布和订阅ros2消息, 无需安装ros2环境.</description>
+      </item>
+      <item>
+          <title>折腾笔记[20]-使用rust交换protobuf数据</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[20]-使用rust交换protobuf数据/</link>
+          <guid>/articles/docs/折腾笔记[20]-使用rust交换protobuf数据/</guid>
+          <description xml:base="/articles/docs/折腾笔记[20]-使用rust交换protobuf数据/">使用rust和protobuf3交换数字数据.</description>
+      </item>
+      <item>
+          <title>折腾笔记[23]-使用rust进行图像分割</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[23]-使用rust进行图像分割/</link>
+          <guid>/articles/docs/折腾笔记[23]-使用rust进行图像分割/</guid>
+          <description xml:base="/articles/docs/折腾笔记[23]-使用rust进行图像分割/">使用rust和ort库(onnxruntime后端)推理SAM2.1模型并获取图像分割结果.</description>
+      </item>
+      <item>
+          <title>折腾笔记[24]-使用rust基于光流法对比图像</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[24]-使用rust基于光流法对比图像/</link>
+          <guid>/articles/docs/折腾笔记[24]-使用rust基于光流法对比图像/</guid>
+          <description xml:base="/articles/docs/折腾笔记[24]-使用rust基于光流法对比图像/">使用rust推理onnx模型获取两张图片的光流信息, 比较图片之间的差异并使用色轮绘制差异部分.</description>
+      </item>
+      <item>
+          <title>折腾笔记[5]-使用rust解矩阵方程</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[5]-使用rust解矩阵方程/</link>
+          <guid>/articles/docs/折腾笔记[5]-使用rust解矩阵方程/</guid>
+          <description xml:base="/articles/docs/折腾笔记[5]-使用rust解矩阵方程/">使用rust的nalgebra库解矩阵方程,稠密矩阵的代数运算(逆,特征值等).</description>
+      </item>
+      <item>
+          <title>折腾笔记[6]-使用rust绘制三维画面</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[6]-使用rust绘制三维画面/</link>
+          <guid>/articles/docs/折腾笔记[6]-使用rust绘制三维画面/</guid>
+          <description xml:base="/articles/docs/折腾笔记[6]-使用rust绘制三维画面/">使用rust绘制界面;界面包含一个三维坐标轴,使用鼠标旋转坐标轴,左侧显示对应的旋转向量,四元数等信息.Use Rust to draw the interface; the interface contains a three-dimensional coordinate axis, which can be rotated using the mouse, and the corresponding rotation vector, quaternion and other information are displayed on the left side.</description>
+      </item>
+      <item>
+          <title>折腾笔记[7]-使用rust进行李代数计算</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[7]-使用rust进行李代数计算/</link>
+          <guid>/articles/docs/折腾笔记[7]-使用rust进行李代数计算/</guid>
+          <description xml:base="/articles/docs/折腾笔记[7]-使用rust进行李代数计算/">使用rust的nalgebra库和sophus库进行李代数hat和vee计算.Use the nalgebra library and sophus library of rust for Lie algebra hat and vee calculation.</description>
+      </item>
+      <item>
+          <title>折腾笔记[8]-使用rust去除灰度图的畸变</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[8]-使用rust去除灰度图的畸变/</link>
+          <guid>/articles/docs/折腾笔记[8]-使用rust去除灰度图的畸变/</guid>
+          <description xml:base="/articles/docs/折腾笔记[8]-使用rust去除灰度图的畸变/">使用rust的`image`库,实现去畸变算法从而去除灰度图的畸变.Use the `image` library of Rust; manually implement the distortion removal method to remove the distortion of the grayscale image.</description>
+      </item>
+      <item>
+          <title>折腾笔记[9]-使用rust通过图优化进行曲线拟合</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/折腾笔记[9]-使用rust通过图优化进行曲线拟合/</link>
+          <guid>/articles/docs/折腾笔记[9]-使用rust通过图优化进行曲线拟合/</guid>
+          <description xml:base="/articles/docs/折腾笔记[9]-使用rust通过图优化进行曲线拟合/">使用rust通过图优化方式进行二次曲线拟合.Using Rust to perform quadratic curve fitting through graph optimization.</description>
+      </item>
+      <item>
+          <title>搭建ArduPilot的SITL仿真环境</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/搭建ArduPilot的SITL仿真环境/</link>
+          <guid>/articles/docs/搭建ArduPilot的SITL仿真环境/</guid>
+          <description xml:base="/articles/docs/搭建ArduPilot的SITL仿真环境/">搭建APM飞控(ArduCopter)的SITL仿真环境,在gazebo中实现无人机起飞.</description>
+      </item>
+      <item>
+          <title>翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/</link>
+          <guid>/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/</guid>
+          <description xml:base="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/">基于rust和embassy异步框架的飞控固件: Holsatus Flight</description>
+      </item>
+      <item>
+          <title>计算机控制apm飞控自动飞行</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/计算机控制apm飞控自动飞行/</link>
+          <guid>/articles/docs/计算机控制apm飞控自动飞行/</guid>
+          <description xml:base="/articles/docs/计算机控制apm飞控自动飞行/">使用mavproxy(mavlink)控制ArduCopter飞控无人机自动起飞到1米高度然后前进1m然后降落.</description>
+      </item>
+      <item>
+          <title>配置orangepi5pro运行rknn版本的yolov5</title>
+          <pubDate>Wed, 01 Jan 2025 00:00:00 +0000</pubDate>
+          <author>qsbye</author>
+          <link>/articles/docs/配置orangepi5pro运行rknn版本的yolov5/</link>
+          <guid>/articles/docs/配置orangepi5pro运行rknn版本的yolov5/</guid>
+          <description xml:base="/articles/docs/配置orangepi5pro运行rknn版本的yolov5/">配置orangepi5pro运行rknn版本的yolov5,使用npu进行目标检测.</description>
+      </item>
+    </channel>
+</rss>

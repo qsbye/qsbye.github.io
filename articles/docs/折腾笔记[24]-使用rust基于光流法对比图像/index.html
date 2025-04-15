@@ -1,0 +1,1153 @@
+<!doctype html><html lang=zh-CN><head><title>折腾笔记[24]-使用rust基于光流法对比图像 | ByeIO·开发者博客</title><meta content=ByeIO·开发者博客 property=og:site_name><meta content=article property=og:type><meta content=折腾笔记[24]-使用rust基于光流法对比图像 property=og:title><meta content=//articles/docs/折腾笔记[24]-使用rust基于光流法对比图像/ property=og:url><meta content="使用rust推理onnx模型获取两张图片的光流信息, 比较图片之间的差异并使用色轮绘制差异部分." property=og:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp property=og:image><meta content=summary_large_image name=twitter:card><meta content=折腾笔记[24]-使用rust基于光流法对比图像 name=twitter:title><meta content=//articles/docs/折腾笔记[24]-使用rust基于光流法对比图像/ name=twitter:url><meta content="使用rust推理onnx模型获取两张图片的光流信息, 比较图片之间的差异并使用色轮绘制差异部分." name=twitter:description><meta content=/processed_images/img00006.3250c5dc35a28271.webp name=twitter:image><meta content="使用rust推理onnx模型获取两张图片的光流信息, 比较图片之间的差异并使用色轮绘制差异部分." name=description><script id=ld-json type=application/ld+json>
+        {
+          "@context": "https://schema.org/",
+          "@type": "Article",
+          "headline": "折腾笔记[24]-使用rust基于光流法对比图像",
+          "author": {
+            "@type": "Person",
+            "name": "qsbye",
+            "url": "/about"
+          },
+          "image": "/processed_images/img00006.c4abedc898f992a6.webp",
+          "datePublished": "2025-01-01T00:00:00+00:00",
+          
+          "description": "使用rust推理onnx模型获取两张图片的光流信息, 比较图片之间的差异并使用色轮绘制差异部分."
+        }
+    </script><meta charset=UTF-8><meta content="IE=edge" http-equiv=X-UA-Compatible><meta content="width=device-width,initial-scale=1" name=viewport><meta content="telephone=no" name=format-detection><meta content=var(--wjx-card-bg) name=theme-color><link href=/manifest.json rel=manifest><link href=/img/avatar.png rel=icon type=image/x-icon><link href=/img/avatar.png rel=apple-touch-icon><link href=/img/avatar.png rel=bookmark><link href=/img/avatar.png rel=apple-touch-icon-precomposed sizes=180x180><script src=/libs/jquery/jquery-3.7.1.min.js></script><script src=/libs/pjax/pjax.min.js></script><script src=/production/js/utils.js></script><link href=/production/css/blog.css rel=stylesheet><link href=/css/custom.css rel=stylesheet><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/snackbar/snackbar.min.css rel=preload><noscript><link href=/libs/snackbar/snackbar.min.css rel=stylesheet></noscript><script>// Added non-passive event listener
+  !function(e){"function"==typeof define&&define.amd?define(e):e()}(function(){var e,t=["scroll","wheel","touchstart","touchmove","touchenter","touchend","touchleave","mouseout","mouseleave","mouseup","mousedown","mousemove","mouseenter","mousewheel","mouseover"];if(function(){var e=!1;try{var t=Object.defineProperty({},"passive",{get:function(){e=!0}});window.addEventListener("test",null,t),window.removeEventListener("test",null,t)}catch(e){}return e}()){var n=EventTarget.prototype.addEventListener;e=n,EventTarget.prototype.addEventListener=function(n,o,r){var i,s="object"==typeof r&&null!==r,u=s?r.capture:r;(r=s?function(e){var t=Object.getOwnPropertyDescriptor(e,"passive");return t&&!0!==t.writable&&void 0===t.set?Object.assign({},e):e}(r):{}).passive=void 0!==(i=r.passive)?i:-1!==t.indexOf(n)&&!0,r.capture=void 0!==u&&u,e.call(this,n,o,r)},EventTarget.prototype.addEventListener._original=e}});</script><script>((win) => {
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return;
+        const now = new Date();
+        const expiryDay = ttl * 86400000;
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        };
+        localStorage.setItem(key, JSON.stringify(item));
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key);
+
+        if (!itemStr) {
+          return undefined;
+        }
+        const item = JSON.parse(itemStr);
+        const now = new Date();
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key);
+          return undefined;
+        }
+        return item.value;
+      },
+    };
+
+    win.getScript = (url) =>
+      new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = url;
+        script.async = true;
+        script.onerror = reject;
+        script.onload = script.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          script.onload = script.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(script);
+      });
+
+    win.getCSS = (url, id = false) =>
+      new Promise((resolve, reject) => {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = url;
+        if (id) link.id = id;
+        link.onerror = reject;
+        link.onload = link.onreadystatechange = function () {
+          const loadState = this.readyState;
+          if (loadState && loadState !== "loaded" && loadState !== "complete")
+            return;
+          link.onload = link.onreadystatechange = null;
+          resolve();
+        };
+        document.head.appendChild(link);
+      });
+
+    win.activateDarkMode = function () {
+      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.classList.add("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    win.activateLightMode = function () {
+      document.documentElement.setAttribute("data-theme", "light");
+      document.documentElement.classList.remove("color-scheme-dark");
+      wjx.initThemeColor();
+    };
+    const t = saveToLocal.get("theme");
+
+    const isDarkMode = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const isLightMode = window.matchMedia(
+      "(prefers-color-scheme: light)"
+    ).matches;
+    const isNotSpecified = window.matchMedia(
+      "(prefers-color-scheme: no-preference)"
+    ).matches;
+    const hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified;
+
+    if (t === undefined) {
+      if (isLightMode) activateLightMode();
+      else if (isDarkMode) activateDarkMode();
+      else if (isNotSpecified || hasNoSupport) {
+        const now = new Date();
+        const hour = now.getHours();
+        const isNight = hour <= 6 || hour >= 18;
+        isNight ? activateDarkMode() : activateLightMode();
+      }
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addListener(function (e) {
+          if (saveToLocal.get("theme") === undefined) {
+            e.matches ? activateDarkMode() : activateLightMode();
+          }
+        });
+    } else if (t === "light") activateLightMode();
+    else activateDarkMode();
+
+    if ("system" === "dark")
+      activateDarkMode();
+    else activateLightMode();
+
+    const asideStatus = saveToLocal.get("aside-status");
+    if (asideStatus !== undefined) {
+      if (asideStatus === "hide") {
+        document.documentElement.classList.add("hide-aside");
+      } else {
+        document.documentElement.classList.remove("hide-aside");
+      }
+    }
+  })(window);</script><script data-pace-options='{ "restartOnRequestAfter":false,"eventLag":false}' src=/libs/pace/pace.min.js></script><script defer src=/libs/clipboard/clipboard.min.js></script><script src=/libs/countup/countup.js></script><link href=/icon/font.css rel=stylesheet><style>[data-theme=light]{--wjx-theme:#425aef!important;--wjx-theme-op:#425aef23!important;--wjx-theme-op-deep:#425aefdd!important;--wjx-theme-none:#425aef00!important}[data-theme=dark]{--wjx-theme:#f2b94b!important;--wjx-theme-op:#f2b94b23!important;--wjx-theme-op-deep:#f2b94bdd!important;--wjx-theme-none:#f2b94b00!important}:root{--halo-comment-widget-component-card-bg:var(--wjx-card-bg);--halo-comment-widget-component-theme-op:var(--wjx-theme-op);--halo-comment-widget-component-card-border:var(--wjx-card-border);--halo-comment-widget-component-shadow-border:var(--wjx-shadow-border);--halo-comment-widget-component-secondtext:var(--wjx-secondtext);--halo-comment-widget-component-lighttext:var(--wjx-lighttext);--halo-comment-widget-component-secondbg:var(--wjx-secondbg);--halo-comment-widget-component-fontcolor:var(--wjx-fontcolor);--halo-comment-widget-component-main:var(--wjx-main);--halo-comment-widget-component-background:var(--wjx-background);--halo-comment-widget-component-white:var(--wjx-white);--halo-comment-widget-component-shadow-black:var(--wjx-shadow-black)}#page{--halo-comment-widget-component-padding:1rem}.color-scheme-dark,.dark,[data-color-scheme=dark]{--halo-search-widget-color-modal-layer:var(--wjx-maskbgdeep);--halo-search-widget-color-modal-content-bg:var(--wjx-card-bg);--halo-search-widget-color-form-input:#fffc;--halo-search-widget-color-form-input-placeholder:#6b7280d9;--halo-search-widget-color-form-input-bg:var(--wjx-card-bg);--halo-search-widget-color-form-divider:#bbbbbb0f;--halo-search-widget-color-result-item-bg:var(--wjx-card-bg);--halo-search-widget-color-result-item-hover-bg:#90939914;--halo-search-widget-color-result-item-title:#fffc;--halo-search-widget-color-result-item-content:#ffffff82;--halo-search-widget-color-command-kbd-item:#c0c4ccb3;--halo-search-widget-color-command-kbd-border:#bbbbbb0f;--halo-search-widget-color-result-empty:#6b7280d9}[data-theme=light]{--halo-search-widget-color-result-item-title:#4b5563}</style><script id=site-config>var GLOBAL_CONFIG = {
+        
+                
+        
+        
+        
+        
+        htmlType: "post",
+        postTitle: "折腾笔记[24]-使用rust基于光流法对比图像",
+        isPost: true,
+        isHome: false,
+        passageTip: {
+            enable: true,
+            day: 60,
+        },
+        copyright: {
+            enable: false,
+            limitCount: 10,
+            languages: {
+                author: " 作者：qsbye",
+                link: " 链接：",
+                source: " 来源：ByeIO·开发者博客",
+                info: " 提示：著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处并保留原文链接。"
+            }
+        },
+        lightbox: 'fancybox',
+        rightMenuEnable: true,
+        lazyload: {
+            enable: true,
+            error: "/img/404.svg"
+        },
+        isFriendLinksInFooter: true,
+        loadingBox: true,
+        progress_bar: true,
+        navMusicEnable: false,
+        isMusic: false,
+        helloText: ["🤖️ 数码科技爱好者","🔯 全栈架构都在行","🏠 智能家居小能手","🤝 科研科普两不误","🎵 业余原创音乐人","🏃 文艺青年细节控","🔍 探索世界涉猎广","🤛 热爱分享交朋友"],
+        profileStyle: "one",
+        enable: true,
+        keyboard: true,
+        date_suffix: {
+            just: '刚刚',
+            min: '分钟前',
+            hour: '小时前',
+            day: '天前',
+            month: '个月前'
+        },
+        Snackbar: {
+            chs_to_cht: "你已切换为繁体",
+            cht_to_chs: "你已切换为简体",
+            day_to_night: "你已切换为深色模式",
+            night_to_day: "你已切换为浅色模式",
+            bgLight: "#425AEF",
+            bgDark: "#f2b94b",
+            position: "top-center"
+        },
+        translate: {
+            defaultEncoding: "2",
+            translateDelay: 0,
+            msgToTraditionalChinese: "繁",
+            msgToSimplifiedChinese: "简",
+            rightMenuMsgToTraditionalChinese: "轉為繁體",
+            rightMenuMsgToSimplifiedChinese: "转为简体"
+        },
+        prism: {
+            enable: true,
+            enable_title: true,
+            enable_hr: true,
+            enable_line: true,
+            enable_copy: true,
+            enable_expander: true,
+            prism_limit: 330,
+            enable_height_limit: false
+        },
+        
+        source: {
+            power: {
+                powerLink: "/",
+                showNum: 3
+            },
+            links: {
+                linksUrl: "/friends",
+                linksNum: 3
+            },
+            jQuery: '/libs/jquery/jquery.min.js',
+            justifiedGallery: {
+                js: '/libs/justified-gallery/fjGallery.min.js',
+                css: '/libs/justified-gallery/fjGallery.css'
+            },
+            fancybox: {
+                js: '/libs/fancybox/jquery.fancybox.min.js',
+                css: '/null'
+            },
+            comments: {
+                use: "twikoo",
+                maxBarrage: 1,
+                barrageTime: 4000,
+                mailMd5: "",
+                lazyload: false,
+                textarea: "el-textarea__inner"
+            },
+            post: {
+                dynamicBackground: true
+            },
+            tool: {
+                switch: false
+            },
+            postAi: {
+                
+                gptName: "本地",
+                modeName: "local"
+            },twikoo: {
+                js: "/libs/twikoo/twikoo.all.min.js",
+                twikooUrl: "https://your-api-url",
+            },
+            footer: {
+                default_enable: true
+            },
+            about: {
+                
+                rewardList: [],
+                rewardAmount: 10
+            }
+        }
+    };</script><style id=wjx-theme-styles>:root{--wjx-main:var(--wjx-theme)!important;--wjx-main-op:var(--wjx-theme-op)!important;--wjx-main-op-deep:var(--wjx-theme-op-deep)!important;--wjx-main-op-light:var(--wjx-theme-op-light)!important;--wjx-main-none:var(--wjx-theme-none)!important}</style><script>document.addEventListener('pjax:send', function () {
+      // removeEventListener toc scroll
+      window.removeEventListener('scroll', window.tocScrollFn);
+      typeof preloader === 'object' && preloader.initLoading();
+      
+      if (window.aplayers) {
+          for (let i = 0; i < window.aplayers.length; i++) {
+              if (!window.aplayers[i].options.fixed) {
+                  window.aplayers[i].destroy()
+              }
+          }
+      }
+      
+      typeof typed === 'object' && typed.destroy();
+      typeof window.initializationRegistry === 'object' && window.initializationRegistry.clear();
+      
+      //reset readmode
+      const $bodyClassList = document.body.classList
+      $bodyClassList.contains('read-mode') && $bodyClassList.remove('read-mode')
+  })
+  document.addEventListener('pjax:complete', function () {
+      window.refreshFn();
+      
+      document.querySelectorAll('script[data-pjax]').forEach(item => {
+                  const newScript = document.createElement('script')
+                  const content = item.text || item.textContent || item.innerHTML || ""
+                  Array.from(item.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value))
+                  newScript.appendChild(document.createTextNode(content))
+                  item.parentNode.replaceChild(newScript, item)
+              }
+      );
+
+      typeof chatBtnFn === 'function' && chatBtnFn();
+      typeof panguInit === 'function' && panguInit();
+      
+      // google analytics
+      typeof gtag === 'function' && gtag('config', '', {
+          'page_path': window.location.pathname
+      });
+      
+      // baidu analytics
+      typeof _hmt === 'object' && _hmt.push(['_trackPageview', window.location.pathname]);
+      
+      typeof loadMeting === 'function' && document.getElementsByClassName('aplayer').length && loadMeting();
+      
+      // Analytics
+      if (false) {
+          MtaH5.pgv()
+      }
+      
+      // prismjs
+      typeof Prism === 'object' && Prism.highlightAll();
+      
+      typeof preloader === 'object' && preloader.endLoading();
+  })
+  document.addEventListener('pjax:error', (e) => {
+      if (e.request.status === 404 || e.request.status === 500) {
+          window.location.href = e.request.responseURL;
+      }
+  })</script><script data-pjax src=/production/js/main.js></script><script>let initTop = 0
+  let isChatShow = true
+  const innerHeight = window.innerHeight + 0
+  window.addEventListener('scroll', btf.throttle(function (e) {
+    const $rightside = document.getElementById('rightside')
+
+    const $header = document.getElementById('page-header')
+    const $cookies_window = document.getElementById('cookies-window')
+    const isChatBtnHide = typeof chatBtnHide === 'function'
+    const isChatBtnShow = typeof chatBtnShow === 'function'
+  
+    const currentTop = window.scrollY || document.documentElement.scrollTop
+    // 找到滚动方向 true is down & false is up
+    const isDown = currentTop > initTop
+    initTop = currentTop
+    if (currentTop > 0) {
+        if (isDown) {
+            if ($header.classList.contains('nav-visible')) $header.classList.remove('nav-visible')
+            if (isChatBtnShow && isChatShow === true) {
+                chatBtnHide()
+                isChatShow = false
+            }
+        } else {
+            if (!$header.classList.contains('nav-visible')) $header.classList.add('nav-visible')
+            if (isChatBtnHide && isChatShow === false) {
+                chatBtnShow()
+                isChatShow = true
+            }
+        }
+        $header.classList.add('nav-fixed')
+        if($cookies_window!=null && $cookies_window!=''){
+            $cookies_window.classList.add('cw-hide')
+        }
+        if ($rightside && window.getComputedStyle($rightside).getPropertyValue('opacity') === '0') {
+            $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+        }
+    } else {
+        if (currentTop === 0) {
+            $header.classList.remove('nav-fixed', 'nav-visible')
+        }
+        $rightside.style.cssText = "opacity: ''; transform: ''"
+    }
+    if (document.body.scrollHeight <= innerHeight) {
+        $rightside.style.cssText = 'opacity: 0.8; transform: translateX(-58px)'
+    }
+  }, 200))</script><script defer src=/libs/katex/katex.min.js></script><body><style>#loading-box{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}#loading-box .loading-bg{background:var(--wjx-card-bg);z-index:1999;opacity:1;pointer-events:all;width:100%;height:100%;transition:all .2s;animation:.3s backwards showLoading;display:flex;position:fixed}#loading-box.loaded .loading-bg{pointer-events:none;transition:all .2s;animation:.3s forwards hideLoading}#loading-box .loading-img{width:100px;height:100px;margin:auto;animation-name:loadingAction;animation-duration:.2s;animation-iteration-count:infinite;animation-direction:alternate;overflow:hidden}#loading-box .loading-image-dot{background:#6bdf8f;border:6px solid #fff;border-radius:50%;width:30px;height:30px;position:absolute;top:50%;left:50%;-webkit-transform:translate(18px,24px);-moz-transform:translate(18px,24px);-ms-transform:translate(18px,24px);-o-transform:translate(18px,24px);transform:translate(18px,24px)}@keyframes loadingAction{0%{opacity:1}to{opacity:.6}}@keyframes hideLoading{0%{opacity:1}to{opacity:0}}@keyframes showLoading{0%{opacity:0}to{opacity:1}}</style><div id=loading-box onclick=wjx.hideLoading()><div class=loading-bg><picture class=loading-img style=border-radius:50%;width:100px;height:100px><source media="(min-width: 1em)" srcset=/processed_images/logo.21eeb8b123e2a315.avif><img alt=Loading decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp><noscript><img decoding=async loading=lazy src=/processed_images/logo.caf14bfbf942dbfc.webp></noscript></picture><div class=loading-image-dot></div></div></div><script>var preloader = {
+            endLoading: () => {
+                //- document.body.style.overflow = 'auto';
+                document.getElementById('loading-box').classList.add("loaded")
+            },
+            initLoading: () => {
+                //- document.body.style.overflow = '';
+                document.getElementById('loading-box').classList.remove("loaded")
+            }
+        }
+        window.addEventListener('load', preloader.endLoading())
+        setTimeout(function () {
+            preloader.endLoading();
+        }, 3000)</script><div id=an_music_bg></div><div class=post data-type=post id=body-wrap><header class=post-bg id=page-header><nav class=show id=nav><div id=nav-group><div id=blog_name><div class=back-home-button tabindex=-1><i class="nav-icon back-home-button-icon icon-apps-fill" style=font-size:1rem></i><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div></div><a class="nav-item icon-home" data-pjax href=/ id=site-name title=返回博客主页> <span>ByeIO·开发者博客</span> </a></div><div id=page-name-mask><div id=page-name><a clase=nav-item id=page-name-text onclick=btf.scrollToDest(0,500)> 折腾笔记[24]-使用rust基于光流法对比图像 </a></div></div><div id=menus><div class=menus_items><div class=menus_item><button class="site-page nav-item"><span>文库</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/archives> <i class=icon-book-open style=font-size:.9em></i> <span>全部文章</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/categories> <i class=icon-folder-open style=font-size:.9em></i> <span>分类列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags> <i class=icon-tags style=font-size:.9em></i> <span>标签列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:toRandomPost()> <i class=icon-artstation style=font-size:.9em></i> <span>随机文章</span> </a></div></div></div><div class=menus_item><a class="site-page nav-item" href=/tags/work> <span>推荐</span> </a><div class="menus_item_child vertical_nav"><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/docs/readme> <i class=icon-music style=font-size:.9em></i> <span>博客主题介绍</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/articles/misc/lorem-ipsum> <i class=icon-music style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>友链</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/friends> <i class=icon-link style=font-size:.9em></i> <span>友链列表</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=javascript:travelling()> <i class=icon-paper-plane style=font-size:.9em></i> <span>随机发现</span> </a></div></div></div><div class=menus_item><button class="site-page nav-item"><span>我的</span></button><div class=menus_item_child><div class=recursion_menus_item><a class="site-page child nav-item" href=/about> <i class=icon-rocket style=font-size:.9em></i> <span>关于本人</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/equipment> <i class=icon-artstation style=font-size:.9em></i> <span>我的装备</span> </a></div><div class=recursion_menus_item><a class="site-page child nav-item" href=/tags/project> <i class=icon-lightbulb style=font-size:.9em></i> <span>我的项目</span> </a></div></div></div></div></div><div id=nav-right><div class=nav-button id=randomPost_button><button class="site-page nav-item" href=javascript:void(0); onclick=toRandomPost() title=随机文章><i class="nav-icon icon-dice"></i></button></div><div class=nav-button id=darkmode_button><button class="site-page console_switchbutton nav-item" title="切换模式 - 日夜交替，黑白互换。" href=javascript:void(0); onclick=navFn.switchDarkMode();><i class="nav-icon icon-moon-clear-fill" style=font-size:1rem></i></button></div><div class=nav-button id=nav-console><button class="site-page console_switchbutton nav-item" href=javascript:void(0); onclick=wjx.showConsole() title=显示中控台><i class="nav-icon icon-dashboard"></i></button></div><div class=nav-button id=nav-totop onclick=btf.scrollToDest(0,500)><button class="totopbtn nav-item"><i class="nav-icon icon-arrow-up" style=font-size:1rem></i><span id=percent>0</span></button></div><div id=toggle-menu><button class="site-page nav-item"><i class="nav-icon icon-bars"></i></button></div></div></div></nav><div class="coverdiv loaded" id=coverdiv><img alt=cover class=nolazyload decoding=async id=post-cover loading=lazy src=/processed_images/img00006.c4abedc898f992a6.webp></div><div id=post-info><div id=post-firstinfo><div class=meta-firstline><a class=post-meta-original href=/copyright title=该文章为原创文章，注意版权协议>原创</a><span class=post-meta-categories> <a href=/categories/theme/ title=主题> 主题 </a> </span><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/ title=博客> <span class="tags-name tags-punctuation">博客</span> </a><a class=post-meta__tags href=/tags/docs/ title=文档> <span class="tags-name tags-punctuation">文档</span> </a><a class=post-meta__tags href=/tags/featured/ title=必看> <span class="tags-name tags-punctuation">必看</span> </a><a class=post-meta__tags href=/tags/hot/ title=热门> <span class="tags-name tags-punctuation">热门</span> </a></div></div></div></div><h1 class=post-title>折腾笔记[24]-使用rust基于光流法对比图像</h1><div id=post-meta><div class=meta-secondline><span class=post-meta-author data-flag-title=文章作者 title=文章作者> <i class="icon-zuozhe post-meta-icon"></i>qsbye </span><span class=post-meta-wordcount> <i class="icon-file-word post-meta-icon" title=字数></i> <span class=post-meta-label>字数:</span> <span class=word-count>4939</span> <span class=post-meta-separator></span> <i class="icon-clock post-meta-icon" title=阅读耗时></i> <span class=post-meta-label>阅读耗时:</span> <span> 25 分钟</span> </span><span class=post-meta-date> <i class="icon-calendar-days post-meta-icon"></i> <time title="2025-01-01 00:00:00" datetime=2025-01-01> 2025/01/01 </time> </span><span class=post-meta-wechat title=该文章在博客首发> <i class="icon-rss post-meta-icon"></i>博客独享 </span><a class=post-meta-pv data-flag-title=热度 title=热度> <i class="icon-fire post-meta-icon"></i> <span class=post-meta-label>热度:</span> <span id=twikoo_visitors> <i class="icon-spinner fa-spin"></i> </span> </a><a class=post-meta-commentcount data-flag-title=评论数 href=#post-comment title=评论数> <i class="icon-chat--fill post-meta-icon" style=font-size:17px></i> <span class=post-meta-label>评论:</span> <span id=twikoo-count> <i class="icon-spinner fa-spin"></i> </span> </a></div></div></div><section class="main-hero-waves-area waves-area"><svg viewbox="0 24 150 28" class=waves-svg preserveaspectratio=none shape-rendering=auto xlink=http://www.w3.org/1999/xlink xmlns=http://www.w3.org/2000/svg><defs><path d="M -160 44 c 30 0 58 -18 88 -18 s 58 18 88 18 s 58 -18 88 -18 s 58 18 88 18 v 44 h -352 Z" id=gentle-wave></path></defs><g class=parallax><use href=#gentle-wave x=48 y=0></use><use href=#gentle-wave x=48 y=3></use><use href=#gentle-wave x=48 y=5></use><use href=#gentle-wave x=48 y=7></use></g></svg></section></header><main class="layout right-aside" id=content-inner><div id=post><div id=abstract-container><div class=abstract-title><i class=icon-bilibili></i><div class=abstract-title-text>文章摘要</div><div id=abstract-tag>本地</div></div><div id=abstract-content style=display:block>使用rust推理onnx模型获取两张图片的光流信息, 比较图片之间的差异并使用色轮绘制差异部分.</div><div class=abstract-btn-box><div class=abstract-btn-item id=abstract-intro>介绍自己</div><div class=abstract-btn-item id=abstract-generate>生成本文简介</div><div class=abstract-btn-item id=abstract-recommend>推荐相关文章</div><div class=abstract-btn-item id=abstract-home>前往主页</div><div class=abstract-btn-item id=abstract-hide style=margin-left:auto>隐藏本摘要</div></div></div><div class="note simple warning" data-tip-enable=true data-update-date=2025-01-01 id=passage-tip></div><article class="post-content line-numbers" id=article-container><h2 id=zhai-yao>摘要</h2><p>使用rust推理onnx模型获取两张图片的光流信息, 比较图片之间的差异并使用色轮绘制差异部分. Use Rust to infer an ONNX model to obtain the optical flow information between two images, compare the differences between the images, and draw the different parts using a color wheel.<h2 id=guan-jian-ci>关键词</h2><p>rust;ort;optical flow;neuflow;<h2 id=guan-jian-xin-xi>关键信息</h2><p>项目地址:[https://github.com/ByeIO/bye.orbslam3.rs/blob/dev1/crates/seekslam_examples/examples/ort_optics.rs] 配置文件:<pre class=language-toml data-lang=toml><code class=language-toml data-lang=toml>[workspace.package]
+version = "0.0.1"
+edition = "2024"
+[workspace.dependencies]
+# 错误处理
+anyhow = "1.0.97"
+# 时间格式化
+chrono = "0.4.40"
+# Model Context Protocol协议定义
+rust-mcp-schema = { version = "0.2.2", path = "./static/rust-mcp-schema" }
+# Model Context Protocol开发工具
+# rust-mcp-sdk = { version = "0.1.2", path = "./static/rust-mcp-sdk/crates/rust-mcp-sdk" }
+rust-mcp-sdk = { version = "0.1.2" }
+# 多线程框架
+tokio = { version = "1.44.1", features = ["full"] }
+# ros2接口
+ros2-interfaces-humble = "0.0.1"
+# 日志后端
+log = { version = "0.4.27", features = ["std"] }
+# prototxt文件读取
+protokit = "0.2.0"
+# protobuf处理
+prost = "0.13.5"
+prost-build = { version = "0.13.5", features = ["cleanup-markdown"] }
+# onnx运行时
+wonnx = { version = "0.5.1", path = "./static/wonnx/wonnx" }
+# 线性代数
+nalgebra = { version = "0.33.2", features = ["rand"] }
+ndarray = { version = "0.16.1", path = "./static/ndarray" }
+# 随机数
+rand = "0.9.0"
+rand_distr = "0.5.1"
+# 图像处理
+image = "0.25.6"
+imageproc = "0.25.0"
+# 图优化
+factrs = "0.2.0"
+# wasm运行时
+wasmtime-cli = { version = "31.0.0", path="./static/wasmtime-cli-31.0.0" }
+# tract运行时
+tract-onnx = { version = "0.21.11", features = ["getrandom-js"], path = "./static/tract-onnx"}
+# javascript/ESM运行时
+deno_cli = { version = "2.2.8", path = "./static/deno" }
+# 临时文件
+tempfile = "3.19.1"
+# 嵌入文件
+embed-file = "0.2.0"
+# onnxruntime(C绑定), 默认特性
+ort = { version = "2.0.0-rc.9", path = "./static/ort" }
+# YOLOv11
+yolo-rs = "0.1.2"
+# 可克隆的迭代器
+itertools = "0.14.0"
+# 克隆工具
+clone_dyn_types = "0.29.0"
+
+[patch.crates-io]
+# 替换依赖文件
+ndarray = { version = "0.16.1", path = "./static/ndarray" }
+</code></pre><h2 id=yuan-li-jian-shu>原理简述</h2><h3 id=guang-liu-gai-nian>光流概念</h3><p>[https://xinetzone.github.io/torch-book/ecosystem/tutorials/vision-transforms/optical-flow.html] 光流是预测两幅图像之间运动的任务，通常是视频中连续两帧之间的运动。光流模型接受两幅图像作为输入，并预测流场：流场指示第一幅图像中每个像素的位移，并将其映射到第二幅图像中的相应像素。流场是 (2, H, W) 维张量，其中第一个轴对应于预测的水平位移和垂直位移。需要注意的是，预测的流场是以“像素”为单位的，它们并没有根据图像的尺寸进行归一化。 在光流中，每个“方向”都将映射为特定的RGB颜色。模型认为颜色相近的像素正在朝相似方向移动。 inference：用训练好的模型对连续图像帧求光流。<h3 id=guang-liu-tui-li-mo-xing-zhong-yao-gai-nian>光流推理模型重要概念</h3><p>[https://zhuanlan.zhihu.com/p/716470435]<h4 id=1-guang-liu-ke-shi-hua>1. 光流可视化</h4><p>[https://blog.csdn.net/qq_33757398/article/details/106332814] 光流可视化是将光流信息以直观的方式展示出来，便于理解图像序列中物体的运动情况。根据光流的密度，可以分为稠密光流可视化和稀疏光流可视化。此外，光流映射（warp）是将光流应用到图像上，生成运动后的图像。以下是详细解释：<h5 id=chou-mi-guang-liu-ke-shi-hua>稠密光流可视化</h5><p>稠密光流可视化是将每一像素的光流信息都展示出来，通常使用颜色来表示光流的方向和大小。颜色编码通常基于一个“色轮”（color wheel），其中不同的颜色代表不同的运动方向，颜色的亮度或饱和度表示运动的大小。例如：<ul><li><strong>绿色</strong>可能表示向右上方运动。<li><strong>红色</strong>可能表示向左下方运动。<li>颜色的深度（饱和度）表示运动的大小，颜色越深表示运动越快。</ul><p>这种可视化方式可以清晰地展示整个图像的运动情况，但可能会因为信息过于密集而难以区分细节。<h5 id=xi-shu-guang-liu-ke-shi-hua>稀疏光流可视化</h5><p>稀疏光流可视化是只展示部分像素的光流信息，通常通过采样来减少显示的光流点。例如，可以每隔几个像素点才显示一个光流向量。这种方式的优点是能够更清晰地展示光流的方向和大小，避免了稠密光流可视化中可能出现的信息过载问题。<p>在稀疏光流可视化中，通常会使用箭头来表示光流的方向和大小，箭头的长度和方向对应光流的大小和方向。<h5 id=guang-liu-ying-she-warp>光流映射（warp）</h5><p>光流映射是将光流信息应用到图像上，生成一张新的图像，这张新图像反映了原始图像在光流作用下的运动效果。具体来说，就是根据光流向量将原始图像中的每个像素移动到新的位置，然后通过插值等方法生成新的图像。<p>光流映射有两种常见的插值方式：<ol><li><strong>最近邻插值（nearest）</strong>：直接选择最近的像素值。<li><strong>双线性插值（bilinear）</strong>：根据周围四个像素的值通过线性插值计算目标像素的值。</ol><p>光流映射可以用于多种应用，例如视频稳定、运动估计、图像合成等。<h5 id=zong-jie>总结</h5><ul><li><strong>稠密光流可视化</strong>：展示所有像素的光流信息，适合整体观察运动情况。<li><strong>稀疏光流可视化</strong>：展示部分像素的光流信息，适合观察细节。<li><strong>光流映射</strong>：将光流应用到图像上，生成运动后的图像，可用于多种实际应用。</ul><h4 id=2-zai-duo-chi-du-xia-xun-zhao-pi-pei-du-de-jin-zi-ta>2. 在多尺度下寻找匹配度的金字塔</h4><p>多尺度匹配度金字塔是光流估计中常用的一种技术，它通过在不同分辨率层次上寻找图像之间的匹配度来提高光流估计的精度。这种方法首先将输入图像构建为一个金字塔结构，每一层代表一个不同的分辨率。然后，从最粗糙的层级开始，逐层细化光流估计。在每一层，模型会计算特征匹配的成本体积，并利用这些信息来预测该层级的光流。随后，这些光流估计会被上采样到下一层，并与下一层的特征匹配信息结合，进一步细化光流估计。这种方法可以有效处理大位移运动，并减少计算量。<h4 id=3-chang-yong-shu-ju-ji>3. 常用数据集</h4><p>光流估计的常用数据集包括：<ul><li><strong>FlyingChairs</strong>：包含22872个训练图像对，通过随机仿射变换生成第二帧图像。<li><strong>FlyingThings3D</strong>：包含22k训练图像对，拥有3D运动和光照渲染效果。<li><strong>Sintel</strong>：包含Clean和Final两个子类数据集，共有1041个训练图像对和552个测试图像对。<li><strong>KITTI</strong>：包含200个训练图像对和200个测试图像对，主要关注真实道路交通场景。<li><strong>HD1K</strong>：包含1047个训练图像对，主要在交通场景中捕获。</ul><p>这些数据集为光流估计模型提供了丰富的训练和测试材料，涵盖了从合成数据到真实场景的多种情况。<h4 id=4-shuang-xian-xing-cha-zhi>4. 双线性插值</h4><p>双线性插值是一种在图像处理中常用的插值方法，用于在光流估计中将低分辨率的光流图上采样到高分辨率。这种方法通过考虑四个最近邻像素的加权平均来计算新像素的值。在光流估计中，双线性插值可以用来将粗略的光流场细化到原始图像的分辨率。然而，这种方法可能会在运动边界区域产生模糊，因此一些先进的方法如RAFT采用了凸上采样技术来改善这一问题。<h4 id=5-grugong-shi>5. GRU公式</h4><p>GRU（Gated Recurrent Unit）是一种循环神经网络的变体，它通过引入更新门和重置门来控制信息的流动。GRU的公式如下：<ul><li>更新门 $z_t$： $$ z_t = \sigma(W^z x_t + U^z h_{t-1}) $$<li>重置门 $r_t$： $$ r_t = \sigma(W^r x_t + U^r h_{t-1}) $$<li>候选隐藏状态 $ \tilde{h}_t $： $$ \tilde{h}<em>t = \tanh(W^h x_t + U^h (h</em>{t-1} \odot r_t)) $$<li>最终隐藏状态 $ h_t $： $$ h_t = (1 - z_t) \odot \tilde{h}<em>t + z_t \odot h</em>{t-1} $$</ul><p>其中，$ \sigma $ 是sigmoid激活函数，$ W $ 和 $ U $ 是权重矩阵，$ x_t $ 是当前输入，$ h_{t-1} $ 是前一时刻的隐藏状态。GRU通过这些门控制信息的保留和更新，从而在序列数据处理中表现出色。<h4 id=6-lstmgong-shi>6. LSTM公式</h4><p>LSTM（Long Short-Term Memory）是另一种循环神经网络的变体，它通过引入三个门（输入门、遗忘门、输出门）来控制信息的流动。LSTM的公式如下：<ul><li>遗忘门 $ f_t $： $$ f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f) $$<li>输入门 $ i_t $： $$ i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i) $$<li>候选细胞状态 $ \tilde{C}_t $： $$ \tilde{C}<em>t = \tanh(W_C \cdot [h</em>{t-1}, x_t] + b_C) $$<li>最终细胞状态 $ C_t $： $$ C_t = f_t \cdot C_{t-1} + i_t \cdot \tilde{C}_t $$<li>输出门 $ o_t $： $$ o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o) $$<li>最终隐藏状态 $ h_t $： $$ h_t = o_t \cdot \tanh(C_t) $$</ul><p>其中，$ W $ 是权重矩阵，$ b $ 是偏置项，$ x_t $ 是当前输入，$ h_{t-1} $ 是前一时刻的隐藏状态，$ C_{t-1} $ 是前一时刻的细胞状态。LSTM通过这些门控制信息的长期和短期流动，从而在处理长序列数据时避免梯度消失问题。<h4 id=7-shang-cai-yang>7. 上采样</h4><p>上采样是光流估计中将低分辨率光流图恢复到原始分辨率的过程。常用的方法包括双线性插值、双三次插值和最近邻插值等。在深度学习中，还可以使用转置卷积（也称为反卷积）来实现上采样。转置卷积通过学习上采样的权重来恢复图像的高分辨率细节。此外，一些先进的方法如RAFT采用了凸上采样技术，它通过学习上采样权重来指导光流的上采样过程，从而在恢复高分辨率光流图时保留运动边缘的清晰度。<p>总结来说，光流推理模型的重要概念涵盖了从特征提取、多尺度匹配、数据集、插值方法到循环神经网络的多个方面。这些概念不仅为理解光流估计提供了基础，也为开发和改进光流推理模型提供了关键的技术支持。<h3 id=guang-liu-gen-zong-guo-cheng>光流跟踪过程</h3><p><a rel="noopener nofollow" href=https://zhuanlan.zhihu.com/p/40510838 target=_blank>知乎 @奔跑的小伟</a> 光流跟踪过程： 1） 对一个连续的视频图像帧序列进行处理； 2） 针对每一帧图像检测前景目标； 3）如果某一帧出现了前景目标，找到其具有代表性的特征点（一般利用角点来做特征点）； 4）对于之后的两个相邻视频帧，寻找上一帧中出现的特征点在当前帧中的最佳位置，从而得到前景目标在当前帧中的位置信息； 5）如此选代进行，便可实现目标的跟踪；<h3 id=guang-liu-tui-li-mo-xing-zong-shu>光流推理模型综述</h3><p>[https://zhuanlan.zhihu.com/p/623489787] [https://github.com/cuixing158/Awesome-CV-MasterHub/tree/main]<ol><li>RAFT<li>AutoFlow<li>NeoFlow(v1,v2)</ol><h4 id=1-raft-recurrent-all-pairs-field-transforms>1. RAFT（Recurrent All-Pairs Field Transforms）</h4><ul><li><strong>简介</strong>：RAFT是一种基于深度学习的光流估计模型，由Princeton Vision Lab提出。它通过循环的方式逐步细化光流估计，具有较高的精度和鲁棒性。<li><strong>核心思想</strong>： <ul><li><strong>特征提取</strong>：使用卷积神经网络提取两帧图像的特征图。<li><strong>循环细化</strong>：通过循环网络（GRU）逐步更新光流估计，每次迭代都会考虑所有像素对之间的关系。<li><strong>双向光流估计</strong>：同时估计正向和反向光流，通过一致性检查提高精度。</ul><li><strong>优点</strong>： <ul><li>高精度：在多个基准数据集上表现出色。<li>鲁棒性：对光照变化、遮挡等复杂场景有较好的适应性。</ul><li><strong>缺点</strong>： <ul><li>计算复杂度较高：由于循环细化过程，推理速度相对较慢。</ul><li><strong>适用场景</strong>：适用于对精度要求较高的光流估计任务，如视频分析、运动估计等。</ul><h4 id=2-autoflow>2. AutoFlow</h4><ul><li><strong>简介</strong>：AutoFlow是一种自动化的光流估计框架，旨在通过自动化设计和优化光流网络来提高性能。<li><strong>核心思想</strong>： <ul><li><strong>自动化网络设计</strong>：使用神经架构搜索（NAS）技术自动设计光流网络结构。<li><strong>多尺度特征融合</strong>：通过多尺度特征融合提高光流估计的精度。<li><strong>轻量化设计</strong>：在保证精度的同时，优化网络结构以提高推理速度。</ul><li><strong>优点</strong>： <ul><li>自动化设计：减少了人工设计网络的复杂性。<li>高效性：通过优化网络结构，提高了推理速度。</ul><li><strong>缺点</strong>： <ul><li>依赖NAS技术：需要大量的计算资源进行网络搜索。</ul><li><strong>适用场景</strong>：适用于需要高效光流估计的实时应用，如自动驾驶、视频流处理等。</ul><h4 id=3-neoflow-v1he-v2>3. NeoFlow（v1和v2）</h4><ul><li><p><strong>NeoFlow v1</strong>：</p> <ul><li><strong>简介</strong>：NeoFlow v1是一种基于深度学习的光流估计模型，旨在提高光流估计的速度和精度。<li><strong>核心思想</strong>： <ul><li><strong>特征提取</strong>：使用卷积神经网络提取图像特征。<li><strong>光流估计</strong>：通过卷积操作估计光流，结合多尺度特征融合提高精度。</ul><li><strong>优点</strong>： <ul><li>较高的精度：在多个基准数据集上表现出色。<li>较快的推理速度：相比传统方法有显著提升。</ul><li><strong>缺点</strong>： <ul><li>对复杂场景的适应性有限：在光照变化、遮挡等复杂场景下表现不如RAFT。</ul><li><strong>适用场景</strong>：适用于一般光流估计任务，如视频分析、运动估计等。</ul><li><p><strong>NeoFlow v2</strong>：</p> <ul><li><strong>简介</strong>：NeoFlow v2是NeoFlow v1的改进版本，进一步优化了网络结构和算法，提高了性能。<li><strong>核心思想</strong>： <ul><li><strong>改进的特征提取</strong>：优化了特征提取网络，提高了特征的表达能力。<li><strong>双向光流估计</strong>：引入双向光流估计，通过一致性检查提高精度。<li><strong>循环细化</strong>：借鉴RAFT的思想，通过循环细化逐步优化光流估计。</ul><li><strong>优点</strong>： <ul><li>更高的精度：在复杂场景下表现更好。<li>较快的推理速度：相比RAFT有显著提升。</ul><li><strong>缺点</strong>： <ul><li>网络结构复杂：需要更多的计算资源进行训练。</ul><li><strong>适用场景</strong>：适用于对精度和速度都有较高要求的光流估计任务，如自动驾驶、视频分析等。</ul></ul><h4 id=zong-jie-1>总结</h4><ul><li><strong>RAFT</strong>：精度高，鲁棒性强，但计算复杂度高，适合对精度要求较高的场景。<li><strong>AutoFlow</strong>：自动化设计，高效性好，适合实时应用。<li><strong>NeoFlow v1</strong>：速度快，精度高，适合一般光流估计任务。<li><strong>NeoFlow v2</strong>：精度和速度兼顾，适合复杂场景下的光流估计任务。</ul><p>这些模型各有优缺点，选择时需要根据具体的应用场景和需求进行权衡。<h3 id=neoflowv2shu-xue-yuan-li-jian-jie>NeoFlowV2数学原理简介</h3><p>实时高精度光流估计对于各种实际应用场景至关重要。尽管最近基于学习的光流方法已经实现了高精度，但它们通常伴随着巨大的计算成本。在本文中，我们提出了一种高效的光流方法，能够在降低计算需求的同时保持高精度。在此基础上，我们引入了新的组件，包括一个更轻量级的主干网络和一个快速细化模块。这两个模块在保持计算需求较低的同时，提供了接近最先进的精度。与其他最先进的方法相比，我们的模型在保持合成数据和真实数据的可比性能的同时，实现了10倍到70倍的速度提升。它能够在Jetson Orin Nano上以超过20 FPS的速度运行512x384分辨率的图像。完整的训练和评估代码可在<a rel="noopener nofollow" href=https://github.com/neufieldrobotics/NeuFlow_v2 target=_blank>https://github.com/neufieldrobotics/NeuFlow_v2</a>上找到。<p>Real-time high-accuracy optical flow estimation is crucial for various real-world applications. While recent learning-based optical flow methods have achieved high accu- racy, they often come with significant computational costs. In this paper, we propose a highly efficient optical flow method that balances high accuracy with reduced computational demands. Building upon NeuFlow v1, we introduce new components including a much more light-weight backbone and a fast refinement module. Both these modules help in keeping the computational demands light while providing close to state of the art accuracy. Compares to other state of the art methods, our model achieves a 10x-70x speedup while maintaining comparable performance on both synthetic and real-world data. It is capable of running at over 20 FPS on 512x384 resolution images on a Jetson Orin Nano. The full training and evaluation code is available at [https://github.com/neufieldrobotics/NeuFlow_v2].<table><thead><tr><th>NeoFlowV2架构图<tbody><tr><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250414051651217-1391875850.png></table><table><thead><tr><th>NeoFlowV2骨干图<tbody><tr><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250414051658022-677507102.png></table><h4>一、简单主干网络（Simple Backbone）</h4><p>NeuFlow v2使用一个简单的CNN主干网络来提取多尺度图像的低级特征。主干网络从1/2、1/4和1/8尺度的图像中提取特征，使用由卷积层、归一化层和ReLU激活层组成的CNN块来提取特征，并将这些特征合并和调整大小到所需的输出尺度，即1/16尺度的特征和上下文，以及1/8尺度的特征和上下文。具体来说，对于输入图像$I$，主干网络的输出可以表示为： $$ \begin{aligned} F_{1/8}, F_{1/16}, C_{1/8}, C_{1/16} &= \text{Backbone}(I) \end{aligned} $$ 其中，$F_{1/8}$和$F_{1/16}$是用于相关性计算的特征，$C_{1/8}$和$C_{1/16}$是用于光流细化的上下文。<h4 id=-1>二、交叉注意力和全局匹配（Cross-Attention and Global Matching）</h4><p>交叉注意力用于在全局范围内交换图像之间的信息，增强匹配特征的区分度，减少未匹配特征的相似度。全局匹配则用于在全局范围内寻找对应特征，使模型能够处理大像素位移，例如在快速移动的相机情况下。交叉注意力和全局匹配的操作可以表示为： $$ \begin{aligned} F'<em>{1/16} &= \text{CrossAttention}(F</em>{1/16}, F_{1/16}) \ F''<em>{1/16} &= \text{GlobalMatching}(F'</em>{1/16}) \end{aligned} $$ 其中，$F'<em>{1/16}$是经过交叉注意力增强后的特征，$F''</em>{1/16}$是经过全局匹配后的特征。<h4 id=-2>三、简单RNN细化模块（Simple RNN Refinement）</h4><p>首先计算附近9×9邻域内的相关性，并使用估计的光流对相关性进行扭曲。然后将扭曲的相关性、上下文特征、估计的光流和前一隐藏状态连接起来，通过八层简单的3×3卷积层后接ReLU激活函数来输出细化后的光流和更新后的隐藏状态。简单RNN细化模块的操作可以表示为： $$ \begin{aligned} C &= \text{ComputeCorrelation}(F''<em>{1/16}, F''</em>{1/16}) \ C_w &= \text{Warp}(C, F_{\text{flow}}) \ h_{t+1}, F_{\text{flow}}^{t+1} &= \text{SimpleRNN}(C_w, C_{1/16}, F_{\text{flow}}^t, h_t) \end{aligned} $$ 其中，$C$是计算的相关性，$C_w$是扭曲后的相关性，$h_t$是前一隐藏状态，$F_{\text{flow}}^t$是当前估计的光流，$h_{t+1}$和$F_{\text{flow}}^{t+1}$分别是更新后的隐藏状态和细化后的光流。<h4 id=-3>四、多尺度特征/上下文合并（Multi-Scale Feature/Context Merge）</h4><p>为了将全局特征/上下文与局部特征/上下文合并，确保1/8尺度的特征/上下文包含全局和局部信息，使用简单的CNN块来合并1/16尺度的全局特征/上下文与1/8尺度的局部特征/上下文。合并操作可以表示为： $$ \begin{aligned} F_{1/8}^{\text{merged}}, C_{1/8}^{\text{merged}} &= \text{Merge}(F_{1/8}, F_{1/16}^{\text{interpolated}}, C_{1/8}, C_{1/16}^{\text{interpolated}}) \end{aligned} $$ 其中，$F_{1/8}^{\text{merged}}$和$C_{1/8}^{\text{merged}}$是合并后的1/8尺度的特征和上下文。<h4 id=-4>五、整体流程</h4><p>NeuFlow v2的整体流程可以总结为： $$ \begin{aligned} F_{1/8}, F_{1/16}, C_{1/8}, C_{1/16} &= \text{Backbone}(I) \ F'<em>{1/16} &= \text{CrossAttention}(F</em>{1/16}, F_{1/16}) \ F''<em>{1/16} &= \text{GlobalMatching}(F'</em>{1/16}) \ C &= \text{ComputeCorrelation}(F''<em>{1/16}, F''</em>{1/16}) \ C_w &= \text{Warp}(C, F_{\text{flow}}^0) \ h_1, F_{\text{flow}}^1 &= \text{SimpleRNN}(C_w, C_{1/16}, F_{\text{flow}}^0, h_0) \ F_{1/8}^{\text{merged}}, C_{1/8}^{\text{merged}} &= \text{Merge}(F_{1/8}, F_{1/16}^{\text{interpolated}}, C_{1/8}, C_{1/16}^{\text{interpolated}}) \ \text{Repeat SimpleRNN refinement for 8 iterations on } F_{1/8}^{\text{merged}} \text{ and } C_{1/8}^{\text{merged}} \end{aligned} $$ 最终，通过凸上采样模块将细化后的1/8尺度光流上采样到全分辨率，得到最终的光流估计结果。<h2 id=-5>实现</h2><h3 id=-6>1. 准备onnx模型</h3><p>[https://github.com/ibaiGorordo/ONNX-NeuFlowV2-Optical-Flow] [https://github.com/ibaiGorordo/ONNX-NeuFlowV2-Optical-Flow/releases/download/0.1.0/neuflow_mixed.onnx] [https://github.com/ibaiGorordo/ONNX-NeuFlowV2-Optical-Flow/releases/download/0.1.0/neuflow_sintel.onnx] [https://github.com/ibaiGorordo/ONNX-NeuFlowV2-Optical-Flow/releases/download/0.1.0/neuflow_things.onnx]<h3 id=-7>2. 核心代码</h3><p><strong>Python版本:</strong><pre class=language-py data-lang=py><code class=language-py data-lang=py># 使用optics模型预测光流
+# 模型: ../../../assets/neuflow_v2/neoflow_things.onnx
+# 输入:input1
+# name: input1
+# tensor: float32[1,3,432,768]
+# input2
+# name: input2
+# tensor: float32[1,3,432,768]
+# 输出:output
+# name: output
+# tensor: float32[1,2,432,768]
+
+import cv2
+import numpy as np
+import onnxruntime
+import os
+import requests
+from tqdm import tqdm
+
+# 可用的模型列表
+available_models = ["neuflow_mixed", "neuflow_sintel", "neuflow_things"]
+
+# 检查模型文件是否存在，若不存在则下载
+def check_model(model_path: str):
+    if os.path.exists(model_path):
+        print("模型文件存在!")
+        return
+    # 从路径中提取模型名称
+    model_name = os.path.basename(model_path).split('.')[0]
+    if model_name not in available_models:
+        raise ValueError(f"无效的模型名称: {model_name}")
+        exit(0)
+
+# 绘制光流图
+def draw_flow(flow, image, boxes=None):
+    # 将光流转换为彩色图像
+    flow_img = flow_to_image(flow, 35)
+    # 从RGB颜色空间转换为BGR颜色空间
+    flow_img = cv2.cvtColor(flow_img, cv2.COLOR_RGB2BGR)
+    # 合并原始图像和光流图像
+    combined = cv2.addWeighted(image, 0.5, flow_img, 0.6, 0)
+    if boxes is not None:
+        # 创建白色背景图像
+        white_background = np.ones((image.shape[0], image.shape[1], 3), dtype=np.uint8) * 255
+        # 合并原始图像和白色背景
+        new_image = cv2.addWeighted(image, 0.7, white_background, 0.4, 0)
+        for box in boxes:
+            x1, y1, x2, y2 = box.astype(int)
+            # 将合并后的图像部分替换到新图像中
+            new_image[y1:y2, x1:x2] = combined[y1:y2, x1:x2]
+        combined = new_image
+    return combined
+
+# 生成颜色轮
+def make_color_wheel():
+    """
+    根据Middlebury颜色编码生成颜色轮
+    :return: 颜色轮
+    """
+    RY = 15
+    YG = 6
+    GC = 4
+    CB = 11
+    BM = 13
+    MR = 6
+    ncols = RY + YG + GC + CB + BM + MR
+    colorwheel = np.zeros([ncols, 3])
+    col = 0
+    # RY段
+    colorwheel[0:RY, 0] = 255
+    colorwheel[0:RY, 1] = np.transpose(np.floor(255 * np.arange(0, RY) / RY))
+    col += RY
+    # YG段
+    colorwheel[col:col + YG, 0] = 255 - np.transpose(np.floor(255 * np.arange(0, YG) / YG))
+    colorwheel[col:col + YG, 1] = 255
+    col += YG
+    # GC段
+    colorwheel[col:col + GC, 1] = 255
+    colorwheel[col:col + GC, 2] = np.transpose(np.floor(255 * np.arange(0, GC) / GC))
+    col += GC
+    # CB段
+    colorwheel[col:col + CB, 1] = 255 - np.transpose(np.floor(255 * np.arange(0, CB) / CB))
+    colorwheel[col:col + CB, 2] = 255
+    col += CB
+    # BM段
+    colorwheel[col:col + BM, 2] = 255
+    colorwheel[col:col + BM, 0] = np.transpose(np.floor(255 * np.arange(0, BM) / BM))
+    col += BM
+    # MR段
+    colorwheel[col:col + MR, 2] = 255 - np.transpose(np.floor(255 * np.arange(0, MR) / MR))
+    colorwheel[col:col + MR, 0] = 255
+    return colorwheel
+
+# 计算光流颜色图
+colorwheel = make_color_wheel()
+def compute_color(u, v):
+    """
+    计算光流颜色图
+    :param u: 光流水平分量图
+    :param v: 光流垂直分量图
+    :return: 颜色编码的光流图
+    """
+    [h, w] = u.shape
+    img = np.zeros([h, w, 3])
+    # 找出NaN值的索引
+    nanIdx = np.isnan(u) | np.isnan(v)
+    u[nanIdx] = 0
+    v[nanIdx] = 0
+    ncols = np.size(colorwheel, 0)
+    # 计算光流的幅值
+    rad = np.sqrt(u ** 2 + v ** 2)
+    # 计算光流的角度
+    a = np.arctan2(-v, -u) / np.pi
+    fk = (a + 1) / 2 * (ncols - 1) + 1
+    k0 = np.floor(fk).astype(int)
+    k1 = k0 + 1
+    k1[k1 == ncols + 1] = 1
+    f = fk - k0
+    for i in range(0, np.size(colorwheel, 1)):
+        tmp = colorwheel[:, i]
+        col0 = tmp[k0 - 1] / 255
+        col1 = tmp[k1 - 1] / 255
+        col = (1 - f) * col0 + f * col1
+        idx = rad <= 1
+        col[idx] = 1 - rad[idx] * (1 - col[idx])
+        notidx = np.logical_not(idx)
+        col[notidx] *= 0.75
+        img[:, :, i] = np.uint8(np.floor(255 * col * (1 - nanIdx)))
+    return img
+
+# 将光流转换为Middlebury颜色编码图像
+def flow_to_image(flow, maxrad=None):
+    """
+    将光流转换为Middlebury颜色编码图像
+    :param flow: 光流图
+    :return: Middlebury颜色编码的光流图像
+    """
+    u = flow[:, :, 0]
+    v = flow[:, :, 1]
+    rad = np.sqrt(u ** 2 + v ** 2)
+    if maxrad is None:
+        maxrad = max(-1, np.max(rad))
+    eps = np.finfo(float).eps
+    u = np.clip(u, -maxrad + 5, maxrad - 5)
+    v = np.clip(v, -maxrad + 5, maxrad - 5)
+    u = u / (maxrad + eps)
+    v = v / (maxrad + eps)
+    img = compute_color(u, v)
+    return np.uint8(img)
+
+# 光流估计类
+class NeuFlowV2:
+    def __init__(self, path: str):
+        # 检查模型文件
+        check_model(path)
+        # 初始化ONNX运行时会话
+        self.session = onnxruntime.InferenceSession(path, providers=onnxruntime.get_available_providers())
+        # 获取输入信息
+        self.get_input_details()
+        # 获取输出信息
+        self.get_output_details()
+
+    def __call__(self, img_prev: np.ndarray, img_now: np.ndarray) -> np.ndarray:
+        return self.estimate_flow(img_prev, img_now)
+
+    # 估计光流
+    def estimate_flow(self, img_prev: np.ndarray, img_now: np.ndarray) -> np.ndarray:
+        # 准备输入张量
+        input_tensors = self.prepare_inputs(img_prev, img_now)
+        # 进行推理
+        outputs = self.inference(input_tensors)
+        return self.process_output(outputs[0])
+
+    # 准备输入张量
+    def prepare_inputs(self, img_prev: np.ndarray, img_now: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        self.img_height, self.img_width = img_now.shape[:2]
+        input_prev = self.prepare_input(img_prev)
+        input_now = self.prepare_input(img_now)
+        return input_prev, input_now
+
+    # 准备单张输入图像
+    def prepare_input(self, img: np.ndarray) -> np.ndarray:
+        # 调整图像大小
+        input_img = cv2.resize(img, (self.input_width, self.input_height))
+        # 归一化
+        input_img = input_img / 255.0
+        input_img = input_img.transpose(2, 0, 1)
+        input_tensor = input_img[np.newaxis, :, :, :].astype(np.float32)
+        return input_tensor
+
+    # 进行推理
+    def inference(self, input_tensors: tuple[np.ndarray, np.ndarray]) -> np.ndarray:
+        start = time.perf_counter()
+        outputs = self.session.run(self.output_names, {self.input_names[0]: input_tensors[0],
+                                                       self.input_names[1]: input_tensors[1]})
+        print(f"推理时间: {(time.perf_counter() - start) * 1000:.2f} ms")
+        return outputs
+
+    # 处理输出结果
+    def process_output(self, output) -> np.ndarray:
+        flow = output.squeeze().transpose(1, 2, 0)
+        return cv2.resize(flow, (self.img_width, self.img_height))
+
+    # 获取输入信息
+    def get_input_details(self):
+        model_inputs = self.session.get_inputs()
+        self.input_names = [model_inputs[i].name for i in range(len(model_inputs))]
+        input_shape = model_inputs[0].shape
+        self.input_height = input_shape[2]
+        self.input_width = input_shape[3]
+
+    # 获取输出信息
+    def get_output_details(self):
+        model_outputs = self.session.get_outputs()
+        self.output_names = [model_outputs[i].name for i in range(len(model_outputs))]
+
+if __name__ == '__main__':
+    import time
+    # 模型文件路径
+    model_path = "../../../assets/ailia-models/neuflow_v2/neuflow_sintel.onnx"
+    print("模型文件路径{}", model_path)
+    # 初始化模型
+    estimator = NeuFlowV2(model_path)
+    # 加载第一张图片
+    img1 = cv2.imread("../assets/frame_0016.png")
+    # 加载第二张图片
+    img2 = cv2.imread("../assets/frame_0025.png")
+    # 估计光流
+    flow = estimator(img1, img2)
+    # 绘制光流图
+    flow_img = draw_flow(flow, img1)
+    # 创建结果文件夹
+    os.makedirs("../result", exist_ok=True)
+    # 保存结果图片
+    cv2.imwrite("../result/optics_onnx.png", flow_img)
+    print("光流预测结果已保存到 ../result/optics_onnx.png")   
+</code></pre><p><strong>Rust版本:</strong><pre class=language-rs data-lang=rs><code class=language-rs data-lang=rs>#![allow(unused)]
+
+//! 使用optics模型预测光流
+//! 模型: ../../../assets/neuflow_v2/neoflow_things.onnx
+//! 输入:input1
+//! name: input1
+//! tensor: float32[1,3,432,768]
+//! input2
+//! name: input2
+//! tensor: float32[1,3,432,768]
+//! 输出:output
+//! name: output
+//! tensor: float32[1,2,432,768]
+
+// 导入标准库路径处理模块
+use std::path::Path;
+
+// 用于计时
+use std::time::Instant;
+// 标准库
+use std::f32::consts::PI;
+use std::ops::Add;
+
+// 导入 ORT 相关模块
+use ort::{inputs, session::Session};
+use ort::value::Tensor;
+
+// 图像处理相关模块
+use image::{GenericImageView, ImageBuffer, Rgb, RgbImage, DynamicImage};
+
+// 错误处理模块
+use anyhow::{anyhow, Result};
+
+// 线性代数库
+use ndarray::{
+    Array, ArrayD, ArrayViewD, 
+    Dim, Ix1, Ix2, Ix3, Ix4, 
+    IxDyn, stack, Axis, IxDynImpl, 
+    ArrayBase, OwnedRepr, IntoDimension,
+    ArrayView, 
+};
+use ndarray::s;
+// use ndarray_linalg::error::LinalgError;
+
+// 随机数
+use rand::rng;
+
+// 随机分布
+use rand_distr::{Normal, Distribution};
+
+// 可克隆的迭代器
+use itertools::Itertools;
+
+// 克隆插件
+use clone_dyn_types::CloneDyn;
+
+// 可用的模型列表
+const AVAILABLE_MODELS: [&str; 3] = ["neuflow_mixed", "neuflow_sintel", "neuflow_things"];
+
+// 检查模型文件是否存在，若不存在则处理（这里原Python代码没有实际下载逻辑，直接退出）
+fn check_model(model_path: &str) -> Result<()> {
+    if Path::new(model_path).exists() {
+        println!("模型文件存在!");
+        Ok(())
+    } else {
+        // 从路径中提取模型名称
+        let model_name = Path::new(model_path).file_stem().ok_or_else(|| anyhow!("无法获取模型文件名"))?.to_str().ok_or_else(|| anyhow!("无法转换模型文件名"))?;
+        if !AVAILABLE_MODELS.contains(&model_name) {
+            return Err(anyhow!("无效的模型名称: {}", model_name));
+        }
+        // 原Python代码中下载部分被注释，这里直接退出
+        std::process::exit(0);
+    }
+}
+
+// 生成颜色轮
+fn make_color_wheel() -> ArrayD&LTu8> {
+    let ry = 15;
+    let yg = 6;
+    let gc = 4;
+    let cb = 11;
+    let bm = 13;
+    let mr = 6;
+    let ncols = ry + yg + gc + cb + bm + mr;
+    let mut colorwheel = Array::zeros((ncols, 3));
+
+    let mut col = 0;
+    // RY段
+    colorwheel.slice_mut(s![col..col + ry, 0]).fill(255);
+    for (i, val) in (0..ry).enumerate() {
+        colorwheel[[col + i, 1]] = ((255.0 * val as f32 / ry as f32) as u8);
+    }
+    col += ry;
+    // YG段
+    for (i, val) in (0..yg).enumerate() {
+        colorwheel[[col + i, 0]] = (255 - (255.0 * val as f32 / yg as f32) as u8);
+    }
+    colorwheel.slice_mut(s![col..col + yg, 1]).fill(255);
+    col += yg;
+    // GC段
+    colorwheel.slice_mut(s![col..col + gc, 1]).fill(255);
+    for (i, val) in (0..gc).enumerate() {
+        colorwheel[[col + i, 2]] = ((255.0 * val as f32 / gc as f32) as u8);
+    }
+    col += gc;
+    // CB段
+    for (i, val) in (0..cb).enumerate() {
+        colorwheel[[col + i, 1]] = (255 - (255.0 * val as f32 / cb as f32) as u8);
+    }
+    colorwheel.slice_mut(s![col..col + cb, 2]).fill(255);
+    col += cb;
+    // BM段
+    colorwheel.slice_mut(s![col..col + bm, 2]).fill(255);
+    for (i, val) in (0..bm).enumerate() {
+        colorwheel[[col + i, 0]] = ((255.0 * val as f32 / bm as f32) as u8);
+    }
+    col += bm;
+    // MR段
+    for (i, val) in (0..mr).enumerate() {
+        colorwheel[[col + i, 2]] = (255 - (255.0 * val as f32 / mr as f32) as u8);
+    }
+    colorwheel.slice_mut(s![col..col + mr, 0]).fill(255);
+
+    colorwheel.into_dyn()
+}
+
+// 计算光流颜色图
+fn compute_color(u: &ArrayD&LTf32>, v: &ArrayD&LTf32>) -> ImageBuffer&LTRgb&LTu8>, Vec&LTu8>> {
+    // 获取输入数组的形状（高度和宽度）
+    let (h, w) = {
+        let shape = u.shape();
+        (shape[0], shape[1])
+    };
+    // 创建一个与输入数组大小相同的图像缓冲区
+    let mut img = ImageBuffer::new(w as u32, h as u32);
+
+    // 初始化一个数组，用于标记存在 NaN 值的位置
+    let mut nan_idx = Array::zeros((h, w));
+    // 遍历 u 数组，标记 NaN 值的位置
+    for (i, &val_u) in u.iter().enumerate() {
+        let (y, x) = (i / w, i % w);
+        if val_u.is_nan() {
+            nan_idx[[y, x]] = 1.0;
+        }
+    }
+    // 遍历 v 数组，标记 NaN 值的位置
+    for (i, &val_v) in v.iter().enumerate() {
+        let (y, x) = (i / w, i % w);
+        if val_v.is_nan() {
+            nan_idx[[y, x]] = 1.0;
+        }
+    }
+
+    // 持久变量
+    let color_wheel = make_color_wheel();
+
+    // 获取颜色轮的列数
+    let ncols = color_wheel.shape()[0];
+    // 计算每个像素的径向大小
+    let rad = Array::from_shape_fn((h, w), |(y, x)| {
+        let u_val = u[[y, x]];
+        let v_val = v[[y, x]];
+        (u_val.powi(2) + v_val.powi(2)).sqrt()
+    });
+    // 计算每个像素的角度
+    let a = Array::from_shape_fn((h, w), |(y, x)| {
+        let u_val = u[[y, x]];
+        let v_val = v[[y, x]];
+        (-v_val).atan2(-u_val) / PI
+    });
+    // 将角度映射到颜色轮的索引
+    let fk = a.mapv(|a_val| (a_val + 1.0) / 2.0 * (ncols as f32 - 1.0) + 1.0);
+    // 获取颜色轮索引的整数部分
+    let k0 = fk.mapv(|val| val.floor() as i32);
+    // 获取颜色轮索引的上界整数部分
+    let k1 = k0.mapv(|val| (val + 1).clamp(1, ncols as i32));
+    // 计算颜色轮索引的小数部分
+    let k0_float = k0.mapv(|val| val as f32);
+    let f: Vec&LTf32> = fk.iter().zip(&k0_float).map(|(fk_val, k0_val)| fk_val - k0_val).collect();
+
+    // 遍历颜色通道
+    for c in 0..3 {
+        // 检查索引是否越界
+        if c >= color_wheel.shape()[1] {
+            panic!("Color channel index {} is out of bounds for color wheel with shape {:?}", c, color_wheel.shape());
+        }
+        // 获取颜色轮对应通道的颜色值
+        let colorwheel_col = color_wheel.slice(s![.., c]);
+        // 获取颜色轮索引 k0 对应的颜色值
+        let col0 = k0.mapv(|val| colorwheel_col[val as usize] as f32 / 255.0);
+        // 获取颜色轮索引 k1 对应的颜色值
+        let col1 = k1.mapv(|val| colorwheel_col[val.min((ncols-1).try_into().unwrap()) as usize] as f32 / 255.0);
+        // 插值计算最终的颜色值, 返回可克隆的容器
+        let col = f.iter().zip(&col0).zip(&col1).map(|((f_val, col0_val), col1_val)| 
+            (1.0 - f_val) * col0_val + f_val * col1_val
+        ).collect_vec();  
+
+        // 根据径向大小调整颜色值
+        let idx = rad.mapv(|rad_val| rad_val <= 1.0);
+        
+        let col_with_rad = col.into_iter().zip(&rad).map(|(col_val, rad_val)| {
+            if *rad_val <= 1.0 {
+                1.0 - rad_val * (1.0 - col_val)
+            } else {
+                col_val
+            }
+        });
+
+        // 对超出径向范围的颜色值进行衰减
+        let not_idx = idx.mapv(|val| !val);
+        let col_final = col_with_rad.zip(&ampnot_idx).map(|(col_val, not_idx_val)| if *not_idx_val { col_val * 0.75 } else { col_val });
+
+        // 将计算得到的颜色值赋值到图像缓冲区
+        for (i, val) in col_final.enumerate() {
+            let (y, x) = (i / w, i % w);
+            let pixel_val = ((255.0 * val * (1.0 - nan_idx[[y, x]])) as u8).clamp(0, 255);
+            img.put_pixel(x as u32, y as u32, Rgb([pixel_val, pixel_val, pixel_val]));
+        }
+    }
+
+    // 返回生成的图像
+    img
+}
+
+// 将光流转换为Middlebury颜色编码图像
+fn flow_to_image(flow: &ArrayD&LTf32>) -> ImageBuffer&LTRgb&LTu8>, Vec&LTu8>> {
+    // 从光流数组中提取u分量（x方向运动）, 使用范围语法保持动态维度
+    let u = flow.slice(s![0, 0, .., ..]);
+    // 从光流数组中提取v分量（y方向运动）, 使用范围语法保持动态维度
+    let v = flow.slice(s![0, 1, .., ..]);
+    
+    // 修正：使用map2替代zip+mapv组合
+    let rad = u.mapv(|u_val| u_val.powi(2))
+              .add(&v.mapv(|v_val| v_val.powi(2)))
+              .mapv(|sum| sum.sqrt());
+    
+    // 找出所有像素中的最大光流幅度
+    let maxrad = rad.iter().fold(f32::MIN, |acc, &val| acc.max(val));
+    let eps = std::f32::EPSILON;
+    
+    // 将u分量裁剪到[-maxrad+5, maxrad-5]范围内
+    let u_clipped = u.mapv(|val| val.clamp(-maxrad + 5.0, maxrad - 5.0));
+    // 将v分量裁剪到[-maxrad+5, maxrad-5]范围内
+    let v_clipped = v.mapv(|val| val.clamp(-maxrad + 5.0, maxrad - 5.0));
+    
+    // 将裁剪后的u分量归一化到[-1,1]范围
+    let u_normalized = u_clipped.mapv(|val| val / (maxrad + eps)).into_dyn();;
+    // 将裁剪后的v分量归一化到[-1,1]范围
+    let v_normalized = v_clipped.mapv(|val| val / (maxrad + eps)).into_dyn();;
+
+    // 返回
+    compute_color(&u_normalized, &v_normalized)
+}
+
+// // 光流估计类
+struct NeuFlowV2 {
+    session: Session,
+    input_names: Vec&LTString>,
+    output_names: Vec&LTString>,
+    input_height: usize,
+    input_width: usize,
+}
+
+impl NeuFlowV2 {
+    // 构造函数：从指定路径加载ONNX模型并初始化NeuFlowV2结构体
+    fn new(path: &str) -> Result&LTSelf> {
+        // 检查模型文件是否存在及有效性（假设check_model是自定义函数）
+        check_model(path)?;
+        
+        // 使用ort库创建推理会话：通过SessionBuilder加载ONNX模型文件
+        // ort库是ONNX Runtime的Rust封装，支持高性能推理
+        let session = Session::builder()?.commit_from_file(path)?;
+
+        // 直接指定输入节点名称（根据提示）
+        let input_names = vec![
+            "input1".to_string(),
+            "input2".to_string()
+        ];
+
+        // 直接指定输出节点名称（根据提示）
+        let output_names = vec![
+            "output".to_string()
+        ];
+
+        // 获取输入形状（根据提示中的tensor形状）, float32[1,3,432,768]
+        let input_shape = [1, 3, 432, 768]; 
+        // 432
+        let input_height = input_shape[2] as usize; 
+        // 768
+        let input_width = input_shape[3] as usize;  
+
+        // 返回初始化完成的NeuFlowV2结构体
+        Ok(NeuFlowV2 {
+            // ONNX推理会话
+            session,    
+            // 输入节点名称列表      
+            input_names,      
+            // 输出节点名称列表
+            output_names,     
+            // 模型要求的输入图像高度
+            input_height,     
+            // 模型要求的输入图像宽度
+            input_width,      
+        })
+    }
+
+     // 光流估计：输入前后两帧图像，输出光流估计结果
+     fn estimate_flow(&mut self, img_prev: &ImageBuffer&LTRgb&LTu8>, Vec&LTu8>>, img_now: &ImageBuffer&LTRgb&LTu8>, Vec&LTu8>>) -> Result&LTArrayD&LTf32>> {
+        // 预处理输入图像
+        let (input_prev, input_now) = self.prepare_inputs(img_prev, img_now)?;
+        // 执行模型推理
+        let outputs = self.inference(&input_prev, &input_now)?;
+        // 处理并返回输出结果
+        Ok(self.process_output(&outputs[0]))
+    }
+
+    // 预处理输入：准备前后两帧图像的输入张量
+    fn prepare_inputs(&mut self, img_prev: &ImageBuffer&LTRgb&LTu8>, Vec&LTu8>>, img_now: &ImageBuffer&LTRgb&LTu8>, Vec&LTu8>>) -> Result<(ArrayD&LTf32>, ArrayD&LTf32>)> {
+        // 获取当前帧图像的尺寸
+        let img_height = img_now.height() as usize;
+        let img_width = img_now.width() as usize;
+
+        // 分别预处理前后两帧图像
+        let input_prev = self.prepare_input(img_prev)?;
+        let input_now = self.prepare_input(img_now)?;
+
+        // 返回预处理后的输入张量
+        Ok((input_prev, input_now))
+    }
+
+    // 准备单帧输入：将图像转换为模型需要的张量格式
+    fn prepare_input(&mut self, img: &ImageBuffer&LTRgb&LTu8>, Vec&LTu8>>) -> Result&LTArrayD&LTf32>> {
+        // 将图像缩放到模型要求的尺寸（使用最近邻插值）
+        let dynamic_img = DynamicImage::ImageRgb8(img.clone());
+        let input_img_dyn = dynamic_img.resize_exact(
+            self.input_width as u32, 
+            self.input_height as u32, 
+            image::imageops::FilterType::Nearest
+        );
+        // 将缩放后的 DynamicImage 转换回 ImageBuffer&LTRgb&LTu8>, Vec&LTu8>>
+        let input_img: ImageBuffer&LTRgb&LTu8>, Vec&LTu8>> = input_img_dyn.clone().into_rgb8();
+
+        // 创建4通道的零张量（1, 通道，高度，宽度）
+        let mut input_array = Array::zeros((1, 3, self.input_height, self.input_width));
+
+        // 遍历图像像素，归一化并填充到张量中
+        for (x, y, pixel) in input_img.enumerate_pixels() {
+            // R通道归一化
+            input_array[[0, 0, y as usize, x as usize]] = pixel[0] as f32 / 255.0;
+            // G通道归一化
+            input_array[[0, 1, y as usize, x as usize]] = pixel[1] as f32 / 255.0;
+            // B通道归一化
+            input_array[[0, 2, y as usize, x as usize]] = pixel[2] as f32 / 255.0;
+        }
+
+        // 将固定维度的数组转换为动态维度张量
+        let input_tensor = input_array.into_dyn();
+        Ok(input_tensor)
+    }
+
+    // 执行推理：输入前后两帧的张量，返回输出结果
+    fn inference(&mut self, input_prev: &ArrayD&LTf32>, input_now: &ArrayD&LTf32>) -> Result&LTVec&LTTensor&LTf32>>> {
+        // 记录推理开始时间
+        let start = Instant::now();
+        // 将输入张量转换为ORT支持的Value类型
+        let input_tensor_prev = ort::value::Value::from_array(input_prev.clone().into_dyn())?;
+        let input_tensor_now = ort::value::Value::from_array(input_now.clone().into_dyn())?;
+
+        // 执行模型推理（输入两个张量）
+        let outputs = self.session.run(inputs![input_tensor_prev, input_tensor_now])?;
+
+        // 计算并打印推理耗时
+        let elapsed = start.elapsed();
+        println!("推理时间: {:.2} ms", elapsed.as_secs_f64() * 1000.0);
+
+        // 提取所有输出张量
+        use ort::value::{ Value, TensorValueType };
+        let mut result: Vec&LTTensor&LTf32>> = Vec::new(); 
+        for output_name in &self.output_names {
+            let (shape, data) = outputs[output_name.clone()].try_extract_tensor::&LTf32>()?;
+            
+            // 将 ort::Shape 转换为 ndarray 兼容的维度（动态维度）
+            let nd_shape: Vec&LTusize> = shape.iter().map(|&d| d as usize).collect();
+            let array = Array::from_shape_vec(IxDyn(&nd_shape), data.to_vec())?;
+            
+            let output = Value::from_array(array)?;
+            result.push(output);
+        }
+
+        // 返回值
+        Ok(result)
+    }
+
+    // 处理输出：将输出张量转换为合适的格式
+    fn process_output(&mut self, output: &Tensor&LTf32>) -> ArrayD&LTf32> {
+        // 解构输出张量（形状和数据）
+        let (shape, data) = output.try_extract_tensor::&LTf32>().unwrap();
+        // 根据形状创建4维数组（1, 通道，高度，宽度）
+        let array = Array::from_shape_vec(
+            Dim::<[usize; 4]>::new([1 as usize, shape[1] as usize, shape[2] as usize, shape[3] as usize]), 
+            data.to_vec()
+        ).unwrap();
+        // 转换为动态维度张量
+        let array_dyn = array.into_dyn();
+        let flow = array_dyn.to_shape(
+            Dim::<[usize; 4]>::new([1 as usize, shape[1] as usize, shape[2] as usize, shape[3] as usize])
+        ).unwrap();
+        // 映射所有值（此处未做实际转换，保留原值）
+        let resized_flow = flow.mapv(|val| val);
+        let resized_flow_dyn = resized_flow.into_dyn();
+        // 返回
+        resized_flow_dyn
+    }
+
+}
+
+fn main() -> Result<()> {
+    // 模型文件路径
+    let model_path = "../../assets/ailia-models/neuflow_v2/neuflow_sintel.onnx";
+    println!("模型文件路径{}", model_path);
+
+    // 初始化模型
+    let mut estimator = NeuFlowV2::new(model_path)?;
+
+    // 加载第一张图片
+    let img1 = image::open("./assets/frame_0016.png")?.to_rgb8();
+    // 加载第二张图片
+    let img2 = image::open("./assets/frame_0025.png")?.to_rgb8();
+
+    // 估计光流
+    let flow = estimator.estimate_flow(&img1, &img2)?;
+
+    // 绘制光流图
+    let flow_img = flow_to_image(&flow);
+
+    // 创建结果文件夹
+    std::fs::create_dir_all(Path::new("./result"))?;
+
+    // 保存结果图片
+    flow_img.save("./result/ort_optics.png")?;
+    println!("光流预测结果已保存到 ./result/ort_optics.png");
+
+    Ok(())
+}
+</code></pre><h3 id=-8>效果</h3><table><thead><tr><th>图片1<th>图片2<tbody><tr><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250414051723024-1689249792.png><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250414051727580-1413631242.png></table><table><thead><tr><th>Python结果<th>Rust结果<tbody><tr><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250414051752432-1121316918.png><td><img alt decoding=async loading=lazy src=https://img2024.cnblogs.com/blog/1048201/202504/1048201-20250414051802012-962821896.png></table></article><div><div class=post-copyright><div class=post-copyright__author_group><a class=post-copyright__author_img href=/about> <picture class="post-copyright__author_img_back progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> </a><div class=post-copyright__author_name>ByeIO·开发者博客</div><div class=post-copyright__author_desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div></div><div class=post-tools id=post-tools><div class=post-tools-left><div class=rewardLeftButton><div class="reward-link mode"><a class=reward-link-button href=/subscribe> <i class=icon-plant-fill></i>订阅 </a></div></div><div class=shareRight><div class="copyright-link mobile"><div class=copyright-qrcode><div class=copyright-button title=使用手机访问这篇文章><i class=icon-qrcode></i></div><div class=copyright-main><div class=copyright-main-all><div id=qrcode></div><div class=reward-dec>使用手机访问这篇文章</div></div></div></div></div><div class="copyright-link copyurl"><div class=copyright-button id=post-share-url onclick=rm.copyPageUrl() title=复制链接><i class=icon-link></i></div></div></div></div></div><div class=post-copyright__notice><span class=post-copyright-info> 本文是原创文章，采用 <a href=/copyright target=_blank>CC BY-NC-ND 4.0</a> 协议，转载请注明 <a href=/ target=_blank>本站名称及地址</a> </span></div></div><div class=post-tools-right><div class=tag_share><div class=post-meta__tag-list><a class=post-meta__tags href=/tags/blog/> <span class=tags-punctuation>博客</span> <span class=tagsPageCount>31</span> </a><a class=post-meta__tags href=/tags/docs/> <span class=tags-punctuation>文档</span> <span class=tagsPageCount>25</span> </a><a class=post-meta__tags href=/tags/featured/> <span class=tags-punctuation>必看</span> <span class=tagsPageCount>30</span> </a><a class=post-meta__tags href=/tags/hot/> <span class=tags-punctuation>热门</span> <span class=tagsPageCount>30</span> </a></div></div></div><link href=/css/post-copyright-one.css rel=stylesheet></div><nav class="pagination-post needEndHide" id=pagination><div class="prev-post pull-left"><a href=/articles/docs/折腾笔记[23]-使用rust进行图像分割/> <div class=pagination-info><div class=label>上一篇</div><div class=prev_info>折腾笔记[23]-使用rust进行图像分割</div></div> </a></div><div class="next-post pull-right"><a href=/articles/docs/折腾笔记[5]-使用rust解矩阵方程/> <div class=pagination-info><div class=label>下一篇</div><div class=next_info>折腾笔记[5]-使用rust解矩阵方程</div></div> </a></div></nav><div class=relatedPosts><div class=headline><i class=icon-cainixihuan style=font-size:1.1rem></i><span>喜欢这篇文章的人也看了</span></div><div class=relatedPosts-list><div><a href=/articles/docs/ROS笔记[1]-搭建Gazebo仿真环境/ title=ROS笔记[1]-搭建Gazebo仿真环境> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[1]-搭建Gazebo仿真环境</div></div> </a></div><div><a href=/articles/docs/ROS笔记[2]-获取OpenMV数据并发布到ROS消息/ title=ROS笔记[2]-获取OpenMV数据并发布到ROS消息> <picture class="cover progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> <div class="content is-center"><div class=date><i class="far fa-calendar-alt fa-fw"></i> 2025-01-01</div><div class=title>ROS笔记[2]-获取OpenMV数据并发布到ROS消息</div></div> </a></div></div></div><link href=/css/related-posts-two.css rel=stylesheet><hr></div><div class=aside-content id=aside-content><div class="card-widget card-info"><div class=card-content><div class="card-info-avatar is-center"><div class=author-info__top-group><div class=author-info__sayhi id=author-info__sayhi onclick=wjx.changeSayHelloText()>好久不见，你终于来了</div></div></div><div class=avatar-img-group><picture class="avatar-img progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture></div><div class=author-info__description_group>为创造者而生的开源 Zola 主题~</div><div class=author-info__bottom-group><a class=author-info__bottom-group-left href=/about> <div class=author-info__name>qsbye</div> <div class=author-info__desc>ByeIO·开发者博客|技术解决方案|开发思考|总结</div> </a><div class="card-info-social-icons is-center"><a rel="external nofollow" class=social-icon href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=GitHub> <i class=icon-github></i> </a></div></div></div><style>.avatar-img-group:before{content:"";-o-transition:1s;background:var(--wjx-green);border:5px solid var(--wjx-background);z-index:2;border-radius:50%;width:26px;height:26px;-webkit-transition:all 1s;-moz-transition:all 1s;-ms-transition:all 1s;transition:all 1s;position:absolute;bottom:2px;right:2px}.card-info-avatar.is-center{flex-direction:column;align-items:flex-start;display:flex}#aside-content .card-info .avatar-img{opacity:1;border:5px solid var(--wjx-white);border-radius:500px;width:118px;transition:all .3s;position:absolute;top:0;right:0;overflow:hidden}.page #aside-content .card-info .avatar-img{border-color:var(--wjx-card-bg)}.author-info__top-group{width:100%;height:28px;display:flex}.avatar-img-group{transform-origin:bottom;border-radius:500px;width:118px;height:118px;transition:all .3s cubic-bezier(.69,.39,0,1.21);position:absolute;top:90px;right:calc(50% - 59px)}#aside-content .card-info:hover .avatar-img-group{opacity:0;transform:scale(0)}.author-info__bottom-group{justify-content:space-between;align-items:center;width:100%;padding:1.2rem;display:flex;position:absolute;bottom:0;left:0}a.author-info__bottom-group-left:hover{opacity:.8}#aside-content .card-info .card-info-social-icons{cursor:pointer;flex-flow:wrap;justify-content:flex-start;margin:0;display:flex}#aside-content .card-info .card-info-social-icons i:hover{cursor:pointer;background-color:#000;transform:rotate(540deg)}#aside-content .card-info .card-info-social-icons .social-icon{margin:0 0 0 8px}#aside-content .card-info .card-info-social-icons i{background:var(--wjx-white-op);color:var(--wjx-white);justify-content:center;align-items:center;width:40px;height:40px;font-size:1rem;display:flex}#aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-white);color:var(--wjx-main);box-shadow:none;transform:scale(1.1)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{background:var(--wjx-black-op);color:var(--wjx-card-bg)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i:hover{background:var(--wjx-card-bg);color:var(--wjx-fontcolor)}#aside-content .card-info .banner-button{border-radius:20px;justify-content:center;width:118px;height:40px}@media screen and (width>=1300px){#aside-content .card-info .card-info-social-icons i{color:var(--wjx-white)}[data-theme=dark] .page #aside-content .card-info .card-info-social-icons i{color:var(--wjx-card-bg)}}#aside-content .card-info .card-info-data>.card-info-data-item:hover{background:var(--wjx-post-blockquote-bg);transform:scale(.97)}#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.headline,#aside-content>div.card-widget.card-info>div.card-content>div.card-info-data>.card-info-data-item:hover>a>div.length-num{color:var(--wjx-blue)}.author-info__description_group{color:var(--wjx-white);opacity:0;width:100%;padding:1.2rem;transition:all .3s;position:absolute;top:50px;left:0}.card-widget:hover .author-info__description_group{opacity:1}.author-info__description2{text-align:justify;z-index:2;color:#fffc;width:100%;margin:.3rem 0;line-height:1.38}.author-info__description2 b{color:var(--wjx-white)}[data-theme=dark] .page div#author-info__sayhi{background:var(--wjx-black-op);color:var(--wjx-black)}#aside-content .card-info .author-info__name{text-align:left;color:var(--wjx-white);margin-bottom:5px;font-size:20px;font-weight:700;line-height:1}.page #aside-content .card-info .author-info__name,.page .author-info__desc{color:var(--wjx-white)}.author-info__desc{color:var(--wjx-white);opacity:.6;font-size:12px;line-height:1}.author-info__description{text-align:justify;color:var(--wjx-white);opacity:1;margin:.3rem 0;line-height:1.38}.page .author-info__description{color:var(--wjx-card-bg)}.author-info__description b{color:var(--wjx-white);opacity:1}.page .author-info__description b{color:var(--wjx-card-bg);opacity:1}.avatar-sticker{z-index:0;background:var(--wjx-white);border-radius:50%;justify-content:center;align-items:center;width:33px;height:33px;line-height:34px;transition:all .3s ease-out .2s;display:flex;position:absolute;bottom:2px;right:2px;transform:scale(1)}.page .avatar-sticker{background:var(--wjx-card-bg)}.avatar-sticker img{width:26px;height:26px}.card-widget:hover .avatar-sticker{opacity:0;transform:scale(0)}.author-info__description b{color:var(--wjx-white)}#aside-content>.card-widget.card-info:before{background:linear-gradient(-25deg,var(--wjx-main),var(--wjx-main-op-deep),var(--wjx-main),var(--wjx-main-op-deep));content:"";background-size:400%;width:100%;height:100%;animation:15s infinite gradient;position:absolute;top:0;left:0}</style></div><div class="card-widget wjx-right-widget" onclick="javascript:window.open('/subscribe')" id=card-wechat><div id=flip-wrapper><div id=flip-content><div style="background:url(/img/wechat/qr-green.avif) 50%/100% no-repeat" class=face></div><div class="back face" style="background:url(/img/wechat/qr-white.avif) 50%/100% no-repeat"></div></div></div><style>#aside-content .card-widget#card-wechat{background:#07c160}#aside-content .card-widget#card-wechat:before{content:"";background:url(/img/wechat/gzh_cover.avif) 50%/cover no-repeat;width:100%;height:90%;transition:all .2s cubic-bezier(.45,.04,.43,1.21);position:absolute;top:0;left:0}#aside-content .card-widget#card-wechat:hover:before{opacity:0;transition:all .3s ease-out;top:100%}</style></div><div class=sticky_layout><div class=card-widget id=card-toc><div class=item-headline><i class=icon-bars></i><span>文章目录</span><span class=toc-percentage></span></div><div class=toc-content></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-chat--fill style=font-size:19px></i><span>最新评论</span></div><div class=aside-list id=newcomm></div></div><div class="card-widget card-recent-post"><div class=item-headline><i class=icon-eicon_map-2-line1></i><span>最近发布</span></div><div class=aside-list><div class=aside-list-item><a class=thumbnail href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/配置orangepi5pro运行rknn版本的yolov5/ title=配置orangepi5pro运行rknn版本的yolov5>配置orangepi5pro运行rknn版本的yolov5</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/计算机控制apm飞控自动飞行/ title=计算机控制apm飞控自动飞行>计算机控制apm飞控自动飞行</a></div></div><div class=aside-list-item><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=thumbnail> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a href="/articles/docs/翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight/" title="翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight" class=title>翻译[5]-基于rust和embassy异步框架的飞控固件_ Holsatus Flight</a></div></div><div class=aside-list-item><a class=thumbnail href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境> <picture class="post_bg progressive-picture"><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/img00006.8f57f1d144c2cfd7.webp><source media="(min-width: 75em)" srcset="/processed_images/img00006.688adcb5ebd82ad6.avif?w=75em"><source media="(min-width: 60em)" srcset="/processed_images/img00006.8e3bcf4e0c9fd77c.avif?w=60em"><source media="(min-width: 45em)" srcset="/processed_images/img00006.08513801052a4920.avif?w=45em"><source media="(min-width: 30em)" srcset="/processed_images/img00006.0928215d8428e769.avif?w=30em"><source media="(min-width: 22em)" srcset="/processed_images/img00006.c83fffe523ead88b.avif?w=22em"><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" srcset="/processed_images/img00006.0beae348737c79a0.webp?w=22em 360w,
+              /processed_images/img00006.1e5d356251b272fe.webp?w=30em 500w,
+              /processed_images/img00006.c010a791dd57f875.webp?w=45em 720w,
+              /processed_images/img00006.86f2248bcd34f02f.webp?w=60em 960w,
+              /processed_images/img00006.799278f602588342.webp?w=75em 1200w" class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this)><noscript><img src="/processed_images/img00006.1e5d356251b272fe.webp?w=30em" decoding=async loading=lazy></noscript></picture> </a><div class=content><a class=title href=/articles/docs/搭建ArduPilot的SITL仿真环境/ title=搭建ArduPilot的SITL仿真环境>搭建ArduPilot的SITL仿真环境</a></div></div></div></div><div class="card-widget card-categories"><div class=item-headline><i class=icon-folder-open></i><span>分类</span></div><div class=aside-list><ul class=card-category-list><li class=card-category-list-item><a class=card-category-list-link href=/categories/misc/ rel=tag> <span class=card-category-list-name>杂谈</span> <span class=card-category-list-count>6</span> </a><li class=card-category-list-item><a class=card-category-list-link href=/categories/theme/ rel=tag> <span class=card-category-list-name>主题</span> <span class=card-category-list-count>25</span> </a></ul></div></div></div></div></main><footer id=footer><div id=wjx-footer-bar><div class=footer-logo>qsbye</div><div class=footer-bar-description>ByeIO·开发者博客|技术解决方案|开发思考|总结</div><a class=footer-bar-link href=/about>了解更多</a></div><div id=footer_deal><a rel="external nofollow noopener noreferrer" class=deal_link href=mailto:mail@example.com target=_blank title=Mail> <i class=icon-envelope></i> </a><picture class="footer_mini_logo progressive-picture" onclick="btf.scrollToDest(0, 500)" style=border-radius:500px><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img alt=返回顶部 class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img alt=返回顶部 decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture><a rel="external nofollow noopener noreferrer" class=deal_link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank title=Github> <i class=icon-github></i> </a></div><div id=wjx-footer><div class=footer-group><h3 class=footer-title>文库</h3><div class=footer-links><a class=footer-item data-pjax href=/archives target=_blank>全部文章</a><a class=footer-item data-pjax href=/categories target=_blank>分类列表</a><a class=footer-item data-pjax href=/tags target=_blank>标签列表</a><a class=footer-item data-pjax href=javascript:toRandomPost() target=_blank>随机文章</a></div></div><div class=footer-group><h3 class=footer-title>作品</h3><div class=footer-links><a class=footer-item data-pjax href=/articles/misc/lorem-ipsum target=_blank>Lorem Ipsum</a></div></div><div class=footer-group><h3 class=footer-title>协议</h3><div class=footer-links><a class=footer-item data-pjax href=/privacy target=_blank>隐私协议</a><a class=footer-item data-pjax href=/cookies target=_blank>Cookies</a><a class=footer-item data-pjax href=/copyright target=_blank>版权协议</a></div></div><div class=footer-group><div class=footer-title-group><h3 class=footer-title>友链</h3><button class=random-friends-btn id=footer-random-friends-btn onclick=javascript:wjx.addFriendLinksInFooter(); title=换一批友情链接><i class=icon-arrow-rotate-right style=font-size:16px></i></button></div><div class=footer-links id=friend-links-in-footer></div></div></div><div id=footer-bar style=padding:1rem><div class=footer-bar-links><div class=footer-bar-left><div id=footer-bar-tips><div class=copyright-group>© <span class=inline-word id=copyright-info>2025</span>  By  <a class=footer-bar-link href=/ target=_blank> <picture class=progressive-picture id=copyright-logo><img class=progressive-thumbnail decoding=async loading=lazy src=/processed_images/avatar.d5facb578cf12fdc.webp><source media="(min-width: 1em)" srcset=/processed_images/avatar.8bb6bf05eac51207.avif><img class=progressive-content decoding=async loading=lazy onload=progressiveLoad(this) src=/processed_images/avatar.06a48b3b45482d6b.webp><noscript><img decoding=async loading=lazy src=/processed_images/avatar.06a48b3b45482d6b.webp></noscript></picture> ByeIO·开发者博客 </a><script defer>var startYear = 2025;
+                            var currentYear = new Date().getFullYear();
+                            var copyrightInfo = `${startYear !== currentYear ? startYear + ' - ' : ''}${currentYear}`;
+                            document.getElementById('copyright-info').innerHTML = copyrightInfo;</script></div><div class=compliance-group><a rel="noopener external nofollow noreferrer" class=footer-bar-link href=https://beian.miit.gov.cn/#/Integrated/index target=_blank> ICP </a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang> <div class=status-light></div> <span>本站及主题基于 Zola 构建</span> </a></div></div></div><div class=footer-bar-right><a class=footer-bar-link href=/subscribe target=_blank>订阅</a><a class=footer-bar-link href=https://github.com/iWangJiaxiang/zola-theme-jiaxiang.wang target=_blank>主题</a><a class=footer-bar-link href=/about>关于</a><a class=footer-bar-link href=mailto:mail@example.com target=_blank>反馈</a><a class="footer-bar-link cc" href=/copyright rel=license target=_blank title=CC版权协议> <i class=icon-copyright-line></i> <i class=icon-creative-commons-by-line></i> <i class=icon-creative-commons-nc-line></i> <i class=icon-creative-commons-nd-line></i> </a></div></div></div><div id=quit-box onclick=RemoveRewardMask()></div><div class="comment-barrage needEndHide" style=display:none></div><style>a.footer-bar-link.cloud{align-items:center;display:flex}img.entered.loading.cloud{height:32px}</style></footer></div><div id=sidebar><div id=menu-mask></div><div id=sidebar-menus><span class=sidebar-menu-item-title>功能</span><div class=sidebar-menu-item><button class="darkmode_switchbutton menu-child" href=javascript:void(0); onclick=rm.switchDarkMode() title=显示模式切换><i class=icon-moon style=font-size:.9rem;line-height:2></i> <span>显示模式</span></button></div><div class=back-menu-list-groups><div class=back-menu-list-group><div class=back-menu-list-title>作品</div><div class=back-menu-list><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a><a class="back-menu-item nav-item" href=/articles/misc/lorem-ipsum>  <i class=icon-music style=font-size:.9em></i> <span class=back-menu-item-text>Lorem Ipsum</span> </a></div></div></div><div class=menus_items><div class=menus_item><button class=site-page><span>文库</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/archives> <i class="icon-book-open faa-tada" style=font-size:.9em></i> <span>全部文章</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/categories> <i class="icon-folder-open faa-tada" style=font-size:.9em></i> <span>分类列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags> <i class="icon-tags faa-tada" style=font-size:.9em></i> <span>标签列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:toRandomPost()> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>随机文章</span> </a></ul></div><div class=menus_item><a class=site-page href=/tags/work> <span>推荐</span> </a><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/docs/readme> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>博客主题介绍</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/articles/misc/lorem-ipsum> <i class="icon-music faa-tada" style=font-size:.9em></i> <span>Lorem Ipsum</span> </a></ul></div><div class=menus_item><button class=site-page><span>友链</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/friends> <i class="icon-link faa-tada" style=font-size:.9em></i> <span>友链列表</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=javascript:travelling()> <i class="icon-paper-plane faa-tada" style=font-size:.9em></i> <span>随机发现</span> </a></ul></div><div class=menus_item><button class=site-page><span>我的</span></button><ul class=menus_item_child><li><a class="site-page child faa-parent animated-hover" draggable=false href=/about> <i class="icon-rocket faa-tada" style=font-size:.9em></i> <span>关于本人</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/equipment> <i class="icon-artstation faa-tada" style=font-size:.9em></i> <span>我的装备</span> </a><li><a class="site-page child faa-parent animated-hover" draggable=false href=/tags/project> <i class="icon-lightbulb faa-tada" style=font-size:.9em></i> <span>我的项目</span> </a></ul></div></div><span class=sidebar-menu-item-title>标签</span><div class="card-widget card-tags card-archives card-webinfo card-allinfo"><div class=item-headline></div><div class=card-tag-cloud><a class=tag-item href=/tags/blog/ style=font-size:1em title=博客>  博客<sup>31</sup> </a><a class=tag-item href=/tags/docs/ style=font-size:1em title=文档>  文档<sup>25</sup> </a><a class=tag-item href=/tags/featured/ style=font-size:1em title=必看>  必看<sup>30</sup> </a><a class=tag-item href=/tags/hot/ style=font-size:1em title=热门>  热门<sup>30</sup> </a><a class=tag-item href=/tags/project/ style=font-size:1em title=项目>  项目<sup>1</sup> </a><a class=tag-item href=/tags/work/ style=font-size:1em title=work>  work<sup>1</sup> </a></div></div></div></div><div id=console><div class=close-btn href=javascript:void(0); onclick=wjx.hideConsole()><i class=icon-circle-xmark></i></div><div class=console-card-group><div class=console-card-group-left><div class=console-card id=card-newest-comments onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>互动</div><span class=author-content-item-title>最近评论</span></div><div class=aside-list><span>正在加载中...</span></div></div></div><div class=console-card-group-right><div class="console-card tags" onclick=wjx.hideConsole()><div class=card-content><div class=author-content-item-tips>标签</div><span class=author-content-item-title>寻找感兴趣的领域</span></div><div class=card-tag-cloud><a href=/tags/blog/ rel=tag style=color:#d3d3d3;font-size:1em> 博客<sup>31</sup> </a><a href=/tags/docs/ rel=tag style=color:#d3d3d3;font-size:1em> 文档<sup>25</sup> </a><a href=/tags/featured/ rel=tag style=color:#d3d3d3;font-size:1em> 必看<sup>30</sup> </a><a href=/tags/hot/ rel=tag style=color:#d3d3d3;font-size:1em> 热门<sup>30</sup> </a><a href=/tags/project/ rel=tag style=color:#d3d3d3;font-size:1em> 项目<sup>1</sup> </a><a href=/tags/work/ rel=tag style=color:#d3d3d3;font-size:1em> work<sup>1</sup> </a></div></div><div class="console-card history" onclick=wjx.hideConsole()><div class=item-headline><i class="fas fa-archive"></i><span>文章</span></div><ul class=card-archive-list><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2025 1月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>25</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul><ul><li class=card-archive-list-item><a class=card-archive-list-link href=/archives> <span class=card-archive-list-date> 2024 12月 </span> <div class=card-archive-list-count-group><span class=card-archive-list-count>6</span><span class=card-archive-list-count-unit>篇</span></div> </a></ul></ul></div></div></div><div class=button-group><div class=console-btn-item><button rel="external nofollow" class=darkmode_switchbutton href=javascript:void(0); onclick=navFn.switchDarkMode(); title=显示模式切换><i class=icon-moon-clear-fill style=font-size:1rem></i></button></div><div class=console-btn-item id=consoleHideAside onclick=wjx.hideAsideBtn() title=边栏显示控制><button class=asideSwitch title=侧边栏开关><i class=icon-arrows-left-right></i></button></div><div class="console-btn-item on" id=consoleCommentBarrage onclick=wjx.switchCommentBarrage() title=热评开关><button class=commentBarrage><i class=icon-chat--fill></i></button></div></div><div class=console-mask href=javascript:void(0); onclick=wjx.hideConsole()></div></div><div id=rightside><div id=rightside-config-hide><button id=translateLink title=简繁转换 type=button>繁</button><button id=darkmode title=浅色和深色模式转换 type=button><i class=icon-circle-half-stroke></i></button><button id=hide-aside-btn title=单栏和双栏切换 type=button><i class=icon-arrows-left-right></i></button></div><div id=rightside-config-show><button id=rightside-config title=设置 type=button><i class=icon-gear></i></button><a href=#post-comment id=to_comment title=直达评论><i class=icon-chat--fill style=font-size:17px></i></a><button id=go-up title=回到顶部 type=button><i class=icon-arrow-up></i></button></div></div><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/css/read-mode.css rel=preload><noscript><link href=/css/read-mode.css rel=stylesheet></noscript><div class=js-pjax><div id=rightMenu><div class="rightMenu-group rightMenu-small"><div class=rightMenu-item id=menu-backward><i class=icon-arrow-left></i></div><div class=rightMenu-item id=menu-forward><i class=icon-arrow-right></i></div><div class=rightMenu-item id=menu-refresh><i class=icon-arrow-rotate-right></i></div><div class=rightMenu-item id=menu-top><i class=icon-arrow-up></i></div></div><div class="rightMenu-group rightMenu-line rightMenuPlugin"><div class=rightMenu-item id=menu-copytext><i class=icon-copy></i><span>复制选中文本</span></div><div class=rightMenu-item id=menu-pastetext><i class=icon-paste></i><span>粘贴文本</span></div><a class=rightMenu-item id=menu-commenttext> <i class=icon-comment-medical></i> <span>引用到评论</span> </a><div class=rightMenu-item id=menu-newwindow><i class=icon-window-restore></i><span>新窗口打开</span></div><div class=rightMenu-item id=menu-copylink><i class=icon-link></i><span>复制链接地址</span></div><div class=rightMenu-item id=menu-copyimg><i class=icon-images></i><span>复制此图片</span></div><div class=rightMenu-item id=menu-downloadimg><i class=icon-download></i><span>下载此图片</span></div><div class=rightMenu-item id=menu-newwindowimg><i class=icon-window-restore></i><span>新窗口打开图片</span></div><div class=rightMenu-item id=menu-search><i class=icon-search--line></i><span>站内搜索</span></div><div class=rightMenu-item id=menu-searchBaidu><i class=icon-baidu></i><span>百度搜索</span></div><div class=rightMenu-item id=menu-music-toggle><i class=icon-play></i><span>播放音乐</span></div><div class=rightMenu-item id=menu-music-back><i class=icon-backward></i><span>切换到上一首</span></div><div class=rightMenu-item id=menu-music-forward><i class=icon-forward></i><span>切换到下一首</span></div><div onclick="javascript:window.open('https://y.qq.com/n/ryqq/playlist/xxxxx')" class=rightMenu-item id=menu-music-playlist><i class=icon-radio></i><span>查看所有歌曲</span></div><div class=rightMenu-item id=menu-music-copyMusicName><i class=icon-copy></i><span>复制歌名</span></div></div><div class="rightMenu-group rightMenu-line rightMenuOther"><a class="rightMenu-item menu-link" id=menu-randomPost onclick=toRandomPost()> <i class=icon-shuffle></i> <span>随便逛逛</span> </a><a class="rightMenu-item menu-link" href=../categories> <i class=icon-cube></i> <span>博客分类</span> </a><a class="rightMenu-item menu-link" href=../tags> <i class=icon-tags></i> <span>文章标签</span> </a></div><div class="rightMenu-group rightMenu-line rightMenuOther"><div class=rightMenu-item id=menu-copy><i class=icon-copy></i><span>复制地址</span></div><div class=rightMenu-item draggable=false id=menu-commentBarrage style=display:flex><i class=icon-chat--fill style=font-size:19px></i><span class=menu-commentBarrage-text>显示热评</span></div><div class=rightMenu-item id=menu-darkmode><i class=icon-moon-clear-fill style=font-size:19px></i><span class=menu-darkmode-text>深色模式</span></div><div class=rightMenu-item id=menu-translate><i class=icon-fanti style=font-size:19px></i><span>轉為繁體</span></div></div></div><div id=rightmenu-mask></div></div><script defer onload src=/libs/qrcode/qrcode.min.js></script><script defer src=/libs/view-image/view-image.min.js></script><script defer src=/libs/tocbot/4.18.2/tocbot.min.js></script><link onload="this.onload=null;this.rel='stylesheet'" as=style href=/libs/tocbot/4.18.2/tocbot.css rel=preload><noscript><link href=/libs/tocbot/4.18.2/tocbot.css rel=stylesheet></noscript><script async src=/libs/snackbar/snackbar.min.js></script><script>var meting_api = "https:&#x2F;&#x2F;api.i-meto.com&#x2F;meting&#x2F;api?server=:server&amp;type=:type&amp;id=:id&amp;r=:r";</script><canvas height=880 id=universe width=1312></canvas><script defer src=/libs/canvas/dark.js></script><script src=/libs/waterfall/waterfall.min.js></script><script src=/libs/fast-average-color/index.browser.min.js></script><script>let pjaxSelectors = ['title', '#body-wrap', '#rightside-config-hide', '#rightside-config-show', '.js-pjax', '#site-config']
+          
+    pjaxSelectors.unshift('meta[property="og:type"]', 'meta[property="og:image"]', 'meta[property="og:title"]', 'meta[property="og:url"]', 'meta[property="og:description"]'
+            , 'meta[name="twitter:title"]', 'meta[name="twitter:url"]', 'meta[name="twitter:description"]', 'meta[name="twitter:image"]', 'meta[name="description"]')
+    
+    var pjax = new Pjax({
+        elements: 'a:not([target="_blank"])',
+        selectors: pjaxSelectors,
+        cacheBust: false,
+        //debug: true,        
+        analytics: false,
+        scrollRestoration: false
+    })</script><script defer src=/js/rightmenu.js></script><script data-pjax defer src=/production/js/abstract/local.js></script><script data-pjax defer src=/production/js/bundle.js></script><script defer src=/js/tw_cn.js></script><script defer src=/libs/instantpage/instantpage.min.js type=module></script><link onload="this.rel='stylesheet'" as=style href=/libs/prism/prism.min.css rel=preload><noscript><link href=/libs/prism/prism.min.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style href=/libs/prism/code.css rel=preload><noscript><link href=/libs/prism/code.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=light href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><link onload="this.rel='stylesheet'" as=style data-code-theme=dark href=/libs/prism/themes/prism-one-dark.css rel=preload><noscript><link href=/libs/prism/themes/prism-one-dark.css rel=stylesheet></noscript><script defer src=/libs/prism/prism.min.js></script><style>#article-container .code-toolbar pre.close{height:300px;overflow:hidden}</style>
